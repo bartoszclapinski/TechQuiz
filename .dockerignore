@@ -1,0 +1,59 @@
+# Build artifacts
+**/bin
+**/obj
+**/dist
+**/build
+**/.vite
+
+# Frontend
+**/node_modules
+**/.pnpm-store
+
+# IDE / OS
+**/.vs
+**/.idea
+**/.vscode
+**/.DS_Store
+**/Thumbs.db
+**/*.user
+**/*.userosscache
+**/*.suo
+
+# Git / GitHub
+.git
+.gitignore
+.github
+.gitattributes
+
+# Claude Code
+.claude
+
+# Docs (not needed in image)
+docs
+.ai
+
+# Tests (not needed in runtime image — built separately if integration tests need container)
+**/[Tt]est[Rr]esult*
+**/coverage
+**/*.coverage
+
+# Logs / temp
+**/*.log
+**/logs
+
+# Secrets / local config (defense-in-depth — these should already be in .gitignore)
+**/.env
+**/.env.local
+**/*.env.local
+**/appsettings.Local.json
+**/secrets.json
+
+# Docker self
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# README & meta
+README.md
+CLAUDE.md
+LICENSE
