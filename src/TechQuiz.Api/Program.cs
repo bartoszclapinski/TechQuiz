@@ -1,8 +1,13 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ─── Logging ─────────────────────────────────────────────────────────────────
+
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
 // ─── Services ────────────────────────────────────────────────────────────────
 
@@ -39,6 +44,8 @@ builder.Services.AddAuthorization();
 // ─── Pipeline ────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
