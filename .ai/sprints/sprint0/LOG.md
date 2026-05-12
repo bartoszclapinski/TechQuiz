@@ -76,3 +76,49 @@
 - **`trim_trailing_whitespace = false` for Markdown** — required because Markdown uses trailing double-space as a hard line break.
 
 **Weryfikacja:** pending — commit + push + PR + squash merge to follow this write.
+
+---
+
+## 2026-05-12 — Krok 3: Solution + 7 projects + project references
+
+**Co zrobione (4 atomic commits within `feat/project-skeleton` branch):**
+
+1. `chore: create empty solution` — `dotnet new sln -n TechQuiz`.
+2. `chore: scaffold src projects (Domain, Application, Infrastructure, Api)` — created 4 src projects targeting `net9.0`:
+   - `TechQuiz.Domain` (`classlib`)
+   - `TechQuiz.Application` (`classlib`)
+   - `TechQuiz.Infrastructure` (`classlib`)
+   - `TechQuiz.Api` (`webapi --use-controllers`)
+
+   Removed template noise: `Class1.cs` in each classlib, `WeatherForecast.cs` + `Controllers/WeatherForecastController.cs` + `TechQuiz.Api.http` in Api. Empty `Controllers/` folder removed (will be recreated in iteration 1.4 when controllers arrive).
+
+   Added all 4 to solution under `src/` solution folder.
+
+3. `chore: scaffold test projects` — created 3 xunit projects under `tests/`:
+   - `TechQuiz.Domain.Tests`
+   - `TechQuiz.Application.Tests`
+   - `TechQuiz.Infrastructure.Tests`
+
+   Removed template `UnitTest1.cs` from each. Added to solution under `tests/` solution folder.
+
+4. `chore: wire project references per Clean Architecture (ADR-001)` — 6 references:
+   - `Application → Domain`
+   - `Infrastructure → Application` (transitively → Domain)
+   - `Api → Application + Infrastructure`
+   - `Domain.Tests → Domain`
+   - `Application.Tests → Application`
+   - `Infrastructure.Tests → Infrastructure`
+
+   Domain still has **zero project references** (correct: it's the dependency root per ADR-001).
+
+**Decyzje:**
+- **`webapi --use-controllers` (not minimal API).** CLAUDE.md and iteration 1.4 both reference controller-based design (`AuthController`, `CategoriesController`, `QuizzesController`). Keeps a thin controller layer over MediatR per ADR-006.
+- **Removed all `Class1.cs` / `UnitTest1.cs` / `WeatherForecast*` placeholders.** They serve no purpose; iteration 1.1 will populate Domain with real entities via TDD.
+- **`launchSettings.json` left as-is** — ports `5032`/`7145` for local `dotnet run`. Docker compose will use `8080` per iteration 0.1 task 8.
+- **`appsettings.Development.json`** — not committed (`.gitignore` rule). Per project convention, sensitive dev config goes through user-secrets or env vars, not VCS.
+- **`net9.0` explicit `--framework`** flag on every `dotnet new` — even though `global.json` pins to 9.0.312, the explicit framework hardens against future SDK drift.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- `dotnet test TechQuiz.sln` → exit code 0 ("no tests available" is expected — placeholders removed, real tests come in iteration 1.1).
+- `git log --oneline feat/project-skeleton ^master` → 4 commits stacked on top of `aa0acc3` (post-merge master tip).
