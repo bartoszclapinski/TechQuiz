@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TechQuiz.Application\TechQuiz.Application.csproj" />
+  </ItemGroup>
+
 </Project>
