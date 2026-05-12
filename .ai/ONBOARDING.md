@@ -229,10 +229,10 @@ Check the latest commits and `git log` for current state.
 - **Why "what" matters less than "why":** if the change rationale isn't obvious from the diff, explain in the commit body.
 
 ### Branches
-- **`main`** — always green (CI passes, app runs)
+- **`master`** — always green (CI passes, app runs), protected, never pushed to directly
 - **`feature/short-description`** — new features (squash-merged)
 - **`fix/short-description`** — bug fixes
-- For now (single contributor, fast iteration): commit directly to `main` is acceptable for trivial changes. Use feature branches for non-trivial work.
+- **Discipline:** never commit directly to `master`, not even trivial changes. Every change goes through a feature branch + PR + squash merge. One iteration = one PR.
 
 ### Pull Requests
 - Even solo: open PRs for non-trivial changes. Forces self-review.

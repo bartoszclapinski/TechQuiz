@@ -185,7 +185,7 @@ Allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `per
 
 ### Consequences
 - Git history is consistently readable and filterable
-- Squash merges produce clean commits on `main`
+- Squash merges produce clean commits on `master`
 - Enables future automation (changelog generation, semantic versioning) if needed
 - Adds a small setup step in Phase 0 (npm init, commitlint install, husky setup)
 - Demonstrates production-grade discipline to recruiters
@@ -198,16 +198,16 @@ Allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `per
 **Date:** 2026-05-11
 
 ### Context
-Branching strategies range from trunk-based (commit directly to `main`) to Git Flow (multiple long-lived branches). For a solo project, the question is whether the overhead of a feature-branch workflow is worth the discipline and portfolio signal.
+Branching strategies range from trunk-based (commit directly to `master`) to Git Flow (multiple long-lived branches). For a solo project, the question is whether the overhead of a feature-branch workflow is worth the discipline and portfolio signal.
 
 ### Decision
-The project uses **GitHub Flow**: feature branches, pull requests with self-review, and squash merge to `main`. Branch protection rules on `main` enforce the workflow.
+The project uses **GitHub Flow**: feature branches, pull requests with self-review, and squash merge to `master`. Branch protection rules on `master` enforce the workflow.
 
 Branch naming follows the same vocabulary as commit types: `feature/short-description`, `fix/short-description`, `refactor/short-description`, etc.
 
 ### Consequences
 - Every feature has a self-review checkpoint before merging
-- `main` history stays clean with one commit per feature
+- `master` history stays clean with one commit per feature
 - CI gates merges (tests must pass)
 - Demonstrates standard commercial workflow to recruiters
 - Adds minor overhead per change; mitigated by branch naming automation
@@ -401,11 +401,11 @@ The project needs continuous integration on PRs and continuous deployment to a p
 
 ### Decision
 
-**Branch protection.** `main` is protected. All changes go through pull requests. CI must pass before merge. Review approvals are not required (solo project). Squash-merge only, linear history enforced. Force pushes and deletions blocked.
+**Branch protection.** `master` is protected. All changes go through pull requests. CI must pass before merge. Review approvals are not required (solo project). Squash-merge only, linear history enforced. Force pushes and deletions blocked.
 
 **Required CI checks.** Three jobs run on every PR: backend (`dotnet build` + `dotnet test` against ephemeral PostgreSQL service), frontend (`pnpm lint` + `pnpm build`), and commitlint (PR title + every commit in PR validated against Conventional Commits).
 
-**Semantic-release.** Automated versioning and CHANGELOG generation enabled from the start, not deferred. Triggered on every push to `main`. Commit types determine version bump (`feat:` → minor, `fix:` → patch, `BREAKING CHANGE` → major). Releases create Git tags and GitHub Releases automatically.
+**Semantic-release.** Automated versioning and CHANGELOG generation enabled from the start, not deferred. Triggered on every push to `master`. Commit types determine version bump (`feat:` → minor, `fix:` → patch, `BREAKING CHANGE` → major). Releases create Git tags and GitHub Releases automatically.
 
 **Staging deployment.** Azure App Service (Linux, .NET 9 runtime) chosen as deploy target instead of Fly.io, Railway, or Render. The rationale is portfolio fit: this project targets .NET developer roles, and Azure familiarity is a directly relevant signal for those positions. Staging deploys are scheduled as iteration 1.8, after Phase 1 (MVP) feature work completes.
 
@@ -414,8 +414,8 @@ The project needs continuous integration on PRs and continuous deployment to a p
 **Secret management.** GitHub Secrets at the repository level for shared values (Azure credentials). GitHub Environments (`staging`, eventually `production`) for environment-specific overrides. Local development uses `dotnet user-secrets` — no secrets committed.
 
 ### Consequences
-- Every commit on `main` represents a passing build — `main` is always deployable
-- Squash-merge keeps history readable: one commit per feature on `main`, full granularity preserved in PR
+- Every commit on `master` represents a passing build — `master` is always deployable
+- Squash-merge keeps history readable: one commit per feature on `master`, full granularity preserved in PR
 - semantic-release produces real version numbers from day one, building a meaningful tag history for the portfolio
 - Azure App Service signals .NET cloud familiarity to recruiters — directly relevant to most job postings in the niche
 - App Service free tier has cold starts; portfolio demos may need to "wake up" the app — acceptable trade-off for $0 hosting cost

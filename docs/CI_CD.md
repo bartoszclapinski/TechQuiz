@@ -6,22 +6,22 @@ This document describes the continuous integration and deployment setup for Tech
 
 ```
 ┌──────────────┐   ┌────────────┐   ┌─────────────┐   ┌──────────────┐
-│ Feature      │ → │ PR to main │ → │ Squash      │ → │ Auto release │
+│ Feature      │ → │ PR to master │ → │ Squash    │ → │ Auto release │
 │ branch       │   │ + CI green │   │ merge       │   │ + deploy     │
 └──────────────┘   └────────────┘   └─────────────┘   └──────────────┘
 ```
 
 1. Work happens on feature branches (`feat/auth-flow`, `fix/quiz-progress-bar`)
-2. PR to `main` triggers CI (build + test + lint + commitlint)
+2. PR to `master` triggers CI (build + test + lint + commitlint)
 3. After CI passes, the PR can be squash-merged
-4. Merge to `main` triggers semantic-release → version bump → tag → CHANGELOG update
+4. Merge to `master` triggers semantic-release → version bump → tag → CHANGELOG update
 5. Release event triggers deploy to Azure App Service (staging)
 
 ## Workflows
 
 ### `ci.yml` — Continuous Integration
 
-Runs on every PR to `main` and every push to `main`.
+Runs on every PR to `master` and every push to `master`.
 
 **Jobs:**
 
@@ -37,9 +37,9 @@ The backend job uses GitHub Actions service containers for PostgreSQL so integra
 
 ### `release.yml` — Semantic Release
 
-Runs on push to `main` (i.e., after a PR is merged).
+Runs on push to `master` (i.e., after a PR is merged).
 
-Reads commit messages on `main` since last release. Decides version bump based on Conventional Commit types:
+Reads commit messages on `master` since last release. Decides version bump based on Conventional Commit types:
 
 - `feat:` → minor bump (e.g., `1.2.0` → `1.3.0`)
 - `fix:`, `perf:`, `refactor:` → patch bump (e.g., `1.2.0` → `1.2.1`)
@@ -50,7 +50,7 @@ On a successful release, the workflow:
 1. Updates `CHANGELOG.md`
 2. Creates a Git tag `vX.Y.Z`
 3. Creates a GitHub Release with auto-generated notes
-4. Pushes a `chore(release): vX.Y.Z` commit back to `main` (the only commit on `main` not from a PR — recognised by branch protection because the GitHub Actions bot has bypass)
+4. Pushes a `chore(release): vX.Y.Z` commit back to `master` (the only commit on `master` not from a PR — recognised by branch protection because the GitHub Actions bot has bypass)
 
 Configuration: `.releaserc.json` at repo root.
 
@@ -90,7 +90,7 @@ The `staging` environment in GitHub (**Settings → Environments → staging**) 
 
 - Environment-specific secrets (overrides repo-level secrets if needed)
 - Optional manual approval gate before each deploy
-- Deployment branch policy: only `main` can deploy to staging
+- Deployment branch policy: only `master` can deploy to staging
 
 When production deployment is added (Phase 4), a separate `production` environment will require manual approval and pin to git tags only, not arbitrary commits.
 

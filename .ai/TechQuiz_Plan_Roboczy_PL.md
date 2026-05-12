@@ -100,8 +100,8 @@ F:\Repos\TechQuiz\
 - [ ] `AuthController` z `Register` i `Login`
 - [ ] Pierwszy test TDD: `ApplicationUserTests` (trivial, na zielono)
 - [ ] Integration test: register + login flow z `WebApplicationFactory`
-- [ ] GitHub Actions workflow (build + test on PR + push to main)
-- [ ] Branch protection rules na `main`:
+- [ ] GitHub Actions workflow (build + test on PR + push to master)
+- [ ] Branch protection rules na `master`:
   - Require PR before merging
   - Require status checks to pass
   - Automatically delete head branches
@@ -117,7 +117,7 @@ F:\Repos\TechQuiz\
 - ✅ Login zwraca JWT
 - ✅ Seq pokazuje logi rejestracji i logowania
 - ✅ Commit message bez `feat:`/`fix:`/etc. → odrzucony przez commitlint
-- ✅ Direct push do `main` → odrzucony przez branch protection
+- ✅ Direct push do `master` → odrzucony przez branch protection
 - ✅ GitHub Actions zielone na pierwszym PR
 
 ---
@@ -230,7 +230,7 @@ F:\Repos\TechQuiz\
 - [ ] Frontend tests (Vitest + RTL)
 - [ ] Docker: pełna konteneryzacja (API + React + DB + Seq w jednym docker-compose)
 - [ ] Deployment na Railway / Render / Azure (decyzja w trakcie Fazy 4)
-- [ ] CI/CD: deploy na staging po merge do main
+- [ ] CI/CD: deploy na staging po merge do master
 - [ ] README polish: screenshots, demo GIF, badges
 - [ ] LinkedIn post o projekcie
 
