@@ -20,13 +20,13 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 - xUnit + FluentAssertions + NSubstitute
 
 **Frontend**
-- React 18 with TypeScript
-- Vite
-- TanStack Query
-- React Router v6
-- Tailwind CSS
-- Monaco Editor (for code questions)
-- Recharts (for progress dashboards)
+- React 19 with TypeScript
+- Vite 8
+- TanStack Query (Phase 1+)
+- React Router v6 (Phase 1+)
+- Tailwind CSS v3
+- Monaco Editor (Phase 3 — for code questions)
+- Recharts (Phase 2 — for progress dashboards)
 
 **AI Integration**
 - Multi-provider abstraction (OpenAI, Anthropic Claude, extensible)
@@ -74,42 +74,64 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 ## Quick Start
 
 ### Prerequisites
-- .NET 9 SDK
-- Node.js 20+
-- Docker Desktop
+- Docker Desktop (with WSL2 backend on Windows)
 - Git
+- For local development outside Docker: .NET 9 SDK + Node.js 20+ + pnpm 9
 
-### Local Development
+### Run the full stack with Docker
 
 ```bash
-# Clone the repository
-git clone https://github.com/bartoszclapinski/techquiz.git
-cd techquiz
+# Clone
+git clone https://github.com/bartoszclapinski/TechQuiz.git
+cd TechQuiz
 
-# Start PostgreSQL and Seq via Docker
+# Start all 4 services (API + web + PostgreSQL + Seq)
 docker compose up -d
 
-# Apply database migrations
-dotnet ef database update --project src/TechQuiz.Infrastructure --startup-project src/TechQuiz.API
-
-# Run the API (in one terminal)
-dotnet run --project src/TechQuiz.API
-
-# Run the frontend (in another terminal)
-cd client
-npm install
-npm run dev
+# Verify
+curl http://localhost:8080/health        # API → "Healthy"
+open http://localhost:5173               # Web → React app
+open http://localhost:8081               # Seq log explorer (no auth in dev)
 ```
 
-The API will be available at `http://localhost:5000`, the frontend at `http://localhost:5173`, and Seq at `http://localhost:5341`.
+Service ports:
+- **API** → `http://localhost:8080` (health check at `/health`, OpenAPI at `/openapi/v1.json`)
+- **Web** → `http://localhost:5173`
+- **PostgreSQL** → `localhost:5433` (user `techquiz` / password `techquiz_dev` / db `techquiz`)
+- **Seq UI** → `http://localhost:8081` · ingest → `localhost:5341`
 
-### Demo Credentials
-```
-Email:    demo@techquiz.dev
-Password: Demo123!
+Tear down:
+```bash
+docker compose down       # stops services, keeps volumes
+docker compose down -v    # also wipes postgres + seq data
 ```
 
-The demo user has historical quiz attempts seeded for dashboard testing.
+### Run the API locally (without Docker)
+
+The API expects a JWT signing key from `dotnet user-secrets` and a PostgreSQL instance. Start postgres + seq in Docker, then run the API on the host:
+
+```bash
+# Set a dev signing key (one-time per machine — anything ≥256 bits base64)
+dotnet user-secrets set "Jwt:SigningKey" "$(openssl rand -base64 64)" --project src/TechQuiz.Api
+
+# Start dependencies
+docker compose up -d postgres seq
+
+# Run API
+dotnet run --project src/TechQuiz.Api
+```
+
+### Run the web app locally
+
+```bash
+cd web
+pnpm install
+pnpm dev    # http://localhost:5173 with HMR
+```
+
+### Demo credentials
+
+> Demo user + seed questions land in **Phase 1** (iteration 1.3 — persistence). Until then `/health` is the only meaningful endpoint.
 
 ---
 
@@ -117,20 +139,46 @@ The demo user has historical quiz attempts seeded for dashboard testing.
 
 ```
 TechQuiz/
+├── TechQuiz.sln
+├── global.json                          # pins .NET 9.0.x SDK
+├── docker-compose.yml                   # api + web + postgres + seq
+├── .editorconfig                        # C# / TS / Markdown style rules
+├── commitlint.config.cjs                # conventional-commits enforcement
+├── package.json                         # root tooling only (husky + commitlint)
+│
 ├── src/
-│   ├── TechQuiz.Domain/          # Entities, value objects, domain logic
-│   ├── TechQuiz.Application/     # CQRS handlers, services, validators
-│   ├── TechQuiz.Infrastructure/  # EF Core, Identity, AI providers
-│   └── TechQuiz.API/             # ASP.NET Core Web API
+│   ├── TechQuiz.Domain/                 # Entities, value objects, domain rules (zero framework deps)
+│   ├── TechQuiz.Application/            # CQRS handlers, validators, DTOs, ports
+│   ├── TechQuiz.Infrastructure/         # EF Core, Identity, repositories, DI registration
+│   │   ├── DependencyInjection.cs       # AddInfrastructure(IServiceCollection, IConfiguration)
+│   │   └── Persistence/
+│   │       ├── AppDbContext.cs          # IdentityDbContext<ApplicationUser>
+│   │       └── Identity/ApplicationUser.cs
+│   └── TechQuiz.Api/                    # ASP.NET Core Web API + Dockerfile
+│
 ├── tests/
-│   ├── TechQuiz.Domain.Tests/
-│   └── TechQuiz.Application.Tests/
-├── client/                       # React + TypeScript frontend
+│   ├── TechQuiz.Domain.Tests/           # Pure unit tests (TDD-driven)
+│   ├── TechQuiz.Application.Tests/      # Handler tests with mocked repositories
+│   └── TechQuiz.Infrastructure.Tests/   # Integration tests with Testcontainers (Phase 1+)
+│
+├── web/                                 # Vite + React 19 + TypeScript + Tailwind
+│   ├── Dockerfile                       # multi-stage: node-alpine → nginx-alpine
+│   └── nginx.conf                       # SPA fallback + asset cache rules
+│
 ├── docs/
-│   ├── ARCHITECTURE.md           # Technical decisions and design
-│   └── DECISION_LOG.md           # ADR-style decision history
-├── docker-compose.yml
-└── README.md
+│   ├── ARCHITECTURE.md                  # System architecture + component patterns
+│   ├── DECISION_LOG.md                  # 17 ADRs covering tech + scope + UI decisions
+│   ├── CI_CD.md                         # Pipeline behavior + deploy strategy
+│   └── mockups/                         # Standalone HTML mockups, dark + light themes
+│
+├── .ai/                                 # Operational docs for AI assistants
+│   ├── ONBOARDING.md
+│   └── sprints/sprintN/                 # Per-phase iteration plans + LOG.md
+│
+└── .github/
+    ├── workflows/                       # ci.yml + release.yml + deploy-staging.yml
+    ├── BRANCH_PROTECTION.md             # Required protection rules (master)
+    └── PULL_REQUEST_TEMPLATE.md
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a detailed technical overview and [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) for the reasoning behind major decisions.
