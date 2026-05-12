@@ -207,3 +207,63 @@
 **Pauza — punkt wznowienia:**
 - Branch: `feat/project-skeleton` — 12 commits stacked on master, not yet pushed.
 - Next: **Krok 8 — frontend skeleton** (Vite + React + TS + Tailwind w `web/`). Wymaga zainstalowania `pnpm` najpierw (`npm install -g pnpm` lub corepack). To może być duży krok — Vite tworzy całe drzewo, dodatkowo Tailwind setup. Rozważyć podział na (a) bare Vite + TS, (b) Tailwind + design tokens.
+
+---
+
+## 2026-05-12 — Krok 8: Frontend skeleton (Vite + React + TypeScript + Tailwind)
+
+**Co zrobione (3 commits within `feat/project-skeleton`):**
+
+1. `chore(web): scaffold Vite + React + TypeScript template`
+   - Installed `pnpm` 9.15.9 via `npm install -g pnpm@9` (user-scope, no UAC).
+   - `npm create vite@latest web -- --template react-ts --yes` scaffolded `web/` with React 19.2.6, React DOM, Vite 8, TypeScript 6, ESLint 10, `@vitejs/plugin-react` 6.
+   - `cd web && pnpm install` → `pnpm-lock.yaml` created (this is the lockfile CI expects per `.github/workflows/ci.yml`).
+   - `pnpm build` smoke test → 193KB JS / 60KB gzipped, 1s build.
+
+2. `chore(web): add Tailwind CSS + PostCSS + autoprefixer`
+   - `pnpm add -D tailwindcss@^3.4.0 postcss autoprefixer` — Tailwind v3.4.19 (NOT v4: v4's CSS-first config doesn't match iteration 1.5's plan for `tailwind.config.js`).
+   - `npx tailwindcss init -p` created `tailwind.config.js` + `postcss.config.js`.
+   - `tailwind.config.js`: `content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}']`, `darkMode: ['class', '[data-theme="dark"]']` — matches CLAUDE.md theme strategy (data-attribute on `<html>`) + ADR-012 dual theme.
+   - `src/index.css` replaced with three `@tailwind` directives.
+
+3. `chore(web): strip Vite template demo content`
+   - `App.tsx` simplified to a single centered `<h1>TechQuiz</h1>` with Tailwind utility classes.
+   - Deleted: `App.css`, `src/assets/{react,vite}.svg`, `src/assets/hero.png`, `public/icons.svg`, empty `src/assets/`.
+   - `index.html` title `web` → `TechQuiz`.
+   - Final bundle: 190KB JS / 60KB gzipped, 3.81KB CSS / 1.44KB gzipped.
+
+**Decyzje:**
+- **pnpm via `npm install -g` (not corepack).** Corepack on this machine threw two errors: (a) `EPERM` writing to `C:\Toolchains\NodeJS\` (Node install dir requires admin), (b) "Cannot find matching keyid" — known signature verification bug with pnpm packages in older corepack. `npm install -g pnpm@9` worked cleanly to user-scope `%APPDATA%\Roaming\npm`.
+- **`npm create vite` instead of `pnpm create vite`.** First two attempts via `pnpm create vite@latest web -- --template react-ts` scaffolded **vanilla-ts** (no React) despite the explicit `--template` flag. Likely pnpm arg-passing quirk with Vite 8's interactive prompts. `npm create vite@latest web -- --template react-ts --yes` worked first try.
+- **`--template react-ts` (not `react-swc-ts`).** Vite 8 collapsed React templates: only `react-ts` and `react-compiler-ts` exist now (verified via `create-vite --help`). SWC is no longer the differentiator — `@vitejs/plugin-react` is Babel-based but Vite 8's HMR is fast enough. Trade-off acknowledged: `react-compiler-ts` would use the React 19 compiler (auto-memoization) which could be a portfolio talking point — defer the decision to iteration 1.5 polish.
+- **Tailwind v3.4 over v4.** v4 (stable Jan 2025) uses CSS-first config without `tailwind.config.js`. Iteration 1.5 explicitly plans `tailwind.config.js` for design tokens. v3 has more documentation and fits the planned workflow. v4 migration possible in Phase 4 polish if needed.
+- **`darkMode: ['class', '[data-theme="dark"]']` in tailwind.config.js.** Matches CLAUDE.md's known gotcha — dual theme via `data-theme` attribute on `<html>`. Both selectors active simultaneously: `dark:` Tailwind variants fire when either `.dark` class or `[data-theme="dark"]` is present on an ancestor. Future `ThemeProvider` (iteration 1.5) toggles via `data-theme` attribute.
+- **No design tokens yet.** Iteration 1.5 task 1 will extend `theme` with custom violet shades + slate scale + Geist + JetBrains Mono. Krok 8 leaves the config minimal — only content paths and dark mode.
+- **Demo content fully removed**, not preserved as reference. Mockups in `docs/mockups/*.html` are the visual reference; keeping Vite demo would be noise.
+
+**Weryfikacja:**
+- `pnpm build` → success, 1.00s, 16 modules transformed, no errors.
+- `pnpm-lock.yaml` committed (CI uses `--frozen-lockfile`).
+- Project structure under `web/`:
+  ```
+  web/
+  ├── eslint.config.js
+  ├── index.html
+  ├── package.json
+  ├── pnpm-lock.yaml
+  ├── postcss.config.js
+  ├── tailwind.config.js
+  ├── public/favicon.svg
+  ├── src/
+  │   ├── App.tsx        (TechQuiz heading + Tailwind utilities)
+  │   ├── index.css      (3 @tailwind directives)
+  │   └── main.tsx
+  ├── tsconfig.app.json
+  ├── tsconfig.json
+  ├── tsconfig.node.json
+  └── vite.config.ts
+  ```
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 17 commits stacked on master, not pushed yet.
+- Next: **Krok 9 — Dockerfile API**. `mcr.microsoft.com/dotnet/sdk:9.0` for build, `mcr.microsoft.com/dotnet/aspnet:9.0` for runtime. Multi-stage. Exposes 8080. Iteration 0.1 tasks 8–10 (Dockerfiles + docker-compose) form a natural group.
