@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechQuiz — Dashboard (Light)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 24px; background: #1e293b; font-family: 'Geist', sans-serif; }
+  .mockup-wrapper { max-width: 1280px; margin: 0 auto; }
+  .mockup-meta { color: #cbd5e1; font-size: 13px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; padding-bottom: 16px; border-bottom: 1px solid #334155; }
+  .mockup-meta a { color: #c4b5fd; text-decoration: none; }
+  .disclaimer { background: rgba(245, 158, 11, 0.08); border-left: 2px solid #f59e0b; padding: 10px 14px; margin-bottom: 20px; color: #fcd34d; font-size: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="mockup-wrapper">
+<p class="mockup-meta">TechQuiz UI Mockup · Dashboard (Light) · <a href="index.html">&larr; Back to index</a></p>
+<div class="disclaimer">Reconstructed mockup. Visual source of truth lives in <code>docs/ARCHITECTURE.md</code> (Component Patterns) and <code>docs/DECISION_LOG.md</code> (ADRs 011, 012, 014–016).</div>
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; color: #0f172a; line-height: 1.5;">
+
+<header style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 14px 24px; display: flex; align-items: center; gap: 28px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 26px; height: 26px; background: #7c3aed; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #ffffff;">T</div>
+<span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em;">TechQuiz</span>
+</div>
+<nav style="display: flex; align-items: center; gap: 4px; flex: 1;"><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">Categories</a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">Daily review<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">Generate<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; background: #f5f3ff; color: #6d28d9; font-size: 13px; font-weight: 500; text-decoration: none;">Dashboard</a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">History<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a></nav>
+<div style="display: flex; align-items: center; gap: 10px;">
+<button aria-label="Toggle theme" style="background: transparent; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; border-radius: 8px;"></button>
+<div style="width: 28px; height: 28px; background: #f5f3ff; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; color: #6d28d9;">BC</div>
+</div>
+</header>
+
+
+<main style="padding: 28px 32px; background: #fafbfc;">
+
+<div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px;">
+<div>
+<h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 4px 0; color: #0f172a;">Welcome back, Bartosz</h1>
+<p style="font-size: 13px; color: #64748b; margin: 0;">Last attempt: <span style="color: #6d28d9; font-weight: 500;">87%</span> in C# Basics, 2 hours ago.</p>
+</div>
+<div style="display: flex; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px;">
+<button style="background: transparent; color: #64748b; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; cursor: pointer;">Week</button>
+<button style="background: #f1f5f9; color: #0f172a; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; cursor: pointer;">Month</button>
+<button style="background: transparent; color: #64748b; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; cursor: pointer;">All time</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+
+<!-- Streak (1x1) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<div style="position: absolute; top: -40px; right: -30px; width: 160px; height: 120px; background: radial-gradient(circle at center, rgba(124,58,237,0.1), transparent 70%); pointer-events: none;"></div>
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; position: relative;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+<span style="font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Current streak</span>
+</div>
+<div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 14px; position: relative;">
+<span style="font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: #0f172a;">7</span>
+<span style="font-size: 14px; color: #64748b; font-weight: 500;">days</span>
+</div>
+<svg width="100%" height="32" viewBox="0 0 240 32" preserveAspectRatio="none" style="display: block; position: relative;">
+<defs><linearGradient id="streakG_l" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>
+<path d="M0,28 C20,24 30,20 45,18 C60,16 70,14 90,11 C110,8 120,12 140,9 C160,6 175,4 195,5 C215,6 230,3 240,2 L240,32 L0,32 Z" fill="url(#streakG_l)"/>
+<path d="M0,28 C20,24 30,20 45,18 C60,16 70,14 90,11 C110,8 120,12 140,9 C160,6 175,4 195,5 C215,6 230,3 240,2" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+</svg>
+<p style="font-size: 11px; color: #94a3b8; margin: 6px 0 0 0; font-family: 'JetBrains Mono', monospace; position: relative;">Last 14 days</p>
+</div>
+
+<!-- Score over time (2x1) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; grid-column: span 2; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+<span style="font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Score over time</span>
+<span style="font-size: 11px; color: #047857; background: #ecfdf5; padding: 3px 8px; border-radius: 999px; font-weight: 500;">+8% trend</span>
+</div>
+<svg width="100%" height="140" viewBox="0 0 500 140" preserveAspectRatio="none">
+<defs><linearGradient id="scoreG_l" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.22"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>
+<line x1="0" y1="35" x2="500" y2="35" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,4"/>
+<line x1="0" y1="70" x2="500" y2="70" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,4"/>
+<line x1="0" y1="105" x2="500" y2="105" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,4"/>
+<text x="6" y="32" fill="#cbd5e1" font-size="9" font-family="JetBrains Mono">100</text>
+<text x="6" y="67" fill="#cbd5e1" font-size="9" font-family="JetBrains Mono">75</text>
+<text x="6" y="102" fill="#cbd5e1" font-size="9" font-family="JetBrains Mono">50</text>
+<path d="M30,82 C60,75 90,68 120,58 C150,48 180,62 210,52 C240,42 270,48 300,38 C330,28 360,42 390,30 C420,18 450,28 480,22 L480,140 L30,140 Z" fill="url(#scoreG_l)"/>
+<path d="M30,82 C60,75 90,68 120,58 C150,48 180,62 210,52 C240,42 270,48 300,38 C330,28 360,42 390,30 C420,18 450,28 480,22" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<circle cx="480" cy="22" r="3.5" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+</svg>
+<div style="display: flex; justify-content: space-between; font-size: 10px; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; margin-top: 6px;">
+<span>Apr 11</span><span>Apr 18</span><span>Apr 25</span><span>May 2</span><span>May 9</span>
+</div>
+</div>
+
+<!-- Radar (1x2) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; grid-row: span 2; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<span style="font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Category strength</span>
+<div style="display: flex; align-items: center; justify-content: center; padding: 8px 0;">
+<svg width="220" height="200" viewBox="-110 -100 220 200">
+<polygon points="0,-80 76,-25 47,65 -47,65 -76,-25" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+<polygon points="0,-60 57,-19 35,49 -35,49 -57,-19" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+<polygon points="0,-40 38,-12 23,32 -23,32 -38,-12" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+<polygon points="0,-20 19,-6 12,16 -12,16 -19,-6" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="0" y1="0" x2="0" y2="-80" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="0" y1="0" x2="76" y2="-25" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="0" y1="0" x2="47" y2="65" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="0" y1="0" x2="-47" y2="65" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="0" y1="0" x2="-76" y2="-25" stroke="#e2e8f0" stroke-width="1"/>
+<polygon points="0,-70 68,-22 31,42 -38,53 -53,-17" fill="rgba(124,58,237,0.18)" stroke="#7c3aed" stroke-width="1.5"/>
+<circle cx="0" cy="-70" r="3" fill="#7c3aed"/>
+<circle cx="68" cy="-22" r="3" fill="#7c3aed"/>
+<circle cx="31" cy="42" r="3" fill="#7c3aed"/>
+<circle cx="-38" cy="53" r="3" fill="#7c3aed"/>
+<circle cx="-53" cy="-17" r="3" fill="#7c3aed"/>
+<text x="0" y="-90" fill="#475569" font-size="10" font-family="Geist, sans-serif" font-weight="500" text-anchor="middle">EF Core</text>
+<text x="88" y="-25" fill="#475569" font-size="10" font-family="Geist, sans-serif" font-weight="500" text-anchor="start">C# Basics</text>
+<text x="54" y="80" fill="#475569" font-size="10" font-family="Geist, sans-serif" font-weight="500" text-anchor="middle">ASP.NET</text>
+<text x="-54" y="80" fill="#475569" font-size="10" font-family="Geist, sans-serif" font-weight="500" text-anchor="middle">SQL</text>
+<text x="-88" y="-25" fill="#475569" font-size="10" font-family="Geist, sans-serif" font-weight="500" text-anchor="end">Patterns</text>
+</svg>
+</div>
+<p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0 0; text-align: center; font-family: 'JetBrains Mono', monospace;">5-category overview</p>
+</div>
+
+<!-- Q answered + Avg score (two 1x1) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Questions answered</p>
+<div style="display: flex; align-items: baseline; gap: 6px;">
+<span style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: #0f172a;">247</span>
+<span style="font-size: 11px; color: #047857; font-weight: 500;">+34 this month</span>
+</div>
+</div>
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Average score</p>
+<div style="display: flex; align-items: baseline; gap: 6px;">
+<span style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: #0f172a;">82<span style="font-size: 16px; color: #64748b;">%</span></span>
+<span style="font-size: 11px; color: #047857; font-weight: 500;">▲ 4%</span>
+</div>
+</div>
+
+<!-- Recent activity (2x1) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; grid-column: span 2; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+<span style="font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Recent activity</span>
+<a href="#" style="font-size: 11px; color: #64748b; text-decoration: none; font-family: 'JetBrains Mono', monospace;">View all →</a>
+</div>
+<div style="display: flex; flex-direction: column;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+<div style="width: 26px; height: 26px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">C#</div>
+<div style="flex: 1; min-width: 0;">
+<p style="font-size: 12px; font-weight: 500; margin: 0; color: #0f172a;">C# Basics</p>
+<p style="font-size: 10px; color: #64748b; margin: 0; font-family: 'JetBrains Mono', monospace;">2 hours ago · 4:12</p>
+</div>
+<span style="font-size: 13px; color: #047857; font-weight: 700; font-family: 'JetBrains Mono', monospace;">87%</span>
+</div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+<div style="width: 26px; height: 26px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">ASP</div>
+<div style="flex: 1; min-width: 0;">
+<p style="font-size: 12px; font-weight: 500; margin: 0; color: #0f172a;">ASP.NET Core</p>
+<p style="font-size: 10px; color: #64748b; margin: 0; font-family: 'JetBrains Mono', monospace;">yesterday · 5:48</p>
+</div>
+<span style="font-size: 13px; color: #6d28d9; font-weight: 700; font-family: 'JetBrains Mono', monospace;">72%</span>
+</div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+<div style="width: 26px; height: 26px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">EF</div>
+<div style="flex: 1; min-width: 0;">
+<p style="font-size: 12px; font-weight: 500; margin: 0; color: #0f172a;">Entity Framework</p>
+<p style="font-size: 10px; color: #64748b; margin: 0; font-family: 'JetBrains Mono', monospace;">2 days ago · 3:55</p>
+</div>
+<span style="font-size: 13px; color: #047857; font-weight: 700; font-family: 'JetBrains Mono', monospace;">94%</span>
+</div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+<div style="width: 26px; height: 26px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">C#</div>
+<div style="flex: 1; min-width: 0;">
+<p style="font-size: 12px; font-weight: 500; margin: 0; color: #0f172a;">C# Basics</p>
+<p style="font-size: 10px; color: #64748b; margin: 0; font-family: 'JetBrains Mono', monospace;">3 days ago · 4:30</p>
+</div>
+<span style="font-size: 13px; color: #6d28d9; font-weight: 700; font-family: 'JetBrains Mono', monospace;">75%</span>
+</div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+<div style="width: 26px; height: 26px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">SQL</div>
+<div style="flex: 1; min-width: 0;">
+<p style="font-size: 12px; font-weight: 500; margin: 0; color: #0f172a;">SQL Basics</p>
+<p style="font-size: 10px; color: #64748b; margin: 0; font-family: 'JetBrains Mono', monospace;">5 days ago · 6:18</p>
+</div>
+<span style="font-size: 13px; color: #b45309; font-weight: 700; font-family: 'JetBrains Mono', monospace;">65%</span>
+</div>
+</div>
+</div>
+
+<!-- Best category (1x1) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+<p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Best category</p>
+<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+<div style="width: 26px; height: 26px; background: #ecfdf5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #047857; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">EF</div>
+<p style="font-size: 13px; font-weight: 600; margin: 0; color: #0f172a;">Entity Framework</p>
+</div>
+<div style="display: flex; align-items: baseline; gap: 6px;">
+<span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: #047857;">94<span style="font-size: 12px;">%</span></span>
+<span style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">3 attempts</span>
+</div>
+</div>
+
+<!-- Needs practice (1x1) -->
+<div style="background: #ffffff; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(217,119,6,0.04);">
+<p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Needs practice</p>
+<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+<div style="width: 26px; height: 26px; background: #fef3c7; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">SQL</div>
+<p style="font-size: 13px; font-weight: 600; margin: 0; color: #0f172a;">SQL Basics</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: #b45309;">65<span style="font-size: 12px;">%</span></span>
+<button style="background: #fef3c7; color: #b45309; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; font-family: inherit; cursor: pointer;">Practice →</button>
+</div>
+</div>
+
+</div>
+
+</main>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechQuiz — UI Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    padding: 48px 24px;
+    background: #020617;
+    color: #f8fafc;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px 0;
+  }
+  .subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    margin: 0 0 12px 0;
+  }
+  .meta {
+    color: #64748b;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 0 40px 0;
+  }
+  .section {
+    margin-bottom: 36px;
+  }
+  .section-title {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 0 14px 0;
+    font-weight: 500;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .card:hover {
+    border-color: #8b5cf6;
+    transform: translateY(-2px);
+  }
+  .card-label {
+    font-size: 11px;
+    color: #c4b5fd;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 0 6px 0;
+    font-weight: 600;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .card-meta {
+    font-size: 10px;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    background: rgba(139,92,246,0.15);
+    color: #c4b5fd;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+  .badge.phase3 {
+    background: rgba(245,158,11,0.15);
+    color: #fcd34d;
+  }
+  .note {
+    background: rgba(245,158,11,0.06);
+    border-left: 2px solid #f59e0b;
+    padding: 12px 16px;
+    margin: 24px 0;
+    font-size: 13px;
+    color: #cbd5e1;
+    border-radius: 0 8px 8px 0;
+  }
+  .note code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(245,158,11,0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #fcd34d;
+  }
+  a {
+    color: #c4b5fd;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>TechQuiz — UI Mockups</h1>
+<p class="subtitle">Visual reference for implementation. Open any mockup in a new tab and inspect with DevTools to extract colors, sizes, and patterns.</p>
+<p class="meta">13 mockups · MVP flow + Phase 2 dashboard + Phase 3 forward-look</p>
+
+<div class="note">These mockups are reference, not source-of-truth. For implementation, use design tokens defined in <code>docs/ARCHITECTURE.md</code> (Visual Design System and Component Patterns). Decisions are recorded in <code>docs/DECISION_LOG.md</code> ADRs 011, 012, 014–016.</div>
+
+<div class="section">
+<p class="section-title">MVP — Authentication</p>
+<div class="grid">
+
+<a href="login-dual-theme.html" class="card">
+<p class="card-label">Login</p>
+<p class="card-title">Login screen (dual theme)</p>
+<p class="card-desc">Split layout, email/password form, demo button, hero tile + supporting category stack on the right panel.</p>
+<div class="card-meta"><span class="badge">Dark + Light</span></div>
+</a>
+
+</div>
+</div>
+
+<div class="section">
+<p class="section-title">MVP — Quiz Flow</p>
+<div class="grid">
+
+<a href="categories-dark.html" class="card">
+<p class="card-label">Categories</p>
+<p class="card-title">Categories — Dark</p>
+<p class="card-desc">3-column grid, 10 cards: 2 active with progress, 8 Coming soon with disabled state.</p>
+<div class="card-meta"><span class="badge">Dark</span></div>
+</a>
+
+<a href="categories-light.html" class="card">
+<p class="card-label">Categories</p>
+<p class="card-title">Categories — Light</p>
+<p class="card-desc">Light theme variant. Box-shadows replace contrast borders, violet-700 active accent.</p>
+<div class="card-meta"><span class="badge">Light</span></div>
+</a>
+
+<a href="quiz-multiple-choice-dark.html" class="card">
+<p class="card-label">Quiz</p>
+<p class="card-title">Quiz — Multiple Choice (Dark)</p>
+<p class="card-desc">Full-screen quiz, mini-header with progress + exit, 4 options with keyboard shortcuts, three-change selected state.</p>
+<div class="card-meta"><span class="badge">Dark</span></div>
+</a>
+
+<a href="quiz-multiple-choice-light.html" class="card">
+<p class="card-label">Quiz</p>
+<p class="card-title">Quiz — Multiple Choice (Light)</p>
+<p class="card-desc">Light theme variant of the same quiz screen.</p>
+<div class="card-meta"><span class="badge">Light</span></div>
+</a>
+
+<a href="result-dark.html" class="card">
+<p class="card-label">Result</p>
+<p class="card-title">Result — Dark</p>
+<p class="card-desc">Score hero with gradient, 4 metric cards, question breakdown (correct collapsed / wrong expanded with explanation), 2 CTAs.</p>
+<div class="card-meta"><span class="badge">Dark</span></div>
+</a>
+
+<a href="result-light.html" class="card">
+<p class="card-label">Result</p>
+<p class="card-title">Result — Light</p>
+<p class="card-desc">Light theme variant.</p>
+<div class="card-meta"><span class="badge">Light</span></div>
+</a>
+
+</div>
+</div>
+
+<div class="section">
+<p class="section-title">Phase 2 — Dashboard</p>
+<div class="grid">
+
+<a href="dashboard-dark.html" class="card">
+<p class="card-label">Dashboard</p>
+<p class="card-title">Dashboard — Dark</p>
+<p class="card-desc">Bento grid with 8 tiles: streak with sparkline, score over time chart, category radar, mini stats, recent activity, best/needs-practice CTAs.</p>
+<div class="card-meta"><span class="badge">Dark</span></div>
+</a>
+
+<a href="dashboard-light.html" class="card">
+<p class="card-label">Dashboard</p>
+<p class="card-title">Dashboard — Light</p>
+<p class="card-desc">Light theme variant. Box-shadows give tiles depth, lower gradient opacity, light radar fill.</p>
+<div class="card-meta"><span class="badge">Light</span></div>
+</a>
+
+<a href="dashboard-empty-state.html" class="card">
+<p class="card-label">Dashboard</p>
+<p class="card-title">Dashboard — Empty State</p>
+<p class="card-desc">First-time user view: disabled placeholders with em-dashes, hero CTA card in the score-chart slot.</p>
+<div class="card-meta"><span class="badge">Dark</span></div>
+</a>
+
+</div>
+</div>
+
+<div class="section">
+<p class="section-title">Phase 3 — Forward-look (Code Questions with AI)</p>
+<div class="grid">
+
+<a href="quiz-code-output-dark.html" class="card">
+<p class="card-label">Quiz</p>
+<p class="card-title">Code Output Question — Dark</p>
+<p class="card-desc">Code block with syntax highlighting, border-left violet accent. Code stays dark even in light mode (ADR-016).</p>
+<div class="card-meta"><span class="badge phase3">Phase 3</span></div>
+</a>
+
+<a href="quiz-code-output-light.html" class="card">
+<p class="card-label">Quiz</p>
+<p class="card-title">Code Output Question — Light</p>
+<p class="card-desc">Light theme variant. Note the code block intentionally remains dark for syntax highlighting readability.</p>
+<div class="card-meta"><span class="badge phase3">Phase 3</span></div>
+</a>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

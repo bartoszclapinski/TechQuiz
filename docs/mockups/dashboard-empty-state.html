@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechQuiz — Dashboard — Empty State (Dark)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 24px; background: #1e293b; font-family: 'Geist', sans-serif; }
+  .mockup-wrapper { max-width: 1280px; margin: 0 auto; }
+  .mockup-meta { color: #cbd5e1; font-size: 13px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; padding-bottom: 16px; border-bottom: 1px solid #334155; }
+  .mockup-meta a { color: #c4b5fd; text-decoration: none; }
+  .disclaimer { background: rgba(245, 158, 11, 0.08); border-left: 2px solid #f59e0b; padding: 10px 14px; margin-bottom: 20px; color: #fcd34d; font-size: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="mockup-wrapper">
+<p class="mockup-meta">TechQuiz UI Mockup · Dashboard — Empty State (Dark) · <a href="index.html">&larr; Back to index</a></p>
+<div class="disclaimer">Reconstructed mockup. Visual source of truth lives in <code>docs/ARCHITECTURE.md</code> (Component Patterns) and <code>docs/DECISION_LOG.md</code> (ADRs 011, 012, 014–016).</div>
+
+<div style="background: #020617;  border-radius: 12px; overflow: hidden; color: #f8fafc; line-height: 1.5;">
+
+<header style="background: #0a0f1e; border-bottom: 1px solid #1e293b; padding: 14px 24px; display: flex; align-items: center; gap: 28px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 26px; height: 26px; background: #8b5cf6; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">T</div>
+<span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em;">TechQuiz</span>
+</div>
+<nav style="display: flex; align-items: center; gap: 4px; flex: 1;"><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none;">Categories</a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.6;">Daily review<span style="font-size: 9px; background: #1e293b; color: #94a3b8; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.6;">Generate<span style="font-size: 9px; background: #1e293b; color: #94a3b8; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; background: rgba(139,92,246,0.12); color: #f8fafc; font-size: 13px; font-weight: 500; text-decoration: none;">Dashboard</a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.6;">History<span style="font-size: 9px; background: #1e293b; color: #94a3b8; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a></nav>
+<div style="display: flex; align-items: center; gap: 10px;">
+<button aria-label="Toggle theme" style="background: transparent; border: 1px solid #1e293b; color: #94a3b8; width: 32px; height: 32px; border-radius: 8px;"></button>
+<div style="width: 28px; height: 28px; background: rgba(139,92,246,0.2); border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; color: #c4b5fd;">BC</div>
+</div>
+</header>
+
+
+<main style="padding: 28px 32px; ">
+
+<div style="margin-bottom: 24px;">
+<h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 4px 0; color: #f8fafc;">Welcome, Bartosz</h1>
+<p style="font-size: 13px; color: #94a3b8; margin: 0;">Take your first quiz to start tracking your progress.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+
+<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px 20px; opacity: 0.4;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+<span style="font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Current streak</span>
+</div>
+<span style="font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: #475569;">—</span>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 32px 24px; grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden;">
+<div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(139,92,246,0.06), transparent 60%); pointer-events: none;"></div>
+<div style="width: 48px; height: 48px; background: rgba(139,92,246,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; position: relative;">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+</div>
+<h3 style="font-size: 15px; font-weight: 600; margin: 0 0 6px 0; position: relative; color: #f8fafc;">No data yet</h3>
+<p style="font-size: 12px; color: #94a3b8; margin: 0 0 16px 0; max-width: 280px; position: relative;">Complete your first quiz to see your score over time, category strength, and learning trends here.</p>
+<button style="background: #8b5cf6; color: #f8fafc; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 6px; position: relative;">
+Take your first quiz
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+</button>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 18px; opacity: 0.4;">
+<p style="font-size: 11px; color: #64748b; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Questions answered</p>
+<span style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: #475569;">—</span>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 18px; opacity: 0.4;">
+<p style="font-size: 11px; color: #64748b; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Average score</p>
+<span style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: #475569;">—</span>
+</div>
+
+<div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 18px; opacity: 0.4;">
+<p style="font-size: 11px; color: #64748b; margin: 0 0 8px 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em;">Best category</p>
+<p style="font-size: 13px; color: #475569; margin: 0;">Not enough data</p>
+</div>
+
+</div>
+
+</main>
+</div>
+
+</div>
+</body>
+</html>

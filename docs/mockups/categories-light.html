@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechQuiz — Categories (Light)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #1e293b;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .mockup-wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .mockup-meta {
+    color: #cbd5e1;
+    font-size: 13px;
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #334155;
+  }
+  .mockup-meta a {
+    color: #c4b5fd;
+    text-decoration: none;
+  }
+  .disclaimer {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 2px solid #f59e0b;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    color: #fcd34d;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="mockup-wrapper">
+<p class="mockup-meta">TechQuiz UI Mockup · Categories (Light) · <a href="index.html">&larr; Back to index</a></p>
+<div class="disclaimer">Reconstructed mockup. Visual source of truth lives in <code>docs/ARCHITECTURE.md</code> (Component Patterns) and <code>docs/DECISION_LOG.md</code> (ADRs 011, 012, 014–016). Use design tokens from those documents when implementing.</div>
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; color: #0f172a; line-height: 1.5;">
+
+<header style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 14px 24px; display: flex; align-items: center; gap: 28px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 26px; height: 26px; background: #7c3aed; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #ffffff;">T</div>
+<span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em;">TechQuiz</span>
+</div>
+<nav style="display: flex; align-items: center; gap: 4px; flex: 1;">
+<a href="#" style="padding: 6px 10px; border-radius: 6px; background: #f5f3ff; color: #6d28d9; font-size: 13px; font-weight: 500; text-decoration: none;">Categories</a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">Daily review<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">Generate<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">Dashboard<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a><a href="#" style="padding: 6px 10px; border-radius: 6px; color: #94a3b8; font-size: 13px; font-weight: 500; text-decoration: none; opacity: 0.7;">History<span style="font-size: 9px; background: #f1f5f9; color: #64748b; padding: 1px 5px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; margin-left: 5px;">soon</span></a>
+</nav>
+<div style="display: flex; align-items: center; gap: 10px;">
+<button aria-label="Toggle theme" style="background: transparent; border: 1px solid #e2e8f0; color: #64748b; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<div style="width: 28px; height: 28px; background: #f5f3ff; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; color: #6d28d9;">BC</div>
+</div>
+</header>
+
+<main style="padding: 32px 36px; background: #fafbfc;">
+<div style="margin-bottom: 28px;">
+<h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 4px 0; color: #0f172a;">Categories</h1>
+<p style="font-size: 13px; color: #64748b; margin: 0;">Pick a topic to start testing your knowledge.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; cursor: pointer; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 12px;">C#</div>
+    <span style="font-size: 10px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">18 q</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0;">C# Basics</p>
+  <p style="font-size: 11px; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">Types, classes, interfaces, inheritance, LINQ.</p>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <div style="height: 3px; background: #e2e8f0; border-radius: 999px; flex: 1; overflow: hidden;"><div style="height: 100%; width: 87%; background: #7c3aed; border-radius: 999px;"></div></div>
+    <span style="font-size: 10px; color: #6d28d9; font-family: 'JetBrains Mono', monospace; font-weight: 600;">87%</span>
+  </div>
+</div>
+
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; cursor: pointer; box-shadow: 0 1px 2px rgba(15,23,42,0.04);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f5f3ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #6d28d9; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 9px;">ASP</div>
+    <span style="font-size: 10px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">15 q</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0;">ASP.NET Core</p>
+  <p style="font-size: 11px; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">Middleware, DI, routing, controllers, filters.</p>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <div style="height: 3px; background: #e2e8f0; border-radius: 999px; flex: 1; overflow: hidden;"><div style="height: 100%; width: 72%; background: #7c3aed; border-radius: 999px;"></div></div>
+    <span style="font-size: 10px; color: #6d28d9; font-family: 'JetBrains Mono', monospace; font-weight: 600;">72%</span>
+  </div>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">C#+</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">C# Advanced</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">Async, generics, delegates, reflection.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">EF</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">Entity Framework</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">DbContext, migrations, relations, LINQ to SQL.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">SQL</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">SQL</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">JOINs, subqueries, indexes, normalization.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">SOLID</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">Design Patterns</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">SOLID, Repository, Factory, Strategy.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 10px;">ARCH</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">Clean Architecture</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">Layers, dependencies, CQRS, MediatR.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">DOC</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">Docker & DevOps</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">Dockerfile, compose, CI/CD, GitHub Actions.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">GIT</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">Git</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">Branching, merge, rebase, cherry-pick.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; opacity: 0.7;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 11px;">API</div>
+    <span style="font-size: 9px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;">soon</span>
+  </div>
+  <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: #475569;">REST API</p>
+  <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">HTTP methods, status codes, versioning, auth.</p>
+  <p style="font-size: 10px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">Not started</p>
+</div>
+
+</div>
+</main>
+</div>
+
+</div>
+</body>
+</html>

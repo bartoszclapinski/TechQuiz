@@ -1,0 +1,121 @@
+name: Deploy to Azure (staging)
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  AZURE_WEBAPP_NAME_API: techquiz-api-staging
+  AZURE_WEBAPP_NAME_WEB: techquiz-web-staging
+  API_PROJECT_PATH: src/TechQuiz.Api/TechQuiz.Api.csproj
+
+jobs:
+  deploy-api:
+    name: Deploy API to Azure App Service
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: staging
+      url: https://${{ env.AZURE_WEBAPP_NAME_API }}.azurewebsites.net
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore + Build + Publish
+        run: |
+          dotnet restore ${{ env.API_PROJECT_PATH }}
+          dotnet publish ${{ env.API_PROJECT_PATH }} \
+            --configuration Release \
+            --no-restore \
+            --output ./publish/api
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_API }}
+          package: ./publish/api
+
+      - name: Apply EF Core migrations
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.STAGING_DB_CONNECTION }}
+        run: |
+          dotnet tool install --global dotnet-ef --version 9.*
+          dotnet ef database update \
+            --project src/TechQuiz.Infrastructure \
+            --startup-project src/TechQuiz.Api
+
+      - name: Azure logout
+        if: always()
+        run: az logout
+
+  deploy-web:
+    name: Deploy web to Azure App Service
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: staging
+      url: https://${{ env.AZURE_WEBAPP_NAME_WEB }}.azurewebsites.net
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          VITE_API_BASE_URL: https://techquiz-api-staging.azurewebsites.net
+        run: pnpm build
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy web
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_WEB }}
+          package: web/dist
+
+      - name: Azure logout
+        if: always()
+        run: az logout
