@@ -160,3 +160,50 @@
 - Branch: `feat/project-skeleton` (5 commits stacked on master, not yet pushed)
 - Next: Krok 5 (JWT auth scaffolding in `Program.cs`) lub Krok 6 (Serilog Console + Seq). Można zrobić oba w jednej sesji wraz z `Program.cs` rewrite + `appsettings.json` + `IUserContext`/`IUnitOfWork` interface stubs jeśli zechcemy mieć DI w kompletne.
 - TodoWrite snapshot przy pauzie: kroki 4 done, 5–14 pending.
+
+---
+
+## 2026-05-12 — Kroki 5–7: JWT + Serilog + /health (Tasks 4–6 iteracji 0.1)
+
+**Co zrobione (4 commits within `feat/project-skeleton`):**
+
+1. `feat(api): add JWT bearer auth scaffolding`
+   - Added `Microsoft.AspNetCore.Authentication.JwtBearer` 9.0.* to Api.
+   - `appsettings.json`: `Jwt: { Issuer: "TechQuiz", Audience: "TechQuiz.Client", AccessTokenLifetimeMinutes: 15, RefreshTokenLifetimeDays: 14 }`. **No signing key in repo.**
+   - `Program.cs`: `AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...)` with full `TokenValidationParameters` (validate issuer/audience/lifetime/signing key, `ClockSkew = 30s`). `UseAuthentication()` placed before `UseAuthorization()`. Signing key fail-fast — `throw InvalidOperationException` at startup if missing.
+
+2. `chore(api): initialize user-secrets for JWT signing key`
+   - `dotnet user-secrets init` added `<UserSecretsId>` to `TechQuiz.Api.csproj` (the GUID is per-machine but harmless in repo).
+   - Local-only: `dotnet user-secrets set "Jwt:SigningKey" "<512-bit base64>"` — 64-byte cryptographically random key generated via `RandomNumberGenerator.Create()`. Stored in `%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json`, not in repo.
+
+3. `feat(api): configure Serilog with Console + Seq sinks`
+   - Added `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `Serilog.Sinks.Seq` (latest stable).
+   - `appsettings.json`: replaced default `Logging` section with `Serilog:` section. MinimumLevel `Information`, `Microsoft.AspNetCore: Warning`, `Microsoft.EntityFrameworkCore: Information`. WriteTo Console + Seq (`http://localhost:5341` default; docker compose will override via env var). Enrich `FromLogContext`. Properties `Application: "TechQuiz.Api"`.
+   - `Program.cs`: `builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration))` + `app.UseSerilogRequestLogging()`.
+
+4. `feat(api): add /health with DbContext check + Infrastructure DI`
+   - Added `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore` 9.0.* to Api.
+   - **New file** `src/TechQuiz.Infrastructure/DependencyInjection.cs` — static `AddInfrastructure(IServiceCollection, IConfiguration)` extension. Reads `ConnectionStrings:DefaultConnection`, registers `AppDbContext` with `UseNpgsql(...)`. Pattern matches iteration 1.3 task 7 — will expand with repositories, `IUserContext`, `IUnitOfWork` later.
+   - `appsettings.json`: added `ConnectionStrings:DefaultConnection = Host=localhost;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev`. Dev defaults — same credentials docker compose will set on the postgres service.
+   - `Program.cs`: `AddInfrastructure(builder.Configuration)`, `AddHealthChecks().AddDbContextCheck<AppDbContext>(name: "postgres", tags: ["db", "ready"])`, `app.MapHealthChecks("/health")`.
+
+**Decyzje:**
+- **Fail-fast on missing JWT signing key.** Throwing at startup is better than silently allowing tokens to fail validation under load. The error message tells the dev exactly how to fix it (`dotnet user-secrets set ...`).
+- **`ConnectionStrings:DefaultConnection` committed with dev password.** Dev-only credentials (`techquiz_dev`), local Docker container. Same password will be set on the `postgres` service in docker-compose. Production gets a real password via env var override.
+- **No `Logging` section after Serilog config.** Serilog replaces the default logger entirely — keeping the old `Logging` section would be misleading (it would be ignored). Explicit removal makes the config single-source-of-truth.
+- **`Microsoft.EntityFrameworkCore: Information` log level override.** Default would be `Information`, which is fine — but explicit override pins the choice in case a transitive dep changes the default. EF Core query logging at `Information` is useful in dev for spotting N+1.
+- **Health checks tags `["db", "ready"]`.** Tags allow future filtering: `MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") })`. For now we expose all checks under one `/health` endpoint.
+- **`Infrastructure.DependencyInjection` referenced from Api via `using TechQuiz.Infrastructure;`.** Api → Infrastructure project reference (set in Krok 3.5) makes this work. Domain still has zero external references.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- `dotnet run --project src/TechQuiz.Api --urls http://localhost:5032` → app starts, Serilog console output visible:
+  ```
+  [18:09:29 INF] Now listening on: http://localhost:5032
+  [18:09:29 INF] Application started. Press Ctrl+C to shut down.
+  ```
+  No startup exceptions. `/health` not hit yet because postgres isn't running locally — that requires Krok 10 (docker-compose.yml) to provision the DB.
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 12 commits stacked on master, not yet pushed.
+- Next: **Krok 8 — frontend skeleton** (Vite + React + TS + Tailwind w `web/`). Wymaga zainstalowania `pnpm` najpierw (`npm install -g pnpm` lub corepack). To może być duży krok — Vite tworzy całe drzewo, dodatkowo Tailwind setup. Rozważyć podział na (a) bare Vite + TS, (b) Tailwind + design tokens.
