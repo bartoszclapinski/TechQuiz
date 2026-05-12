@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using TechQuiz.Infrastructure;
+using TechQuiz.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,12 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services
+    .AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>(name: "postgres", tags: ["db", "ready"]);
 
 // JWT bearer authentication. Signing key is read from configuration —
 // in dev it comes from `dotnet user-secrets` (key: "Jwt:SigningKey"),
@@ -55,6 +63,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();
