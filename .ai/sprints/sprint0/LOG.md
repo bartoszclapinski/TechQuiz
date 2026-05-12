@@ -346,3 +346,50 @@
 - Branch: `feat/project-skeleton` — 21 commits stacked on master, not pushed.
 - Stack is **running**. Stop with `docker compose down` (keeps volumes) or `docker compose down -v` (wipes data).
 - Next: **Krok 12 — husky** (commitlint hook). Iteration 0.1 task 11. Then **Krok 13 — README update** with quick-start. Then **Krok 14 — push branch + open PR + merge**.
+
+---
+
+## 2026-05-12 — Krok 12 + 13: husky + README — iteracja 0.1 zamknięta
+
+**Co zrobione (2 commits within `feat/project-skeleton`):**
+
+1. `chore: setup husky commit-msg hook for commitlint`
+   - **New file** `package.json` at repo root — `techquiz-tooling` private package, scripts `prepare: husky`, devDependencies `husky@^9.1.7`, `@commitlint/cli@^19.6.1`, `@commitlint/config-conventional@^19.6.0`, `packageManager: pnpm@9.15.9`, engines pinned to Node 20+ / pnpm 9+.
+   - `pnpm install` installed deps + ran `husky` prepare script, creating `.husky/_/` runtime files.
+   - **New file** `.husky/commit-msg`: `pnpm exec commitlint --edit "$1"` — runs commitlint against the in-progress commit message before commit is accepted.
+   - Verified: `git commit -m "this should fail commitlint"` → hook exits 1, commit rejected. `git commit -m "chore: setup..."` → accepted.
+
+2. `docs: update README with current quick-start + project structure`
+   - Quick Start rewritten — old version referenced `TechQuiz.API` (wrong casing), `client/` (wrong folder), `npm install` (we use pnpm), port 5000 (we use 8080), and a `dotnet ef database update` migration step (no migrations yet — iteration 1.3).
+   - New Quick Start covers: `docker compose up -d` happy path, all 4 service ports, tear-down commands, `dotnet user-secrets set Jwt:SigningKey` instruction, local-without-Docker workflow.
+   - Project Structure replaced with full current tree (src/ + tests/ + web/ + docs/ + .ai/ + .github/, includes Dockerfiles + DependencyInjection.cs + ApplicationUser.cs).
+   - Tech Stack updated: React **18 → 19**, Vite **→ 8**, marked TanStack Query/React Router/Recharts/Monaco as "Phase N+" so reader knows what's actually shipped today.
+   - Demo credentials section flagged as "lands in Phase 1 (iteration 1.3)".
+
+**Decyzje:**
+- **Root `package.json` is "techquiz-tooling".** Just husky + commitlint for repo-wide dev hooks. `web/` keeps its own `package.json` + `pnpm-lock.yaml`. No workspace setup (`pnpm-workspace.yaml`) until there are multiple JS packages — premature.
+- **`pnpm exec commitlint` not `npx commitlint`.** Project standardizes on pnpm; using npx would silently re-resolve packages.
+- **`engines.node: >=20, pnpm: >=9` + `packageManager: pnpm@9.15.9`.** Pins the toolchain so anyone cloning gets a clear error if they're on the wrong Node/pnpm.
+- **Husky `commit-msg` hook only (no `pre-commit`).** Local lint/test on every commit is friction that bites during the "WIP commit then fix later" workflow. CI catches the rest. Per CLAUDE.md soft preference for pragmatism.
+- **README Quick Start rewritten, not appended.** The old version was demonstrably wrong on multiple paths/ports. Misleading docs are worse than missing docs.
+
+**Weryfikacja:**
+- Hook chain: editor → `git commit` → husky `commit-msg` → `pnpm exec commitlint` → exit 0 (accept) / exit 1 (reject).
+- Manual test: bad message rejected with `subject-empty` + `type-empty` errors. Good message accepted.
+- README renders cleanly in GitHub preview (verified via local markdown viewer).
+
+**Iteration 0.1 Definition of Done — final:**
+- [x] `dotnet build` succeeds at solution root
+- [x] `dotnet test` runs (0 tests — exit 0)
+- [x] `docker compose up` brings API + Postgres + Seq up healthy (web too)
+- [x] `GET /health` returns 200 from inside Docker
+- [x] Commitlint blocks non-conventional commit messages (husky hook active)
+- [ ] GitHub Actions CI runs build + test (workflow exists, fires on push to feature branch — verified after first push to `feat/project-skeleton`)
+- [ ] First PR merged via squash with a conventional commit title (= the upcoming PR closing this iteration)
+
+**Final push + PR plan (Krok 14):**
+1. `git push -u origin feat/project-skeleton`
+2. `gh pr create --base master --head feat/project-skeleton --title "feat: bootstrap solution and docker compose"`
+3. Wait for CI (may fail on some checks — need to verify).
+4. If CI green: `gh pr merge --squash --delete-branch`. If CI red: investigate, fix, push, repeat.
+5. After merge: update iteration `0.1-project-skeleton.md` frontmatter `Status: planned → done`, tick all DoD checkboxes.
