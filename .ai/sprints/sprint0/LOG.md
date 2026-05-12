@@ -122,3 +122,41 @@
 - `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
 - `dotnet test TechQuiz.sln` → exit code 0 ("no tests available" is expected — placeholders removed, real tests come in iteration 1.1).
 - `git log --oneline feat/project-skeleton ^master` → 4 commits stacked on top of `aa0acc3` (post-merge master tip).
+
+---
+
+## 2026-05-12 — Krok 4: EF Core + Identity packages + AppDbContext skeleton
+
+**Co zrobione (2 commits within `feat/project-skeleton`):**
+
+1. `chore(infra): add EF Core + Identity packages (9.x)` — 4 packages added to `TechQuiz.Infrastructure`:
+   - `Microsoft.EntityFrameworkCore` 9.0.*
+   - `Microsoft.EntityFrameworkCore.Design` 9.0.* (with `PrivateAssets=all` — design-time only)
+   - `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.*
+   - `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 9.0.*
+
+2. `feat(infra): add AppDbContext skeleton with Identity`:
+   - `Persistence/Identity/ApplicationUser.cs` — `: IdentityUser`, empty body for now. Phase 0 doesn't need extra fields; Phase 1+ will add as needed.
+   - `Persistence/AppDbContext.cs` — `: IdentityDbContext<ApplicationUser>` using **primary constructor** (`public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)`). Empty body — DbSets and configurations belong to iteration 1.3.
+
+**Decyzje:**
+- **Version constraint `9.0.*`** — `dotnet add package` without `--version` defaulted to `10.0.7` (newest on NuGet), which is `net10.0`-only and broke compatibility with our `net9.0` target. Floating `9.0.*` picks the latest 9.x patch on each restore. Acceptable for a portfolio project; if we ever want fully reproducible builds, switch to `packages.lock.json` (deferred to Phase 4 polish).
+- **`ApplicationUser` in `Infrastructure`, NOT Domain.** Plan PL line "ApplicationUser : IdentityUser w Domain" would have violated ADR-001 (Domain must have zero framework deps). Identity is an Infrastructure concern; Domain operates on a `UserId` primitive, bridged via `IUserContext` (interface defined in Application in iteration 1.2).
+- **Primary constructor on `AppDbContext`.** CLAUDE.md soft preference + `.editorconfig` rule `csharp_style_prefer_primary_constructors = true:suggestion`. Short, idiomatic for C# 12+.
+- **No snake_case naming convention yet.** CLAUDE.md known gotcha mentions a global convention. That belongs to iteration 1.3 along with entity configurations — Phase 0 just needs the DbContext type to exist.
+- **No `AddDbContext` wiring in `Program.cs` yet.** That happens with JWT + Serilog + `/health` in kroks 5–6. Krok 4 is purely Infrastructure scaffolding.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- Project structure under `src/TechQuiz.Infrastructure/`:
+  ```
+  Persistence/
+  ├── AppDbContext.cs
+  └── Identity/
+      └── ApplicationUser.cs
+  ```
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` (5 commits stacked on master, not yet pushed)
+- Next: Krok 5 (JWT auth scaffolding in `Program.cs`) lub Krok 6 (Serilog Console + Seq). Można zrobić oba w jednej sesji wraz z `Program.cs` rewrite + `appsettings.json` + `IUserContext`/`IUnitOfWork` interface stubs jeśli zechcemy mieć DI w kompletne.
+- TodoWrite snapshot przy pauzie: kroki 4 done, 5–14 pending.
