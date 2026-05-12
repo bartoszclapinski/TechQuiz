@@ -4,12 +4,14 @@
   "private": true,
   "description": "Root package.json for repo-level dev tooling only (husky, commitlint). The web app lives in ./web with its own package.json.",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "capture-mockups": "node scripts/capture-mockups.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "playwright": "^1.60.0"
   },
   "engines": {
     "node": ">=20",

@@ -2,6 +2,23 @@
 
 > A multi-user platform for testing technical knowledge — with AI-generated questions, spaced repetition, and progress tracking.
 
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/login-dark.png" alt="Login screen" /><br/><sub><b>Login</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/categories-dark.png" alt="Categories screen" /><br/><sub><b>Categories</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/quiz-dark.png" alt="Quiz screen" /><br/><sub><b>Quiz — multiple choice</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/result-dark.png" alt="Result screen" /><br/><sub><b>Result</b></sub></td>
+    <td align="center"><img src="docs/screenshots/dashboard-dark.png" alt="Dashboard screen" /><br/><sub><b>Dashboard</b> <i>(Phase 2)</i></sub></td>
+    <td align="center"><img src="docs/screenshots/quiz-code-dark.png" alt="Code question screen" /><br/><sub><b>Code questions</b> <i>(Phase 3)</i></sub></td>
+  </tr>
+</table>
+
+<sub>Screenshots are rendered from the design mockups in <a href="docs/mockups/"><code>docs/mockups/</code></a>. Re-generate with <code>pnpm capture-mockups</code>.</sub>
+
+---
+
 TechQuiz is a personal learning platform inspired by Pluralsight Skill IQ. Users test their knowledge across .NET, ASP.NET Core, SQL, design patterns, and other technical topics. AI generates new questions on demand using each user's own API key, and all generated questions are saved to a shared public pool to grow the question bank for everyone.
 
 This is a portfolio project demonstrating Clean Architecture, multi-provider AI integration, full-stack .NET development, and modern frontend practices.
