@@ -1,0 +1,22 @@
+# Exclude from Docker build context (build runs `pnpm install` fresh in container).
+node_modules
+dist
+.vite
+.pnpm-store
+
+# Logs / temp
+*.log
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Source-control
+.git
+.gitignore
+
+# Docker self
+Dockerfile
+.dockerignore

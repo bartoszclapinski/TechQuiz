@@ -76,3 +76,320 @@
 - **`trim_trailing_whitespace = false` for Markdown** — required because Markdown uses trailing double-space as a hard line break.
 
 **Weryfikacja:** pending — commit + push + PR + squash merge to follow this write.
+
+---
+
+## 2026-05-12 — Krok 3: Solution + 7 projects + project references
+
+**Co zrobione (4 atomic commits within `feat/project-skeleton` branch):**
+
+1. `chore: create empty solution` — `dotnet new sln -n TechQuiz`.
+2. `chore: scaffold src projects (Domain, Application, Infrastructure, Api)` — created 4 src projects targeting `net9.0`:
+   - `TechQuiz.Domain` (`classlib`)
+   - `TechQuiz.Application` (`classlib`)
+   - `TechQuiz.Infrastructure` (`classlib`)
+   - `TechQuiz.Api` (`webapi --use-controllers`)
+
+   Removed template noise: `Class1.cs` in each classlib, `WeatherForecast.cs` + `Controllers/WeatherForecastController.cs` + `TechQuiz.Api.http` in Api. Empty `Controllers/` folder removed (will be recreated in iteration 1.4 when controllers arrive).
+
+   Added all 4 to solution under `src/` solution folder.
+
+3. `chore: scaffold test projects` — created 3 xunit projects under `tests/`:
+   - `TechQuiz.Domain.Tests`
+   - `TechQuiz.Application.Tests`
+   - `TechQuiz.Infrastructure.Tests`
+
+   Removed template `UnitTest1.cs` from each. Added to solution under `tests/` solution folder.
+
+4. `chore: wire project references per Clean Architecture (ADR-001)` — 6 references:
+   - `Application → Domain`
+   - `Infrastructure → Application` (transitively → Domain)
+   - `Api → Application + Infrastructure`
+   - `Domain.Tests → Domain`
+   - `Application.Tests → Application`
+   - `Infrastructure.Tests → Infrastructure`
+
+   Domain still has **zero project references** (correct: it's the dependency root per ADR-001).
+
+**Decyzje:**
+- **`webapi --use-controllers` (not minimal API).** CLAUDE.md and iteration 1.4 both reference controller-based design (`AuthController`, `CategoriesController`, `QuizzesController`). Keeps a thin controller layer over MediatR per ADR-006.
+- **Removed all `Class1.cs` / `UnitTest1.cs` / `WeatherForecast*` placeholders.** They serve no purpose; iteration 1.1 will populate Domain with real entities via TDD.
+- **`launchSettings.json` left as-is** — ports `5032`/`7145` for local `dotnet run`. Docker compose will use `8080` per iteration 0.1 task 8.
+- **`appsettings.Development.json`** — not committed (`.gitignore` rule). Per project convention, sensitive dev config goes through user-secrets or env vars, not VCS.
+- **`net9.0` explicit `--framework`** flag on every `dotnet new` — even though `global.json` pins to 9.0.312, the explicit framework hardens against future SDK drift.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- `dotnet test TechQuiz.sln` → exit code 0 ("no tests available" is expected — placeholders removed, real tests come in iteration 1.1).
+- `git log --oneline feat/project-skeleton ^master` → 4 commits stacked on top of `aa0acc3` (post-merge master tip).
+
+---
+
+## 2026-05-12 — Krok 4: EF Core + Identity packages + AppDbContext skeleton
+
+**Co zrobione (2 commits within `feat/project-skeleton`):**
+
+1. `chore(infra): add EF Core + Identity packages (9.x)` — 4 packages added to `TechQuiz.Infrastructure`:
+   - `Microsoft.EntityFrameworkCore` 9.0.*
+   - `Microsoft.EntityFrameworkCore.Design` 9.0.* (with `PrivateAssets=all` — design-time only)
+   - `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.*
+   - `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 9.0.*
+
+2. `feat(infra): add AppDbContext skeleton with Identity`:
+   - `Persistence/Identity/ApplicationUser.cs` — `: IdentityUser`, empty body for now. Phase 0 doesn't need extra fields; Phase 1+ will add as needed.
+   - `Persistence/AppDbContext.cs` — `: IdentityDbContext<ApplicationUser>` using **primary constructor** (`public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)`). Empty body — DbSets and configurations belong to iteration 1.3.
+
+**Decyzje:**
+- **Version constraint `9.0.*`** — `dotnet add package` without `--version` defaulted to `10.0.7` (newest on NuGet), which is `net10.0`-only and broke compatibility with our `net9.0` target. Floating `9.0.*` picks the latest 9.x patch on each restore. Acceptable for a portfolio project; if we ever want fully reproducible builds, switch to `packages.lock.json` (deferred to Phase 4 polish).
+- **`ApplicationUser` in `Infrastructure`, NOT Domain.** Plan PL line "ApplicationUser : IdentityUser w Domain" would have violated ADR-001 (Domain must have zero framework deps). Identity is an Infrastructure concern; Domain operates on a `UserId` primitive, bridged via `IUserContext` (interface defined in Application in iteration 1.2).
+- **Primary constructor on `AppDbContext`.** CLAUDE.md soft preference + `.editorconfig` rule `csharp_style_prefer_primary_constructors = true:suggestion`. Short, idiomatic for C# 12+.
+- **No snake_case naming convention yet.** CLAUDE.md known gotcha mentions a global convention. That belongs to iteration 1.3 along with entity configurations — Phase 0 just needs the DbContext type to exist.
+- **No `AddDbContext` wiring in `Program.cs` yet.** That happens with JWT + Serilog + `/health` in kroks 5–6. Krok 4 is purely Infrastructure scaffolding.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- Project structure under `src/TechQuiz.Infrastructure/`:
+  ```
+  Persistence/
+  ├── AppDbContext.cs
+  └── Identity/
+      └── ApplicationUser.cs
+  ```
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` (5 commits stacked on master, not yet pushed)
+- Next: Krok 5 (JWT auth scaffolding in `Program.cs`) lub Krok 6 (Serilog Console + Seq). Można zrobić oba w jednej sesji wraz z `Program.cs` rewrite + `appsettings.json` + `IUserContext`/`IUnitOfWork` interface stubs jeśli zechcemy mieć DI w kompletne.
+- TodoWrite snapshot przy pauzie: kroki 4 done, 5–14 pending.
+
+---
+
+## 2026-05-12 — Kroki 5–7: JWT + Serilog + /health (Tasks 4–6 iteracji 0.1)
+
+**Co zrobione (4 commits within `feat/project-skeleton`):**
+
+1. `feat(api): add JWT bearer auth scaffolding`
+   - Added `Microsoft.AspNetCore.Authentication.JwtBearer` 9.0.* to Api.
+   - `appsettings.json`: `Jwt: { Issuer: "TechQuiz", Audience: "TechQuiz.Client", AccessTokenLifetimeMinutes: 15, RefreshTokenLifetimeDays: 14 }`. **No signing key in repo.**
+   - `Program.cs`: `AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...)` with full `TokenValidationParameters` (validate issuer/audience/lifetime/signing key, `ClockSkew = 30s`). `UseAuthentication()` placed before `UseAuthorization()`. Signing key fail-fast — `throw InvalidOperationException` at startup if missing.
+
+2. `chore(api): initialize user-secrets for JWT signing key`
+   - `dotnet user-secrets init` added `<UserSecretsId>` to `TechQuiz.Api.csproj` (the GUID is per-machine but harmless in repo).
+   - Local-only: `dotnet user-secrets set "Jwt:SigningKey" "<512-bit base64>"` — 64-byte cryptographically random key generated via `RandomNumberGenerator.Create()`. Stored in `%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json`, not in repo.
+
+3. `feat(api): configure Serilog with Console + Seq sinks`
+   - Added `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `Serilog.Sinks.Seq` (latest stable).
+   - `appsettings.json`: replaced default `Logging` section with `Serilog:` section. MinimumLevel `Information`, `Microsoft.AspNetCore: Warning`, `Microsoft.EntityFrameworkCore: Information`. WriteTo Console + Seq (`http://localhost:5341` default; docker compose will override via env var). Enrich `FromLogContext`. Properties `Application: "TechQuiz.Api"`.
+   - `Program.cs`: `builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration))` + `app.UseSerilogRequestLogging()`.
+
+4. `feat(api): add /health with DbContext check + Infrastructure DI`
+   - Added `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore` 9.0.* to Api.
+   - **New file** `src/TechQuiz.Infrastructure/DependencyInjection.cs` — static `AddInfrastructure(IServiceCollection, IConfiguration)` extension. Reads `ConnectionStrings:DefaultConnection`, registers `AppDbContext` with `UseNpgsql(...)`. Pattern matches iteration 1.3 task 7 — will expand with repositories, `IUserContext`, `IUnitOfWork` later.
+   - `appsettings.json`: added `ConnectionStrings:DefaultConnection = Host=localhost;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev`. Dev defaults — same credentials docker compose will set on the postgres service.
+   - `Program.cs`: `AddInfrastructure(builder.Configuration)`, `AddHealthChecks().AddDbContextCheck<AppDbContext>(name: "postgres", tags: ["db", "ready"])`, `app.MapHealthChecks("/health")`.
+
+**Decyzje:**
+- **Fail-fast on missing JWT signing key.** Throwing at startup is better than silently allowing tokens to fail validation under load. The error message tells the dev exactly how to fix it (`dotnet user-secrets set ...`).
+- **`ConnectionStrings:DefaultConnection` committed with dev password.** Dev-only credentials (`techquiz_dev`), local Docker container. Same password will be set on the `postgres` service in docker-compose. Production gets a real password via env var override.
+- **No `Logging` section after Serilog config.** Serilog replaces the default logger entirely — keeping the old `Logging` section would be misleading (it would be ignored). Explicit removal makes the config single-source-of-truth.
+- **`Microsoft.EntityFrameworkCore: Information` log level override.** Default would be `Information`, which is fine — but explicit override pins the choice in case a transitive dep changes the default. EF Core query logging at `Information` is useful in dev for spotting N+1.
+- **Health checks tags `["db", "ready"]`.** Tags allow future filtering: `MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") })`. For now we expose all checks under one `/health` endpoint.
+- **`Infrastructure.DependencyInjection` referenced from Api via `using TechQuiz.Infrastructure;`.** Api → Infrastructure project reference (set in Krok 3.5) makes this work. Domain still has zero external references.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- `dotnet run --project src/TechQuiz.Api --urls http://localhost:5032` → app starts, Serilog console output visible:
+  ```
+  [18:09:29 INF] Now listening on: http://localhost:5032
+  [18:09:29 INF] Application started. Press Ctrl+C to shut down.
+  ```
+  No startup exceptions. `/health` not hit yet because postgres isn't running locally — that requires Krok 10 (docker-compose.yml) to provision the DB.
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 12 commits stacked on master, not yet pushed.
+- Next: **Krok 8 — frontend skeleton** (Vite + React + TS + Tailwind w `web/`). Wymaga zainstalowania `pnpm` najpierw (`npm install -g pnpm` lub corepack). To może być duży krok — Vite tworzy całe drzewo, dodatkowo Tailwind setup. Rozważyć podział na (a) bare Vite + TS, (b) Tailwind + design tokens.
+
+---
+
+## 2026-05-12 — Krok 8: Frontend skeleton (Vite + React + TypeScript + Tailwind)
+
+**Co zrobione (3 commits within `feat/project-skeleton`):**
+
+1. `chore(web): scaffold Vite + React + TypeScript template`
+   - Installed `pnpm` 9.15.9 via `npm install -g pnpm@9` (user-scope, no UAC).
+   - `npm create vite@latest web -- --template react-ts --yes` scaffolded `web/` with React 19.2.6, React DOM, Vite 8, TypeScript 6, ESLint 10, `@vitejs/plugin-react` 6.
+   - `cd web && pnpm install` → `pnpm-lock.yaml` created (this is the lockfile CI expects per `.github/workflows/ci.yml`).
+   - `pnpm build` smoke test → 193KB JS / 60KB gzipped, 1s build.
+
+2. `chore(web): add Tailwind CSS + PostCSS + autoprefixer`
+   - `pnpm add -D tailwindcss@^3.4.0 postcss autoprefixer` — Tailwind v3.4.19 (NOT v4: v4's CSS-first config doesn't match iteration 1.5's plan for `tailwind.config.js`).
+   - `npx tailwindcss init -p` created `tailwind.config.js` + `postcss.config.js`.
+   - `tailwind.config.js`: `content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}']`, `darkMode: ['class', '[data-theme="dark"]']` — matches CLAUDE.md theme strategy (data-attribute on `<html>`) + ADR-012 dual theme.
+   - `src/index.css` replaced with three `@tailwind` directives.
+
+3. `chore(web): strip Vite template demo content`
+   - `App.tsx` simplified to a single centered `<h1>TechQuiz</h1>` with Tailwind utility classes.
+   - Deleted: `App.css`, `src/assets/{react,vite}.svg`, `src/assets/hero.png`, `public/icons.svg`, empty `src/assets/`.
+   - `index.html` title `web` → `TechQuiz`.
+   - Final bundle: 190KB JS / 60KB gzipped, 3.81KB CSS / 1.44KB gzipped.
+
+**Decyzje:**
+- **pnpm via `npm install -g` (not corepack).** Corepack on this machine threw two errors: (a) `EPERM` writing to `C:\Toolchains\NodeJS\` (Node install dir requires admin), (b) "Cannot find matching keyid" — known signature verification bug with pnpm packages in older corepack. `npm install -g pnpm@9` worked cleanly to user-scope `%APPDATA%\Roaming\npm`.
+- **`npm create vite` instead of `pnpm create vite`.** First two attempts via `pnpm create vite@latest web -- --template react-ts` scaffolded **vanilla-ts** (no React) despite the explicit `--template` flag. Likely pnpm arg-passing quirk with Vite 8's interactive prompts. `npm create vite@latest web -- --template react-ts --yes` worked first try.
+- **`--template react-ts` (not `react-swc-ts`).** Vite 8 collapsed React templates: only `react-ts` and `react-compiler-ts` exist now (verified via `create-vite --help`). SWC is no longer the differentiator — `@vitejs/plugin-react` is Babel-based but Vite 8's HMR is fast enough. Trade-off acknowledged: `react-compiler-ts` would use the React 19 compiler (auto-memoization) which could be a portfolio talking point — defer the decision to iteration 1.5 polish.
+- **Tailwind v3.4 over v4.** v4 (stable Jan 2025) uses CSS-first config without `tailwind.config.js`. Iteration 1.5 explicitly plans `tailwind.config.js` for design tokens. v3 has more documentation and fits the planned workflow. v4 migration possible in Phase 4 polish if needed.
+- **`darkMode: ['class', '[data-theme="dark"]']` in tailwind.config.js.** Matches CLAUDE.md's known gotcha — dual theme via `data-theme` attribute on `<html>`. Both selectors active simultaneously: `dark:` Tailwind variants fire when either `.dark` class or `[data-theme="dark"]` is present on an ancestor. Future `ThemeProvider` (iteration 1.5) toggles via `data-theme` attribute.
+- **No design tokens yet.** Iteration 1.5 task 1 will extend `theme` with custom violet shades + slate scale + Geist + JetBrains Mono. Krok 8 leaves the config minimal — only content paths and dark mode.
+- **Demo content fully removed**, not preserved as reference. Mockups in `docs/mockups/*.html` are the visual reference; keeping Vite demo would be noise.
+
+**Weryfikacja:**
+- `pnpm build` → success, 1.00s, 16 modules transformed, no errors.
+- `pnpm-lock.yaml` committed (CI uses `--frozen-lockfile`).
+- Project structure under `web/`:
+  ```
+  web/
+  ├── eslint.config.js
+  ├── index.html
+  ├── package.json
+  ├── pnpm-lock.yaml
+  ├── postcss.config.js
+  ├── tailwind.config.js
+  ├── public/favicon.svg
+  ├── src/
+  │   ├── App.tsx        (TechQuiz heading + Tailwind utilities)
+  │   ├── index.css      (3 @tailwind directives)
+  │   └── main.tsx
+  ├── tsconfig.app.json
+  ├── tsconfig.json
+  ├── tsconfig.node.json
+  └── vite.config.ts
+  ```
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 17 commits stacked on master, not pushed yet.
+- Next: **Krok 9 — Dockerfile API**. `mcr.microsoft.com/dotnet/sdk:9.0` for build, `mcr.microsoft.com/dotnet/aspnet:9.0` for runtime. Multi-stage. Exposes 8080. Iteration 0.1 tasks 8–10 (Dockerfiles + docker-compose) form a natural group.
+
+---
+
+## 2026-05-12 — Kroki 9–11: Docker stack (API + web + Postgres + Seq)
+
+**Co zrobione (3 commits within `feat/project-skeleton`):**
+
+1. `chore(api): add multi-stage Dockerfile (alpine, non-root)`
+   - `src/TechQuiz.Api/Dockerfile`:
+     - Build stage: `mcr.microsoft.com/dotnet/sdk:9.0-alpine`. Copies `global.json`, `.sln`, and every `.csproj` before `dotnet restore` to maximize Docker layer cache. Then `COPY src/ src/` and `dotnet publish`.
+     - Runtime stage: `mcr.microsoft.com/dotnet/aspnet:9.0-alpine`. Uses the **pre-existing `app` user** baked into the image (UID/GID 1654) — no need to `addgroup`/`adduser` (my first attempt failed with `addgroup: group 'app' in use`).
+     - `EXPOSE 8080`, `ASPNETCORE_URLS=http://+:8080`.
+   - **New file** `.dockerignore` at repo root: excludes `bin/`, `obj/`, `node_modules/`, `.git`, `docs/`, `.ai/`, `.claude/`, secrets, etc. Without this, `docker build` ships the entire repo (including 200MB+ of `node_modules`) to the daemon.
+   - Verified: `docker build -f src/TechQuiz.Api/Dockerfile -t techquiz-api:dev .` → image 182MB.
+
+2. `chore(web): add multi-stage Dockerfile + nginx config`
+   - `web/Dockerfile`:
+     - Build stage: `node:20-alpine`. Activates `pnpm@9` via `corepack` (inside container — corepack signature issues on host don't apply here). `pnpm install --frozen-lockfile` then `pnpm build`.
+     - Runtime stage: `nginx:alpine` serving `/usr/share/nginx/html` from build's `/src/dist`.
+   - **New file** `web/nginx.conf`:
+     - SPA fallback: `try_files $uri $uri/ /index.html` so React Router can take over deep paths.
+     - Aggressive caching for `/assets/` (1y, immutable) — Vite hashes filenames.
+     - `Cache-Control: no-cache` for `/index.html` to force fresh bundle pickup on deploy.
+   - **New file** `web/.dockerignore`: excludes `node_modules/`, `dist/`, `.vite/`, OS files, source-control noise.
+   - Verified: `docker build -t techquiz-web:dev ./web` → image 92.9MB.
+
+3. `chore: add docker-compose.yml (api + web + postgres + seq)`
+   - Four services: `postgres`, `seq`, `api`, `web`.
+   - Persistent volumes: `postgres-data`, `seq-data`.
+   - Internal network `techquiz` (bridge driver) — services reach each other by name (`postgres`, `seq`).
+   - Healthcheck on postgres (`pg_isready -U techquiz -d techquiz`, 5s interval, 10 retries, 5s start-period).
+   - `api.depends_on.postgres.condition: service_healthy` — API waits for DB to be ready before starting (avoids first-`/health` failure).
+   - Env overrides in api:
+     - `ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev` (service name `postgres`, container port 5432).
+     - `Serilog__WriteTo__1__Args__serverUrl=http://seq:5341` (internal ingest endpoint).
+     - `Jwt__SigningKey=<dev-only 64-byte base64 key>` (dev-only; production overrides via real secret).
+   - Port mappings (all bound to `127.0.0.1` only — no exposure to LAN):
+     - `5433:5432` postgres (5432 host is taken by another project's postgres — devmetrics).
+     - `8080:8080` api.
+     - `5173:80` web (matches Vite's default dev port — easy mental model).
+     - `8081:80` seq UI, `5341:5341` seq ingest (standard Datalust ports).
+
+**Decyzje:**
+- **Alpine base images.** Smaller (~30% less than Debian variants) and acceptable for portfolio. Real risk: glibc-specific edge cases — none seen here. The `mcr.microsoft.com/dotnet/aspnet:9.0-alpine` is officially supported by Microsoft.
+- **Pre-baked `app` user.** First attempt did `addgroup -S app && adduser -S -G app app` and failed with "group 'app' in use". Starting with .NET 8, the `aspnet` images ship with a non-root `app` user (UID/GID 1654) — just `USER app` is enough.
+- **Build context = repo root for API.** Multi-project solution needs all `.csproj` files visible. `src/TechQuiz.Api/Dockerfile` is referenced with `dockerfile:` field in compose; `context: .` at repo root.
+- **Build context = `./web` for web.** Self-contained Vite project, no cross-project paths needed.
+- **Bind to `127.0.0.1` only.** Default docker port mapping (`8080:8080`) listens on all interfaces — anyone on the LAN can hit the API. `127.0.0.1:8080:8080` restricts to localhost. Standard hygiene for dev stacks.
+- **Postgres host port `5433`, not `5432`.** Another container on this machine (`devmetrics-postgres`) already binds 5432. Using 5433 host-side avoids the conflict without affecting the container internals (which still use 5432).
+- **Seq `SEQ_FIRSTRUN_NOAUTHENTICATION=true`.** Seq 2025.2 changed behavior — now requires either an admin password or explicit no-auth opt-in. For local dev, no-auth is fine. Production deploys would set `SEQ_FIRSTRUN_ADMINPASSWORD` and configure proper auth.
+- **JWT signing key inline in docker-compose.yml.** Dev-only convenience — production overrides via real secret manager. Documented inline so it's obvious this is throwaway.
+- **`UseHttpsRedirection` warning ignored.** In Docker the app only listens on HTTP:8080 — TLS termination belongs at the reverse proxy edge (Azure App Service handles this in staging deploy, iteration 1.8). The warning is benign. Could remove `app.UseHttpsRedirection()` for non-Development envs in a future cleanup commit.
+
+**Weryfikacja (end-to-end):**
+- `docker compose up -d` → all 4 services start.
+- `docker compose ps`:
+  ```
+  techquiz-api        Up (about a minute)         127.0.0.1:8080->8080/tcp
+  techquiz-postgres   Up (about a minute, healthy) 127.0.0.1:5433->5432/tcp
+  techquiz-seq        Up (about a minute)         127.0.0.1:5341->5341, 127.0.0.1:8081->80
+  techquiz-web        Up (about a minute)         127.0.0.1:5173->80/tcp
+  ```
+- `curl http://localhost:8080/health` → `Healthy` HTTP 200 (= DbContext check passed = API reaches Postgres).
+- `curl http://localhost:5173` → serves `<title>TechQuiz</title>` index.html (nginx + SPA fallback verified).
+- `curl http://localhost:8081/api/events?count=3` → Seq returns request logs from the `/health` calls. Serilog → Seq pipeline working end-to-end.
+
+**Iteration 0.1 Definition of Done — status check:**
+- [x] `dotnet build` succeeds at solution root
+- [x] `dotnet test` runs (0 tests, exit 0)
+- [x] `docker compose up` brings the API + Postgres + Seq up healthy
+- [x] `GET /health` returns 200 from inside Docker
+- [ ] GitHub Actions CI runs build + test on push to any branch (workflow exists, untested until first push)
+- [x] Commitlint blocks non-conventional commit messages (config exists; husky hook missing — Krok 12)
+- [ ] First PR merged via squash with a conventional commit title (will happen at end of iteration)
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 21 commits stacked on master, not pushed.
+- Stack is **running**. Stop with `docker compose down` (keeps volumes) or `docker compose down -v` (wipes data).
+- Next: **Krok 12 — husky** (commitlint hook). Iteration 0.1 task 11. Then **Krok 13 — README update** with quick-start. Then **Krok 14 — push branch + open PR + merge**.
+
+---
+
+## 2026-05-12 — Krok 12 + 13: husky + README — iteracja 0.1 zamknięta
+
+**Co zrobione (2 commits within `feat/project-skeleton`):**
+
+1. `chore: setup husky commit-msg hook for commitlint`
+   - **New file** `package.json` at repo root — `techquiz-tooling` private package, scripts `prepare: husky`, devDependencies `husky@^9.1.7`, `@commitlint/cli@^19.6.1`, `@commitlint/config-conventional@^19.6.0`, `packageManager: pnpm@9.15.9`, engines pinned to Node 20+ / pnpm 9+.
+   - `pnpm install` installed deps + ran `husky` prepare script, creating `.husky/_/` runtime files.
+   - **New file** `.husky/commit-msg`: `pnpm exec commitlint --edit "$1"` — runs commitlint against the in-progress commit message before commit is accepted.
+   - Verified: `git commit -m "this should fail commitlint"` → hook exits 1, commit rejected. `git commit -m "chore: setup..."` → accepted.
+
+2. `docs: update README with current quick-start + project structure`
+   - Quick Start rewritten — old version referenced `TechQuiz.API` (wrong casing), `client/` (wrong folder), `npm install` (we use pnpm), port 5000 (we use 8080), and a `dotnet ef database update` migration step (no migrations yet — iteration 1.3).
+   - New Quick Start covers: `docker compose up -d` happy path, all 4 service ports, tear-down commands, `dotnet user-secrets set Jwt:SigningKey` instruction, local-without-Docker workflow.
+   - Project Structure replaced with full current tree (src/ + tests/ + web/ + docs/ + .ai/ + .github/, includes Dockerfiles + DependencyInjection.cs + ApplicationUser.cs).
+   - Tech Stack updated: React **18 → 19**, Vite **→ 8**, marked TanStack Query/React Router/Recharts/Monaco as "Phase N+" so reader knows what's actually shipped today.
+   - Demo credentials section flagged as "lands in Phase 1 (iteration 1.3)".
+
+**Decyzje:**
+- **Root `package.json` is "techquiz-tooling".** Just husky + commitlint for repo-wide dev hooks. `web/` keeps its own `package.json` + `pnpm-lock.yaml`. No workspace setup (`pnpm-workspace.yaml`) until there are multiple JS packages — premature.
+- **`pnpm exec commitlint` not `npx commitlint`.** Project standardizes on pnpm; using npx would silently re-resolve packages.
+- **`engines.node: >=20, pnpm: >=9` + `packageManager: pnpm@9.15.9`.** Pins the toolchain so anyone cloning gets a clear error if they're on the wrong Node/pnpm.
+- **Husky `commit-msg` hook only (no `pre-commit`).** Local lint/test on every commit is friction that bites during the "WIP commit then fix later" workflow. CI catches the rest. Per CLAUDE.md soft preference for pragmatism.
+- **README Quick Start rewritten, not appended.** The old version was demonstrably wrong on multiple paths/ports. Misleading docs are worse than missing docs.
+
+**Weryfikacja:**
+- Hook chain: editor → `git commit` → husky `commit-msg` → `pnpm exec commitlint` → exit 0 (accept) / exit 1 (reject).
+- Manual test: bad message rejected with `subject-empty` + `type-empty` errors. Good message accepted.
+- README renders cleanly in GitHub preview (verified via local markdown viewer).
+
+**Iteration 0.1 Definition of Done — final:**
+- [x] `dotnet build` succeeds at solution root
+- [x] `dotnet test` runs (0 tests — exit 0)
+- [x] `docker compose up` brings API + Postgres + Seq up healthy (web too)
+- [x] `GET /health` returns 200 from inside Docker
+- [x] Commitlint blocks non-conventional commit messages (husky hook active)
+- [ ] GitHub Actions CI runs build + test (workflow exists, fires on push to feature branch — verified after first push to `feat/project-skeleton`)
+- [ ] First PR merged via squash with a conventional commit title (= the upcoming PR closing this iteration)
+
+**Final push + PR plan (Krok 14):**
+1. `git push -u origin feat/project-skeleton`
+2. `gh pr create --base master --head feat/project-skeleton --title "feat: bootstrap solution and docker compose"`
+3. Wait for CI (may fail on some checks — need to verify).
+4. If CI green: `gh pr merge --squash --delete-branch`. If CI red: investigate, fix, push, repeat.
+5. After merge: update iteration `0.1-project-skeleton.md` frontmatter `Status: planned → done`, tick all DoD checkboxes.
