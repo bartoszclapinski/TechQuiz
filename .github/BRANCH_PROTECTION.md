@@ -1,12 +1,12 @@
 # Branch Protection Setup
 
-GitHub doesn't store branch protection rules in the repository — they're configured per-repo via the web UI. This document captures the protection settings for `main`, so anyone (including future-me) can reproduce them on a fresh repo or recover from accidental changes.
+GitHub doesn't store branch protection rules in the repository — they're configured per-repo via the web UI. This document captures the protection settings for `master`, so anyone (including future-me) can reproduce them on a fresh repo or recover from accidental changes.
 
-## Protection rules for `main`
+## Protection rules for `master`
 
 Navigate to: **Settings → Branches → Branch protection rules → Add rule**
 
-**Branch name pattern:** `main`
+**Branch name pattern:** `master`
 
 ### Required settings
 
@@ -23,7 +23,7 @@ Navigate to: **Settings → Branches → Branch protection rules → Add rule**
 
 - ☑ **Require conversation resolution before merging**
 
-- ☑ **Require linear history** (forces squash or rebase merge — no merge commits on `main`)
+- ☑ **Require linear history** (forces squash or rebase merge — no merge commits on `master`)
 
 - ☐ Require signed commits (off — adds friction, no security benefit for solo project)
 
@@ -31,8 +31,8 @@ Navigate to: **Settings → Branches → Branch protection rules → Add rule**
 
 ### Rules NOT enabled
 
-- ❌ Allow force pushes (kept off — no rewriting `main` history)
-- ❌ Allow deletions (kept off — `main` is permanent)
+- ❌ Allow force pushes (kept off — no rewriting `master` history)
+- ❌ Allow deletions (kept off — `master` is permanent)
 
 ### Repository-wide settings
 
@@ -46,9 +46,9 @@ In **Settings → General → Pull Requests**:
 
 ## Why these settings?
 
-- **Squash-only merges** keep `main` history linear and each PR appears as one commit (whose message follows Conventional Commits). This is what semantic-release reads to decide version bumps.
+- **Squash-only merges** keep `master` history linear and each PR appears as one commit (whose message follows Conventional Commits). This is what semantic-release reads to decide version bumps.
 - **No required reviewers** because this is a solo project. CI is the gatekeeper.
-- **Required CI checks** mean `main` is always green: every commit on `main` represents a passing build.
+- **Required CI checks** mean `master` is always green: every commit on `master` represents a passing build.
 - **Linear history + auto-delete branches** keeps the repo clean as iterations stack up.
 
 ## When working with Claude Code
@@ -60,4 +60,4 @@ PR-based workflow still applies. Even when an AI assistant writes the code, the 
 3. CI runs
 4. You merge via GitHub UI (squash) after CI passes
 
-Direct push to `main` is blocked. This is intentional — it forces CI on every change, including AI-generated ones.
+Direct push to `master` is blocked. This is intentional — it forces CI on every change, including AI-generated ones.

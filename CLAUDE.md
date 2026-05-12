@@ -107,7 +107,7 @@ TechQuiz/
 └── .github/
     ├── workflows/
     │   ├── ci.yml                  ← build + test + lint on PR
-    │   ├── release.yml             ← semantic-release on merge to main
+    │   ├── release.yml             ← semantic-release on merge to master
     │   └── deploy-staging.yml      ← deploy to Azure App Service
     ├── BRANCH_PROTECTION.md        ← branch protection rules (manual GitHub setup)
     └── PULL_REQUEST_TEMPLATE.md
@@ -132,9 +132,9 @@ If a question isn't answered in these files, ask the project owner before improv
 
 ### Branch flow
 
-- `main` is protected. All changes go through pull requests.
+- `master` is protected. All changes go through pull requests.
 - Feature branches: `feat/short-description`, `fix/short-description`, `docs/short-description`
-- Squash-merge to `main` (linear history enforced)
+- Squash-merge to `master` (linear history enforced)
 - After merge, the feature branch is auto-deleted by GitHub
 
 ### Commits and PR titles
@@ -185,7 +185,7 @@ PR title must follow the same format — it becomes the squash commit message an
 These rules are non-negotiable. Violating any of them should fail review.
 
 1. **Never commit secrets.** No API keys, JWT signing keys, DB passwords, or connection strings in source. Use `dotnet user-secrets` for local dev and GitHub Secrets for CI.
-2. **Never bypass branch protection.** No force push to `main`, no direct commits to `main`, no merging without green CI.
+2. **Never bypass branch protection.** No force push to `master`, no direct commits to `master`, no merging without green CI.
 3. **Never reference Infrastructure from Application or Domain.** Clean Architecture dependency rule (see ADR-001).
 4. **Never expose `IsCorrect` on options through the API when serving an active quiz.** Doing so reveals answers to the client. The `QuestionDto` returned during a quiz must omit this field.
 5. **Never silently change an ADR.** If a previously-recorded decision needs to change, append a new ADR explaining why and mark the old one as superseded. Editing in place loses history.

@@ -146,7 +146,7 @@ This project follows **GitHub Flow** with feature branches and pull requests:
 3. Push and open a PR
 4. Verify CI passes (build + tests)
 5. Self-review the diff before merging
-6. Squash and merge to `main`
+6. Squash and merge to `master`
 
 Commits follow the **Conventional Commits** specification, enforced via commitlint:
 

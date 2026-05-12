@@ -438,7 +438,7 @@ Final decision will be made before Phase 4 implementation.
 
 CI/CD pipeline (GitHub Actions):
 1. On every PR: build + run all tests
-2. On merge to `main`: build + deploy to staging
+2. On merge to `master`: build + deploy to staging
 3. Manual approval: deploy to production
 
 ---
