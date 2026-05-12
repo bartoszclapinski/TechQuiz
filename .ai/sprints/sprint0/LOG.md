@@ -267,3 +267,82 @@
 **Pauza — punkt wznowienia:**
 - Branch: `feat/project-skeleton` — 17 commits stacked on master, not pushed yet.
 - Next: **Krok 9 — Dockerfile API**. `mcr.microsoft.com/dotnet/sdk:9.0` for build, `mcr.microsoft.com/dotnet/aspnet:9.0` for runtime. Multi-stage. Exposes 8080. Iteration 0.1 tasks 8–10 (Dockerfiles + docker-compose) form a natural group.
+
+---
+
+## 2026-05-12 — Kroki 9–11: Docker stack (API + web + Postgres + Seq)
+
+**Co zrobione (3 commits within `feat/project-skeleton`):**
+
+1. `chore(api): add multi-stage Dockerfile (alpine, non-root)`
+   - `src/TechQuiz.Api/Dockerfile`:
+     - Build stage: `mcr.microsoft.com/dotnet/sdk:9.0-alpine`. Copies `global.json`, `.sln`, and every `.csproj` before `dotnet restore` to maximize Docker layer cache. Then `COPY src/ src/` and `dotnet publish`.
+     - Runtime stage: `mcr.microsoft.com/dotnet/aspnet:9.0-alpine`. Uses the **pre-existing `app` user** baked into the image (UID/GID 1654) — no need to `addgroup`/`adduser` (my first attempt failed with `addgroup: group 'app' in use`).
+     - `EXPOSE 8080`, `ASPNETCORE_URLS=http://+:8080`.
+   - **New file** `.dockerignore` at repo root: excludes `bin/`, `obj/`, `node_modules/`, `.git`, `docs/`, `.ai/`, `.claude/`, secrets, etc. Without this, `docker build` ships the entire repo (including 200MB+ of `node_modules`) to the daemon.
+   - Verified: `docker build -f src/TechQuiz.Api/Dockerfile -t techquiz-api:dev .` → image 182MB.
+
+2. `chore(web): add multi-stage Dockerfile + nginx config`
+   - `web/Dockerfile`:
+     - Build stage: `node:20-alpine`. Activates `pnpm@9` via `corepack` (inside container — corepack signature issues on host don't apply here). `pnpm install --frozen-lockfile` then `pnpm build`.
+     - Runtime stage: `nginx:alpine` serving `/usr/share/nginx/html` from build's `/src/dist`.
+   - **New file** `web/nginx.conf`:
+     - SPA fallback: `try_files $uri $uri/ /index.html` so React Router can take over deep paths.
+     - Aggressive caching for `/assets/` (1y, immutable) — Vite hashes filenames.
+     - `Cache-Control: no-cache` for `/index.html` to force fresh bundle pickup on deploy.
+   - **New file** `web/.dockerignore`: excludes `node_modules/`, `dist/`, `.vite/`, OS files, source-control noise.
+   - Verified: `docker build -t techquiz-web:dev ./web` → image 92.9MB.
+
+3. `chore: add docker-compose.yml (api + web + postgres + seq)`
+   - Four services: `postgres`, `seq`, `api`, `web`.
+   - Persistent volumes: `postgres-data`, `seq-data`.
+   - Internal network `techquiz` (bridge driver) — services reach each other by name (`postgres`, `seq`).
+   - Healthcheck on postgres (`pg_isready -U techquiz -d techquiz`, 5s interval, 10 retries, 5s start-period).
+   - `api.depends_on.postgres.condition: service_healthy` — API waits for DB to be ready before starting (avoids first-`/health` failure).
+   - Env overrides in api:
+     - `ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev` (service name `postgres`, container port 5432).
+     - `Serilog__WriteTo__1__Args__serverUrl=http://seq:5341` (internal ingest endpoint).
+     - `Jwt__SigningKey=<dev-only 64-byte base64 key>` (dev-only; production overrides via real secret).
+   - Port mappings (all bound to `127.0.0.1` only — no exposure to LAN):
+     - `5433:5432` postgres (5432 host is taken by another project's postgres — devmetrics).
+     - `8080:8080` api.
+     - `5173:80` web (matches Vite's default dev port — easy mental model).
+     - `8081:80` seq UI, `5341:5341` seq ingest (standard Datalust ports).
+
+**Decyzje:**
+- **Alpine base images.** Smaller (~30% less than Debian variants) and acceptable for portfolio. Real risk: glibc-specific edge cases — none seen here. The `mcr.microsoft.com/dotnet/aspnet:9.0-alpine` is officially supported by Microsoft.
+- **Pre-baked `app` user.** First attempt did `addgroup -S app && adduser -S -G app app` and failed with "group 'app' in use". Starting with .NET 8, the `aspnet` images ship with a non-root `app` user (UID/GID 1654) — just `USER app` is enough.
+- **Build context = repo root for API.** Multi-project solution needs all `.csproj` files visible. `src/TechQuiz.Api/Dockerfile` is referenced with `dockerfile:` field in compose; `context: .` at repo root.
+- **Build context = `./web` for web.** Self-contained Vite project, no cross-project paths needed.
+- **Bind to `127.0.0.1` only.** Default docker port mapping (`8080:8080`) listens on all interfaces — anyone on the LAN can hit the API. `127.0.0.1:8080:8080` restricts to localhost. Standard hygiene for dev stacks.
+- **Postgres host port `5433`, not `5432`.** Another container on this machine (`devmetrics-postgres`) already binds 5432. Using 5433 host-side avoids the conflict without affecting the container internals (which still use 5432).
+- **Seq `SEQ_FIRSTRUN_NOAUTHENTICATION=true`.** Seq 2025.2 changed behavior — now requires either an admin password or explicit no-auth opt-in. For local dev, no-auth is fine. Production deploys would set `SEQ_FIRSTRUN_ADMINPASSWORD` and configure proper auth.
+- **JWT signing key inline in docker-compose.yml.** Dev-only convenience — production overrides via real secret manager. Documented inline so it's obvious this is throwaway.
+- **`UseHttpsRedirection` warning ignored.** In Docker the app only listens on HTTP:8080 — TLS termination belongs at the reverse proxy edge (Azure App Service handles this in staging deploy, iteration 1.8). The warning is benign. Could remove `app.UseHttpsRedirection()` for non-Development envs in a future cleanup commit.
+
+**Weryfikacja (end-to-end):**
+- `docker compose up -d` → all 4 services start.
+- `docker compose ps`:
+  ```
+  techquiz-api        Up (about a minute)         127.0.0.1:8080->8080/tcp
+  techquiz-postgres   Up (about a minute, healthy) 127.0.0.1:5433->5432/tcp
+  techquiz-seq        Up (about a minute)         127.0.0.1:5341->5341, 127.0.0.1:8081->80
+  techquiz-web        Up (about a minute)         127.0.0.1:5173->80/tcp
+  ```
+- `curl http://localhost:8080/health` → `Healthy` HTTP 200 (= DbContext check passed = API reaches Postgres).
+- `curl http://localhost:5173` → serves `<title>TechQuiz</title>` index.html (nginx + SPA fallback verified).
+- `curl http://localhost:8081/api/events?count=3` → Seq returns request logs from the `/health` calls. Serilog → Seq pipeline working end-to-end.
+
+**Iteration 0.1 Definition of Done — status check:**
+- [x] `dotnet build` succeeds at solution root
+- [x] `dotnet test` runs (0 tests, exit 0)
+- [x] `docker compose up` brings the API + Postgres + Seq up healthy
+- [x] `GET /health` returns 200 from inside Docker
+- [ ] GitHub Actions CI runs build + test on push to any branch (workflow exists, untested until first push)
+- [x] Commitlint blocks non-conventional commit messages (config exists; husky hook missing — Krok 12)
+- [ ] First PR merged via squash with a conventional commit title (will happen at end of iteration)
+
+**Pauza — punkt wznowienia:**
+- Branch: `feat/project-skeleton` — 21 commits stacked on master, not pushed.
+- Stack is **running**. Stop with `docker compose down` (keeps volumes) or `docker compose down -v` (wipes data).
+- Next: **Krok 12 — husky** (commitlint hook). Iteration 0.1 task 11. Then **Krok 13 — README update** with quick-start. Then **Krok 14 — push branch + open PR + merge**.
