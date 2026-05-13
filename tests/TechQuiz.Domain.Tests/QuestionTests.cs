@@ -83,6 +83,16 @@ public class QuestionTests
         act.Should().Throw<InvalidQuestionException>().WithMessage("*exactly one correct*");
     }
 
+    [Fact]
+    public void Create_WithNullOptions_Throws()
+    {
+        var act = () => Question.Create(
+            AnyQuestionId, AnyCategoryId, QuestionType.MultipleChoice, Difficulty.Easy,
+            "text", "expl", options: null!);
+
+        act.Should().Throw<InvalidQuestionException>().WithMessage("*at least 2 options*");
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
