@@ -6,6 +6,8 @@ public interface IQuizRepository
 {
     Task<Quiz?> GetByCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default);
 
+    Task<Quiz?> GetByIdAsync(Guid quizId, CancellationToken cancellationToken = default);
+
     Task<QuizAttempt?> GetAttemptAsync(Guid attemptId, CancellationToken cancellationToken = default);
 
     Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default);
