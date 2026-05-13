@@ -45,11 +45,12 @@ The project should be **shippable fast** (MVP in 2 weeks for daily use during th
 - **MediatR** — CQRS handlers
 - **FluentValidation** — input validation
 - **Serilog** — structured logging
-- **xUnit** + **Moq** — testing
+- **xUnit** + **NSubstitute** + **FluentAssertions** (pinned to 7.x) — testing
 
 ### Frontend
-- **React 18** + **TypeScript**
-- **Vite** — build tool
+- **React 19** + **TypeScript**
+- **Vite 8** — build tool
+- **Tailwind CSS 3** — utility-first styling
 - **TanStack Query** — server state
 - **Recharts** — progress charts
 - **Monaco Editor** — code editor in browser (for code questions)
@@ -82,7 +83,7 @@ Clean Architecture with 4 layers + presentation:
 └─────────────────────────────────────────┘
                   │ HTTP (REST)
 ┌─────────────────────────────────────────┐
-│  TechQuiz.API (ASP.NET Core)            │  Presentation (API)
+│  TechQuiz.Api (ASP.NET Core)            │  Presentation (API)
 │  • Controllers, Filters, Middleware     │
 └─────────────────────────────────────────┘
                   │
@@ -246,31 +247,34 @@ Check the latest commits and `git log` for current state.
 ## Local Setup
 
 ### Prerequisites
-- .NET 9 SDK
-- Node.js 20+ (for `TechQuiz.Web`)
-- Docker Desktop (for PostgreSQL container)
+- Docker Desktop (with WSL2 backend on Windows)
 - Git
+- For local development outside Docker: .NET 9 SDK + Node.js 20+ + pnpm 9
 
 ### Run locally
 ```powershell
-# Clone (when published)
+# Clone
 git clone https://github.com/bartoszclapinski/TechQuiz.git
 cd TechQuiz
 
-# Start PostgreSQL
-docker compose up -d postgres
+# Full stack (API + web + Postgres + Seq)
+docker compose up -d
+# /health → http://localhost:8080/health
+# Web    → http://localhost:5173
+# Seq UI → http://localhost:8081
 
-# Apply migrations
-dotnet ef database update --project src/TechQuiz.Infrastructure --startup-project src/TechQuiz.API
+# Or run the API on the host with Postgres + Seq in containers:
+dotnet user-secrets set "Jwt:SigningKey" "<base64-256-bit>" --project src/TechQuiz.Api
+docker compose up -d postgres seq
+dotnet run --project src/TechQuiz.Api
 
-# Run API
-dotnet run --project src/TechQuiz.API
-
-# Run Web (in separate terminal)
-cd src/TechQuiz.Web
-npm install
-npm run dev
+# Web in dev mode (HMR):
+cd web
+pnpm install
+pnpm dev
 ```
+
+> EF Core migrations land in iteration 1.3. Until then there is no `dotnet ef database update` step — the API only exposes `/health` and JWT-protected stubs.
 
 ### Environment variables
 - See `appsettings.Development.json.example` (gitignored real version)

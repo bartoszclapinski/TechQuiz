@@ -35,7 +35,7 @@ artifacts/
 **/[Pp]ackages/*
 !**/[Pp]ackages/build/
 
-# Node / React (TechQuiz.Web)
+# Node / React (web/)
 node_modules/
 dist/
 dist-ssr/
