@@ -102,3 +102,57 @@
 **Pauza — punkt wznowienia:**
 - Branch: `feat/domain-tdd` — 8 commits stacked on master, ready to push + PR.
 - Next: open PR closing iteration 1.1, then iteration 1.2 (Application layer with MediatR + FluentValidation + handler tests).
+
+---
+
+## 2026-05-13 — Iteration 1.2 session 1: scaffolding + first handler
+
+**Co zrobione (6 commits on `feat/application-layer`, not yet pushed):**
+
+1. `chore(application): add MediatR + FluentValidation + test packages`
+   - Application: `MediatR 14.1.0` (Apache 2.0 — current published versions remain OSS, Jimmy Bogard announced future commercial split but no concrete cutoff yet), `FluentValidation 12.1.1`, `FluentValidation.DependencyInjectionExtensions 12.1.1`, `Microsoft.Extensions.Logging.Abstractions 10.0.8` (forced up by MediatR 14's transitive constraint — runs fine on `net9.0`).
+   - Application.Tests: `FluentAssertions 7.*` (pinned per FA v8 licensing change), `NSubstitute 5.x`, `coverlet.collector`.
+
+2. `feat(application): add abstractions (UserContext, UnitOfWork, repositories)`
+   - `Abstractions/IUserContext.cs` — `Guid UserId { get; }`. JWT-claim wiring lives in Infrastructure (iter 1.3).
+   - `Abstractions/IUnitOfWork.cs` — `SaveChangesAsync(CT)`.
+   - `Abstractions/ICategoryRepository.cs` — `GetAllAsync`, `GetQuestionCountsAsync` (batch, avoids N+1), `GetUserBestScoresAsync(userId)`.
+   - `Abstractions/IQuizRepository.cs` — `GetByCategoryAsync`, `GetAttemptAsync`, `AddAttemptAsync`, `GetAttemptsByUserAsync`.
+
+3. `feat(application): add shared DTOs (Category, Question, Option, Answer)`
+   - All as `sealed record` in `Common/Dtos/`.
+   - `OptionDto` deliberately omits `IsCorrect` (CLAUDE.md Hard Rule #4).
+   - `QuestionDto` omits `Explanation` too — reveal logic stays out of in-quiz payload. A separate `QuestionResultDto` with `IsCorrect` + `Explanation` will land alongside `CompleteQuizCommand` in a later session.
+   - `AnswerDto` allows `SelectedOptionId == null` (unanswered).
+
+4. `feat(application): add Validation + Logging pipeline behaviors`
+   - `Common/Behaviors/ValidationBehavior<TRequest, TResponse>` runs every `IValidator<TRequest>` before the handler; aggregates failures into a single `FluentValidation.ValidationException`.
+   - `Common/Behaviors/LoggingBehavior<TRequest, TResponse>` logs request type name + duration + success/failure via `ILogger`. No payload logging — payloads can contain PII (e.g. `RegisterCommand` password).
+
+5. `feat(application): wire MediatR + FluentValidation + behaviors via AddApplication`
+   - `DependencyInjection.AddApplication(IServiceCollection)` does the trio: `RegisterServicesFromAssembly` for MediatR, `AddOpenBehavior` for Logging then Validation (outer-to-inner order), `AddValidatorsFromAssembly` for FluentValidation.
+
+6. `feat(application): add GetCategoriesQuery handler + tests (TDD)`
+   - `Features/Categories/GetCategoriesQuery.cs` — empty record (no params, returns `IReadOnlyList<CategoryDto>`).
+   - `Features/Categories/GetCategoriesQueryHandler.cs` — three repo round-trips (categories, question counts, user best scores) projected into `CategoryDto` list.
+   - 4 NSubstitute-mocked tests: happy path with 2 categories + score, empty case, category-without-questions edge, scoping of best-scores call to current user id.
+
+**Decyzje:**
+- **MediatR 14 (not pinned to a "free" version).** Currently published versions are Apache 2.0. If future MediatR versions go commercial we can either pin to the last free version or migrate to `Mediator` (martinothamar) — they share concepts. Defensive pinning now would be premature.
+- **`Microsoft.Extensions.Logging.Abstractions 10.x` on `net9.0`.** Transitively required by MediatR 14. Compatible with .NET 9 (multi-target). Different from the EF Core 10 → net9 incompatibility we hit earlier — for that one, the 10.x packages were truly net10-only.
+- **Vertical slice folders.** `Features/Categories/GetCategoriesQuery.cs` + same-folder handler. Each feature lives in one place, easy to find. When a feature grows additional artifacts (validators, sub-DTOs), they cohabit. Wider Common/ folder for truly shared concerns (`Abstractions/`, `Behaviors/`, `Dtos/`).
+- **`OptionDto` and `QuestionDto` omit reveal fields** even though the field is `private` in the Domain entity — defense in depth at the boundary. Two DTO types (in-quiz vs post-complete) is intentional duplication for safety.
+- **Pipeline order: Logging outer, Validation inner.** So validation failures get logged with their request name. Reversed order would silently drop the log if validation throws.
+- **Batched `GetQuestionCountsAsync` instead of `CountQuestionsAsync(categoryId)`.** Refactored the interface during the handler-writing phase — the per-category variant would have triggered N+1 in the handler's iteration. Single dictionary return makes the handler obvious and the repo implementation efficient.
+- **No FluentValidation validator yet for `GetCategoriesQuery`.** Empty record, nothing to validate. Behavior gracefully skips when no validators registered.
+- **Handler tests bypass MediatR.** Direct instantiation of the handler class with mocked deps + `await handler.Handle(...)`. Testing through `IMediator.Send` would couple unit tests to pipeline behavior — that's an integration concern.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → success, 0 warnings, 0 errors.
+- `dotnet test tests/TechQuiz.Application.Tests` → 4 passed, 0 failed.
+- Domain layer tests still green (37 from iteration 1.1).
+
+**Punkt wznowienia:**
+- Branch: `feat/application-layer` — 6 commits stacked on master, not pushed yet (one PR per iteration policy — push when iteration 1.2 is done).
+- Next session: `StartQuizCommand` + `SubmitAnswerCommand` handlers + FluentValidation validators + tests. New abstractions on `IQuizRepository` are already in place.
+- Remaining iteration 1.2 work after that: `CompleteQuizCommand`, `GetAttemptHistoryQuery`, coverage verification, PR.
