@@ -81,17 +81,19 @@ GET    /api/quizzes/{id}/result   [Authorize]
 
 ## Authentication Flow
 
-The MVP uses JWT bearer tokens without refresh tokens (deferred to Phase 4). Authentication flow:
+The MVP uses short-lived JWT access tokens paired with longer-lived refresh tokens. Lifetimes are configured in `appsettings.json` (`Jwt:AccessTokenLifetimeMinutes` = 15, `Jwt:RefreshTokenLifetimeDays` = 14).
 
-1. User registers via `POST /api/auth/register` with email and password
-2. ASP.NET Core Identity creates `ApplicationUser` with hashed password (PBKDF2)
-3. User logs in via `POST /api/auth/login`
-4. Server validates credentials and returns a signed JWT (HS256)
-5. Frontend stores token in localStorage and attaches `Authorization: Bearer <token>` to all subsequent requests
-6. Middleware validates token on every protected endpoint
-7. Token expires after 24 hours (no refresh in MVP — user re-logs in)
+1. User registers via `POST /api/auth/register` with email and password.
+2. ASP.NET Core Identity creates `ApplicationUser` with hashed password (PBKDF2).
+3. User logs in via `POST /api/auth/login`.
+4. Server validates credentials and returns:
+   - **Access token** (signed JWT, HS256) — short-lived (~15 min).
+   - **Refresh token** — opaque, persisted server-side, issued as an `HttpOnly; Secure; SameSite=Strict` cookie.
+5. Frontend keeps the access token in memory only (React state). It is **never** stored in `localStorage` or `sessionStorage` — those are XSS-readable. The refresh cookie is invisible to JavaScript.
+6. The Axios client attaches `Authorization: Bearer <access>`. On a 401 it calls `POST /api/auth/refresh` once (browser auto-sends the refresh cookie). On success it retries the original request; on failure it logs out.
+7. On app reload, the frontend immediately tries a silent refresh — if the cookie is still valid, the user stays signed in.
 
-Phase 4 will add refresh tokens, email confirmation via SendGrid (or similar), and password reset.
+Phase 4 adds email confirmation via SendGrid (or similar) and password reset.
 
 ---
 
@@ -287,7 +289,7 @@ Structured logging via Serilog. All logs include:
 
 Two sinks configured:
 - **Console** — readable output during development
-- **Seq** — searchable structured log server at `http://localhost:5341`
+- **Seq** — searchable structured log server. Inside `docker compose` API writes to `http://seq:5341` (container network); the Seq web UI is exposed to the host at `http://localhost:8081`
 
 Example:
 ```csharp

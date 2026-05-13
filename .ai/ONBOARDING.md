@@ -78,7 +78,7 @@ Clean Architecture with 4 layers + presentation:
 
 ```
 ┌─────────────────────────────────────────┐
-│  TechQuiz.Web (React + TS)              │  Presentation (SPA)
+│  web/ (React + TS, Vite)                │  Presentation (SPA)
 └─────────────────────────────────────────┘
                   │ HTTP (REST)
 ┌─────────────────────────────────────────┐
@@ -116,15 +116,17 @@ Dependencies point **inward**. Domain depends on nothing. Application depends on
 ### Folder structure:
 ```
 src/
-├── TechQuiz.API/              # ASP.NET Core Web API
+├── TechQuiz.Api/              # ASP.NET Core Web API
 ├── TechQuiz.Application/      # Business logic, CQRS, MediatR
 ├── TechQuiz.Domain/           # Entities, VOs, interfaces
-├── TechQuiz.Infrastructure/   # EF Core, OpenAI, persistence
-└── TechQuiz.Web/              # React + TypeScript SPA
+└── TechQuiz.Infrastructure/   # EF Core, AI providers, persistence
 
 tests/
-├── TechQuiz.UnitTests/        # Domain + Application
-└── TechQuiz.IntegrationTests/ # API + Infrastructure (with TestContainers)
+├── TechQuiz.Domain.Tests/         # Pure unit tests (TDD-driven)
+├── TechQuiz.Application.Tests/    # Handler tests with mocked deps (NSubstitute)
+└── TechQuiz.Infrastructure.Tests/ # Integration tests (Testcontainers)
+
+web/                                # React + TypeScript SPA (Vite, pnpm) — separate from .NET solution
 ```
 
 ---
