@@ -16,14 +16,15 @@ Personal knowledge testing platform — like Pluralsight Skill IQ. Used as:
 
 ```
 src/
-├── TechQuiz.API/              # Web API
+├── TechQuiz.Api/              # Web API
 ├── TechQuiz.Application/      # CQRS, MediatR, validators
 ├── TechQuiz.Domain/           # Entities, VOs, interfaces
-├── TechQuiz.Infrastructure/   # EF Core, OpenAI
-└── TechQuiz.Web/              # React + TypeScript
+└── TechQuiz.Infrastructure/   # EF Core, AI providers
 tests/
-├── TechQuiz.UnitTests/
-└── TechQuiz.IntegrationTests/
+├── TechQuiz.Domain.Tests/
+├── TechQuiz.Application.Tests/
+└── TechQuiz.Infrastructure.Tests/
+web/                           # React + TypeScript SPA (Vite, separate from .NET solution)
 ```
 
 ---

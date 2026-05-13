@@ -19,7 +19,7 @@ The project is built as a portfolio piece demonstrating:
 - AI integration via provider abstraction (Phase 3)
 - Real CI/CD pipeline with staging deployment to Azure
 
-Current phase: **Phase 0 (Foundation)** — see `.ai/sprints/sprint0/` for active work.
+Current phase: **Phase 1 (MVP)** — see `.ai/sprints/sprint1/` for active work. Iteration 1.3 (Persistence) is next; 1.1 (Domain TDD) and 1.2 (Application layer) are merged.
 
 The roadmap has four phases (see `docs/DECISION_LOG.md` ADR-013):
 - Phase 0 — Foundation (setup, auth scaffolding, Docker, CI)
@@ -45,7 +45,7 @@ The roadmap has four phases (see `docs/DECISION_LOG.md` ADR-013):
 | Backend tests | xUnit + NSubstitute + Testcontainers (PostgreSQL) |
 | Frontend runtime | Node.js 20 |
 | Frontend tooling | Vite, pnpm 9 |
-| Frontend framework | React 18 + TypeScript |
+| Frontend framework | React 19 + TypeScript |
 | Styling | Tailwind CSS with CSS variables for theming |
 | Routing | React Router v6 |
 | Data fetching | TanStack Query (React Query) |
