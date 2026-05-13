@@ -39,12 +39,12 @@ public class Question
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw new ArgumentException("Question text must not be empty.", nameof(text));
+            throw new InvalidQuestionException("Question text must not be empty.");
         }
 
         if (options is null || options.Count < 2)
         {
-            throw new ArgumentException("Question must have at least 2 options.", nameof(options));
+            throw new InvalidQuestionException("Question must have at least 2 options.");
         }
 
         if (type == QuestionType.MultipleChoice)
@@ -52,9 +52,8 @@ public class Question
             var correctCount = options.Count(o => o.IsCorrect);
             if (correctCount != 1)
             {
-                throw new ArgumentException(
-                    "MultipleChoice question must have exactly one correct option.",
-                    nameof(options));
+                throw new InvalidQuestionException(
+                    "MultipleChoice question must have exactly one correct option.");
             }
         }
 

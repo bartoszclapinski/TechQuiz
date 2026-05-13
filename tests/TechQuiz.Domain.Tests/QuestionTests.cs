@@ -48,7 +48,7 @@ public class QuestionTests
             AnyQuestionId, AnyCategoryId, QuestionType.MultipleChoice, Difficulty.Easy,
             "text", "expl", options);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*at least 2 options*");
+        act.Should().Throw<InvalidQuestionException>().WithMessage("*at least 2 options*");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class QuestionTests
             AnyQuestionId, AnyCategoryId, QuestionType.MultipleChoice, Difficulty.Easy,
             "text", "expl", options);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*exactly one correct*");
+        act.Should().Throw<InvalidQuestionException>().WithMessage("*exactly one correct*");
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class QuestionTests
             AnyQuestionId, AnyCategoryId, QuestionType.MultipleChoice, Difficulty.Easy,
             "text", "expl", options);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*exactly one correct*");
+        act.Should().Throw<InvalidQuestionException>().WithMessage("*exactly one correct*");
     }
 
     [Theory]
@@ -93,6 +93,6 @@ public class QuestionTests
             AnyQuestionId, AnyCategoryId, QuestionType.MultipleChoice, Difficulty.Easy,
             text, "expl", TwoValidOptions());
 
-        act.Should().Throw<ArgumentException>().WithMessage("*text*");
+        act.Should().Throw<InvalidQuestionException>().WithMessage("*text*");
     }
 }

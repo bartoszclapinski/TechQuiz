@@ -30,8 +30,8 @@ public class QuizAttempt
     {
         if (IsCompleted)
         {
-            throw new InvalidOperationException(
-                "Cannot submit answer — quiz attempt already completed.");
+            throw new QuizAlreadyCompletedException(
+                "Cannot submit answer — quiz attempt is already completed.");
         }
 
         var answer = new Answer(questionId, selectedOptionId, submittedAt);
@@ -50,7 +50,7 @@ public class QuizAttempt
     {
         if (IsCompleted)
         {
-            throw new InvalidOperationException("Quiz attempt already completed.");
+            throw new QuizAlreadyCompletedException();
         }
 
         CompletedAt = completedAt;

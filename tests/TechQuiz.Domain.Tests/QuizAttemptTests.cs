@@ -83,7 +83,7 @@ public class QuizAttemptTests
 
         var act = () => attempt.Complete(T0.AddMinutes(10));
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("*already completed*");
+        act.Should().Throw<QuizAlreadyCompletedException>().WithMessage("*already completed*");
     }
 
     [Fact]
@@ -94,6 +94,6 @@ public class QuizAttemptTests
 
         var act = () => attempt.SubmitAnswer(AnyQuestionId, AnyOptionId, T0.AddMinutes(6));
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("*already completed*");
+        act.Should().Throw<QuizAlreadyCompletedException>().WithMessage("*already completed*");
     }
 }
