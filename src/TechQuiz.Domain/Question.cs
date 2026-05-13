@@ -10,7 +10,7 @@ public class Question
     public string Explanation { get; }
     public IReadOnlyList<Option> Options { get; }
 
-    public Question(
+    private Question(
         Guid id,
         Guid categoryId,
         QuestionType type,
@@ -26,5 +26,38 @@ public class Question
         Text = text;
         Explanation = explanation;
         Options = options;
+    }
+
+    public static Question Create(
+        Guid id,
+        Guid categoryId,
+        QuestionType type,
+        Difficulty difficulty,
+        string text,
+        string explanation,
+        IReadOnlyList<Option> options)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException("Question text must not be empty.", nameof(text));
+        }
+
+        if (options is null || options.Count < 2)
+        {
+            throw new ArgumentException("Question must have at least 2 options.", nameof(options));
+        }
+
+        if (type == QuestionType.MultipleChoice)
+        {
+            var correctCount = options.Count(o => o.IsCorrect);
+            if (correctCount != 1)
+            {
+                throw new ArgumentException(
+                    "MultipleChoice question must have exactly one correct option.",
+                    nameof(options));
+            }
+        }
+
+        return new Question(id, categoryId, type, difficulty, text, explanation, options);
     }
 }
