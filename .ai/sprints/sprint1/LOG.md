@@ -156,3 +156,61 @@
 - Branch: `feat/application-layer` — 6 commits stacked on master, not pushed yet (one PR per iteration policy — push when iteration 1.2 is done).
 - Next session: `StartQuizCommand` + `SubmitAnswerCommand` handlers + FluentValidation validators + tests. New abstractions on `IQuizRepository` are already in place.
 - Remaining iteration 1.2 work after that: `CompleteQuizCommand`, `GetAttemptHistoryQuery`, coverage verification, PR.
+
+---
+
+## 2026-05-13 — Iteration 1.2 session 2: remaining handlers + close
+
+**Co zrobione (5 commits on `feat/application-layer`):**
+
+1. `feat(application): add StartQuizCommand + handler + validator + tests`
+   - `Features/Quizzes/StartQuizCommand.cs` (record: `CategoryId`).
+   - `Features/Quizzes/QuizSessionDto.cs` (narrow, feature-folder: `AttemptId` + `IReadOnlyList<QuestionDto>`).
+   - Handler: `IQuizRepository.GetByCategoryAsync` → `QuizAttempt.Start` (via `TimeProvider`) → `AddAttemptAsync` → `SaveChangesAsync`. Returns projection without `IsCorrect` on options.
+   - Validator: `CategoryId.NotEmpty`.
+   - 6 tests: happy path, persistence/save assertion, current-user assignment, category-without-quiz throws `KeyNotFoundException` + side effects suppressed. + 2 validator tests.
+
+2. `feat(application): add SubmitAnswerCommand + handler + validator + tests`
+   - Added `IQuizRepository.GetByIdAsync(quizId)` — needed to validate "question belongs to attempt's quiz".
+   - Handler does 4 guard checks: attempt exists → belongs to user → not completed → question belongs to quiz. Each fails with a specific exception. Then `attempt.SubmitAnswer(...)` and save.
+   - 7 handler tests covering all guard paths + happy path (with-null-option = unanswered) + replacement of earlier answer. + 4 validator tests.
+
+3. `feat(application): add CompleteQuizCommand + handler + tests (QuizResultDto)`
+   - Added 3 shared DTOs for the result view: `OptionResultDto` (with `IsCorrect`), `QuestionResultDto` (with `Explanation`, `UserSelectedOptionId`, `IsCorrect`), `DifficultyBreakdownDto`.
+   - `Features/Quizzes/QuizResultDto.cs` — composite DTO returned by the command (score + per-question breakdown).
+   - Handler: same 3 guards as `SubmitAnswerCommand` minus question-belongs check. Then `attempt.Complete(now)`, save, `Score.Calculate(quiz.Questions, attempt.Answers)`, project full result DTO.
+   - 6 handler tests: all-correct/100%, partial mix (correct/wrong/unanswered), options expose `IsCorrect` post-complete, all 3 guard paths. + 2 validator tests.
+
+4. `feat(application): add GetAttemptHistoryQuery + handler + validator + tests`
+   - `Common/Dtos/AttemptHistoryItemDto.cs` (shared — Phase 2 dashboard will reuse).
+   - `Features/Quizzes/GetAttemptHistoryQuery.cs` with default `Page=1, PageSize=20`.
+   - Handler does `(page - 1) * pageSize` to skip, calls `IQuizRepository.GetAttemptsByUserAsync(userId, skip, take, ct)`, projects to lightweight DTO (no score data — that's loaded on-demand for attempt detail view).
+   - 4 handler tests: projection with completion flag, pagination math, user-scoping, empty case. + 4 validator tests (page < 1, page-size out of [1, 100] bounds, defaults pass, max-size 100 passes).
+
+5. `test(application): add tests for Validation + Logging pipeline behaviors`
+   - `Common/Behaviors/ValidationBehaviorTests` — no-validators pass-through, valid request passes, failing validator throws `ValidationException` and suppresses handler call, aggregated failures from multiple validators.
+   - `Common/Behaviors/LoggingBehaviorTests` — successful request logs Information level; throwing handler logs Error with the exception, then rethrows.
+   - NSubstitute gotcha: nested `TestRequest` record had to be `public` (not `private`) because FluentValidation/MS.E.Logging are strong-named — Castle DynamicProxy can't proxy `IValidator<TInternalRequest>` across assembly boundaries unless the request type is publicly accessible.
+
+**Decyzje:**
+- **`TimeProvider` injected** to handlers that timestamp domain operations. Built-in `System.TimeProvider` (added .NET 8) — no extra package, NSubstitute mocks it cleanly. Default `TimeProvider.System` will be wired by Infrastructure DI in iter 1.3 (or by Api `Program.cs`).
+- **`KeyNotFoundException`** for "attempt/quiz not found" cases. Generic .NET exception that API layer can map to 404 generically. If we ever need more specific types (e.g., to distinguish "quiz vs attempt"), wrap them later — no need today.
+- **`UnauthorizedAccessException`** for "attempt belongs to another user". System namespace, maps cleanly to 403 in API layer.
+- **`QuizAlreadyCompletedException` reused** from the Domain layer (introduced iter 1.1). It's thrown both by Domain on guard violation AND by handlers as a fail-fast check before calling domain methods. Single exception type for one logical condition.
+- **`ArgumentException` for "question not in quiz"** in SubmitAnswerCommand. It's not a domain rule violation (Domain doesn't enforce question-belongs-to-quiz — that's a coordination concern between aggregates). Argument-level rejection is the right level.
+- **`InvalidOperationException` for "attempt references missing quiz"** in handlers — this is a data-corruption signal (attempts pointing at deleted quizzes shouldn't happen). Distinct from KeyNotFoundException (which is "you asked for X and we don't have one").
+- **No score data on `AttemptHistoryItemDto`.** History page only shows when/what — score computed on detail click. Future Phase 2 dashboard with rich stats can use a separate `AttemptStatsDto` aggregating across attempts.
+- **`GetAttemptHistoryQuery.Page` and `PageSize` as record positional params with defaults.** Matches REST convention `?page=1&pageSize=20` mapping cleanly via ASP.NET binding.
+- **Tests for DependencyInjection.AddApplication skipped.** Integration-style "wire it up, dispatch a request, verify pipeline behavior fires" tests belong in iteration 1.4 (API smoke tests via `WebApplicationFactory`).
+- **`KeyNotFoundException` is fine for handler tests** even though we're using FluentAssertions — `ThrowAsync<KeyNotFoundException>` works the same as for other types.
+
+**Weryfikacja (DoD):**
+- `dotnet build TechQuiz.sln` → 0 warnings, 0 errors.
+- `dotnet test tests/TechQuiz.Application.Tests` → **46/46 passed**.
+- Combined `dotnet test TechQuiz.sln` → **83 tests** (37 Domain + 46 Application).
+- Application csproj contains no `Microsoft.EntityFrameworkCore` or `Npgsql` reference.
+- Per-class line coverage of Application: handlers + validators at **100%**, pipeline behaviors at **100%** (after smoke tests added), DTOs partial (record auto-gen members not exercised — not real gaps), `DependencyInjection.cs` 0% (DI registration is integration territory).
+
+**Branch status:**
+- `feat/application-layer` — 12 commits stacked on master, pushed PR coming next.
+- Iteration 1.2 closed. Ready for push + PR to master.
