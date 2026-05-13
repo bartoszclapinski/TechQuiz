@@ -6,7 +6,11 @@ public interface ICategoryRepository
 {
     Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    Task<int> CountQuestionsAsync(Guid categoryId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Returns the question count keyed by category id, in one round-trip — avoids the N+1
+    /// pattern that "count per category in a loop" would produce.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> GetQuestionCountsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns the user's best score percentage per category. Categories the user has
