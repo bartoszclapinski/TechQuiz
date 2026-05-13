@@ -239,8 +239,14 @@ Check the latest commits and `git log` for current state.
 
 ### Pull Requests
 - Even solo: open PRs for non-trivial changes. Forces self-review.
-- PR description: summary + test plan
+- PR description: summary + test plan + every `Closes #N` line for the issues the PR resolves
 - Squash on merge
+
+### Issue tracking (from iteration 1.3 onwards)
+- **1 issue ↔ 1 commit.** Create the issue with `gh issue create` before each commit, then put `Closes #N` in the commit message body.
+- Labels: `phase:N` + `iteration:X.Y` (optional for off-plan work) + `type:feat|fix|docs|chore|test|refactor`.
+- Off-plan work (docs syncs, tooling) still gets an issue — *if you commit, you have an issue*.
+- Full rules: see `CLAUDE.md` → *How we work* → *Issue tracking*.
 
 ---
 

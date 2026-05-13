@@ -163,6 +163,29 @@ PR title must follow the same format — it becomes the squash commit message an
 5. When all DoD checkboxes are met, update iteration status to `done` in the file's frontmatter
 6. Move to the next iteration file
 
+### Issue tracking
+
+**Every commit lands with a corresponding GitHub issue. 1 issue ↔ 1 commit.**
+
+Flow:
+1. Before each commit, create the issue: `gh issue create --title "..." --label "type:..." --label "iteration:X.Y" --label "phase:N" --body "..."`. The body explains the *intent* of the change in a few lines.
+2. Do the work, then commit with `Closes #N` in the commit message body (not the subject line):
+   ```
+   feat(infra): wire AppDbContext with EF mappings
+
+   Closes #12
+   ```
+3. The PR body collects every `Closes #N` line so a single squash merge auto-closes the whole batch. Repeating the closures in the PR body is intentional — it's the most reliable trigger for GitHub's auto-close.
+
+Labels (three orthogonal dimensions, applied as appropriate):
+- `phase:N` — `phase:0` through `phase:4`. Always set.
+- `iteration:X.Y` — `iteration:1.1` through `iteration:1.8` (more added per phase). Set when the issue belongs to a planned iteration; omitted for off-plan repo work (docs sync, tooling, ad-hoc chores).
+- `type:feat | fix | docs | chore | test | refactor` — mirrors the commit type. Always set.
+
+History note: issue tracking started at **iteration 1.3**. Earlier iterations (0.1, 1.1, 1.2) are traceable via PRs and iteration files only — no retroactive issues were created.
+
+Off-plan work (e.g. docs syncs, dependency bumps, repo config) still gets an issue. The discipline rule is *"if you commit, you have an issue"* — exceptions are how slipshod tracking starts.
+
 ### Testing rules
 
 - **Domain layer**: TDD strictly. Write failing test, make it pass, refactor. Aim for ≥90% coverage. No EF Core, no JSON, no HTTP — pure C#.
