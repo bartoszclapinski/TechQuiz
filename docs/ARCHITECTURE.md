@@ -62,7 +62,7 @@ Key components:
 - **Key Vault** (Phase 3) — `EncryptedAiKeyVault` using ASP.NET Core Data Protection
 - **Repositories** — implementations of repository interfaces from Domain
 
-### API Layer (`TechQuiz.API`)
+### API Layer (`TechQuiz.Api`)
 
 ASP.NET Core Web API with controllers, middleware, and Program.cs configuration. Thin layer — controllers receive requests, dispatch via MediatR, return responses.
 
