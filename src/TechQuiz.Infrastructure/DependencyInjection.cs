@@ -16,7 +16,9 @@ public static class DependencyInjection
                 "ConnectionStrings:DefaultConnection is not configured.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options
+                .UseNpgsql(connectionString)
+                .UseSnakeCaseNamingConvention());
 
         return services;
     }
