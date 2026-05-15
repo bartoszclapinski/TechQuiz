@@ -26,6 +26,9 @@ public sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
             .HasForeignKey(o => o.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Navigation(q => q.Options)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasIndex(q => q.CategoryId);
         builder.HasIndex(q => new { q.CategoryId, q.Difficulty });
     }

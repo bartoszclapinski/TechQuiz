@@ -2,31 +2,18 @@ namespace TechQuiz.Domain;
 
 public class Question
 {
-    public Guid Id { get; }
-    public Guid CategoryId { get; }
-    public QuestionType Type { get; }
-    public Difficulty Difficulty { get; }
-    public string Text { get; }
-    public string Explanation { get; }
-    public IReadOnlyList<Option> Options { get; }
+    private readonly List<Option> _options = [];
 
-    private Question(
-        Guid id,
-        Guid categoryId,
-        QuestionType type,
-        Difficulty difficulty,
-        string text,
-        string explanation,
-        IReadOnlyList<Option> options)
-    {
-        Id = id;
-        CategoryId = categoryId;
-        Type = type;
-        Difficulty = difficulty;
-        Text = text;
-        Explanation = explanation;
-        Options = options;
-    }
+    public Guid Id { get; init; }
+    public Guid CategoryId { get; init; }
+    public QuestionType Type { get; init; }
+    public Difficulty Difficulty { get; init; }
+    public string Text { get; init; } = string.Empty;
+    public string Explanation { get; init; } = string.Empty;
+    public IReadOnlyList<Option> Options => _options;
+
+    // Parameterless constructor for EF Core materialisation.
+    private Question() { }
 
     public static Question Create(
         Guid id,
@@ -57,6 +44,16 @@ public class Question
             }
         }
 
-        return new Question(id, categoryId, type, difficulty, text, explanation, options);
+        var question = new Question
+        {
+            Id = id,
+            CategoryId = categoryId,
+            Type = type,
+            Difficulty = difficulty,
+            Text = text,
+            Explanation = explanation,
+        };
+        question._options.AddRange(options);
+        return question;
     }
 }

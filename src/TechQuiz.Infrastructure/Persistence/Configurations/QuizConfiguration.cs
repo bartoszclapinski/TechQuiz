@@ -22,6 +22,9 @@ public sealed class QuizConfiguration : IEntityTypeConfiguration<Quiz>
         builder.HasMany(q => q.Questions)
             .WithMany();
 
+        builder.Navigation(q => q.Questions)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasIndex(q => q.CategoryId);
     }
 }
