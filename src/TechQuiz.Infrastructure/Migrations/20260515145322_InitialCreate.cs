@@ -233,30 +233,6 @@ namespace TechQuiz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "question_quiz",
-                columns: table => new
-                {
-                    questions_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    quiz_id = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_question_quiz", x => new { x.questions_id, x.quiz_id });
-                    table.ForeignKey(
-                        name: "fk_question_quiz_questions_questions_id",
-                        column: x => x.questions_id,
-                        principalTable: "questions",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_question_quiz_quizzes_quiz_id",
-                        column: x => x.quiz_id,
-                        principalTable: "quizzes",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "quiz_attempts",
                 columns: table => new
                 {
@@ -281,6 +257,30 @@ namespace TechQuiz.Infrastructure.Migrations
                         principalTable: "quizzes",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "quiz_questions",
+                columns: table => new
+                {
+                    questions_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    quiz_id = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_quiz_questions", x => new { x.questions_id, x.quiz_id });
+                    table.ForeignKey(
+                        name: "fk_quiz_questions_questions_questions_id",
+                        column: x => x.questions_id,
+                        principalTable: "questions",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_quiz_questions_quizzes_quiz_id",
+                        column: x => x.quiz_id,
+                        principalTable: "quizzes",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -353,16 +353,6 @@ namespace TechQuiz.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_question_quiz_quiz_id",
-                table: "question_quiz",
-                column: "quiz_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_questions_category_id",
-                table: "questions",
-                column: "category_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_questions_category_id_difficulty",
                 table: "questions",
                 columns: new[] { "category_id", "difficulty" });
@@ -373,14 +363,14 @@ namespace TechQuiz.Infrastructure.Migrations
                 column: "quiz_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_quiz_attempts_user_id",
-                table: "quiz_attempts",
-                column: "user_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_quiz_attempts_user_id_started_at",
                 table: "quiz_attempts",
                 columns: new[] { "user_id", "started_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_quiz_questions_quiz_id",
+                table: "quiz_questions",
+                column: "quiz_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_quizzes_category_id",
@@ -413,7 +403,7 @@ namespace TechQuiz.Infrastructure.Migrations
                 name: "options");
 
             migrationBuilder.DropTable(
-                name: "question_quiz");
+                name: "quiz_questions");
 
             migrationBuilder.DropTable(
                 name: "quiz_attempts");

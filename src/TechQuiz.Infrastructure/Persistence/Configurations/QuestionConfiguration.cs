@@ -29,7 +29,6 @@ public sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
         builder.Navigation(q => q.Options)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasIndex(q => q.CategoryId);
         builder.HasIndex(q => new { q.CategoryId, q.Difficulty });
     }
 }

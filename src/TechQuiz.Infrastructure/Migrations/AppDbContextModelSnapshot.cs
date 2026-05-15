@@ -184,25 +184,6 @@ namespace TechQuiz.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("QuestionQuiz", b =>
-                {
-                    b.Property<Guid>("QuestionsId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("questions_id");
-
-                    b.Property<Guid>("QuizId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("quiz_id");
-
-                    b.HasKey("QuestionsId", "QuizId")
-                        .HasName("pk_question_quiz");
-
-                    b.HasIndex("QuizId")
-                        .HasDatabaseName("ix_question_quiz_quiz_id");
-
-                    b.ToTable("question_quiz", (string)null);
-                });
-
             modelBuilder.Entity("TechQuiz.Domain.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -311,9 +292,6 @@ namespace TechQuiz.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_questions");
 
-                    b.HasIndex("CategoryId")
-                        .HasDatabaseName("ix_questions_category_id");
-
                     b.HasIndex("CategoryId", "Difficulty")
                         .HasDatabaseName("ix_questions_category_id_difficulty");
 
@@ -368,9 +346,6 @@ namespace TechQuiz.Infrastructure.Migrations
 
                     b.HasIndex("QuizId")
                         .HasDatabaseName("ix_quiz_attempts_quiz_id");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_quiz_attempts_user_id");
 
                     b.HasIndex("UserId", "StartedAt")
                         .HasDatabaseName("ix_quiz_attempts_user_id_started_at");
@@ -459,6 +434,25 @@ namespace TechQuiz.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("quiz_questions", b =>
+                {
+                    b.Property<Guid>("QuestionsId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("questions_id");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quiz_id");
+
+                    b.HasKey("QuestionsId", "QuizId")
+                        .HasName("pk_quiz_questions");
+
+                    b.HasIndex("QuizId")
+                        .HasDatabaseName("ix_quiz_questions_quiz_id");
+
+                    b.ToTable("quiz_questions", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -516,23 +510,6 @@ namespace TechQuiz.Infrastructure.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("QuestionQuiz", b =>
-                {
-                    b.HasOne("TechQuiz.Domain.Question", null)
-                        .WithMany()
-                        .HasForeignKey("QuestionsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_question_quiz_questions_questions_id");
-
-                    b.HasOne("TechQuiz.Domain.Quiz", null)
-                        .WithMany()
-                        .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_question_quiz_quizzes_quiz_id");
-                });
-
             modelBuilder.Entity("TechQuiz.Domain.Option", b =>
                 {
                     b.HasOne("TechQuiz.Domain.Question", null)
@@ -586,7 +563,6 @@ namespace TechQuiz.Infrastructure.Migrations
                                 .HasColumnName("quiz_attempt_id");
 
                             b1.Property<Guid>("QuestionId")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("question_id");
 
@@ -609,6 +585,23 @@ namespace TechQuiz.Infrastructure.Migrations
                         });
 
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("quiz_questions", b =>
+                {
+                    b.HasOne("TechQuiz.Domain.Question", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_quiz_questions_questions_questions_id");
+
+                    b.HasOne("TechQuiz.Domain.Quiz", null)
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_quiz_questions_quizzes_quiz_id");
                 });
 
             modelBuilder.Entity("TechQuiz.Domain.Question", b =>

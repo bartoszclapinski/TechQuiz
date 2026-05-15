@@ -17,10 +17,13 @@ public sealed class QuizConfiguration : IEntityTypeConfiguration<Quiz>
             .HasForeignKey(q => q.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Many-to-many Quiz <-> Question via implicit join table (quiz_questions).
-        // Question side has no inverse navigation (a Question doesn't need to know which Quizzes use it).
+        // Many-to-many Quiz <-> Question. Question side has no inverse navigation
+        // (a Question doesn't need to know which Quizzes use it). The join table name
+        // is pinned to `quiz_questions` — EF Core's default would be `question_quiz`
+        // (alphabetical + singular).
         builder.HasMany(q => q.Questions)
-            .WithMany();
+            .WithMany()
+            .UsingEntity("quiz_questions");
 
         builder.Navigation(q => q.Questions)
             .UsePropertyAccessMode(PropertyAccessMode.Field);

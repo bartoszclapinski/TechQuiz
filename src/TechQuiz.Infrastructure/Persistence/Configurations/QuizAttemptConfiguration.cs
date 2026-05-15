@@ -35,7 +35,7 @@ public sealed class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAtte
         {
             owned.WithOwner().HasForeignKey("QuizAttemptId");
             owned.HasKey("QuizAttemptId", nameof(Answer.QuestionId));
-            owned.Property(a => a.QuestionId).IsRequired();
+            owned.Property(a => a.QuestionId).ValueGeneratedNever().IsRequired();
             owned.Property(a => a.SelectedOptionId);
             owned.Property(a => a.SubmittedAt).IsRequired();
         });
@@ -43,7 +43,6 @@ public sealed class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAtte
         builder.Navigation(a => a.Answers)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasIndex(a => a.UserId);
         builder.HasIndex(a => new { a.UserId, a.StartedAt });
     }
 }
