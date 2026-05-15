@@ -2,16 +2,14 @@ namespace TechQuiz.Domain;
 
 public class Quiz
 {
-    public Guid Id { get; }
-    public Guid CategoryId { get; }
-    public IReadOnlyList<Question> Questions { get; }
+    private readonly List<Question> _questions = [];
 
-    private Quiz(Guid id, Guid categoryId, IReadOnlyList<Question> questions)
-    {
-        Id = id;
-        CategoryId = categoryId;
-        Questions = questions;
-    }
+    public Guid Id { get; init; }
+    public Guid CategoryId { get; init; }
+    public IReadOnlyList<Question> Questions => _questions;
+
+    // Parameterless constructor for EF Core materialisation.
+    private Quiz() { }
 
     public static Quiz Create(Guid id, Guid categoryId, IReadOnlyList<Question> questions)
     {
@@ -20,6 +18,12 @@ public class Quiz
             throw new ArgumentException("Quiz must have at least 1 question.", nameof(questions));
         }
 
-        return new Quiz(id, categoryId, questions);
+        var quiz = new Quiz
+        {
+            Id = id,
+            CategoryId = categoryId,
+        };
+        quiz._questions.AddRange(questions);
+        return quiz;
     }
 }
