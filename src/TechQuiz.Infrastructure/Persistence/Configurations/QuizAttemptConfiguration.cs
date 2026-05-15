@@ -31,6 +31,11 @@ public sealed class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAtte
 
         // Answers are an owned collection of QuizAttempt — no independent identity in the Domain.
         // EF reads/writes them via the private backing field "_answers" exposed by IReadOnlyList<Answer> Answers.
+        //
+        // Intentionally NO HasOne<Question>() / HasOne<Option>() relationships on Answer:
+        // an attempt should survive a question being edited or removed later (audit-trail
+        // semantics). Answers store the QuestionId / SelectedOptionId as plain Guids without
+        // an enforced FK back to the current `questions` / `options` tables.
         builder.OwnsMany<Answer>(nameof(QuizAttempt.Answers), owned =>
         {
             owned.WithOwner().HasForeignKey("QuizAttemptId");

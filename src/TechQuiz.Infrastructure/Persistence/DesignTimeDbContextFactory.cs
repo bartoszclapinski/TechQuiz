@@ -9,7 +9,9 @@ namespace TechQuiz.Infrastructure.Persistence;
 /// in this order:
 /// <list type="number">
 ///   <item>environment variable <c>DOTNET_EF_CONNECTION_STRING</c> — per-machine override</item>
-///   <item>hard-coded local-dev default matching <c>docker-compose.yml</c></item>
+///   <item>hard-coded local-dev default matching <c>docker-compose.yml</c> — the literal
+///         password below is the docker-compose dev default (<c>techquiz_dev</c>), not a
+///         credential leak; production deploys override via the environment variable above</item>
 /// </list>
 /// Production migrations should run via the API host (real configuration), not this factory.
 /// </summary>
