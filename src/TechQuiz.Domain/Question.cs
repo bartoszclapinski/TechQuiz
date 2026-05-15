@@ -8,8 +8,8 @@ public class Question
     public Guid CategoryId { get; init; }
     public QuestionType Type { get; init; }
     public Difficulty Difficulty { get; init; }
-    public string Text { get; init; } = string.Empty;
-    public string Explanation { get; init; } = string.Empty;
+    public required string Text { get; init; }
+    public required string Explanation { get; init; }
     public IReadOnlyList<Option> Options => _options;
 
     // Parameterless constructor for EF Core materialisation.
