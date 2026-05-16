@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
 
@@ -16,6 +17,12 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// IHttpContextAccessor exposes the ambient HttpContext to scoped services (consumed by
+// HttpUserContext in Infrastructure). Registered here because it's an HTTP-host concern
+// — keeps Infrastructure portable to non-HTTP composition roots.
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services

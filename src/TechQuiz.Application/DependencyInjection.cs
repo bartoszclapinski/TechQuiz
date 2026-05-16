@@ -22,6 +22,11 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(assembly);
 
+        // TimeProvider is consumed by Application handlers (Start/Submit/Complete attempt
+        // timestamps). Registered here so Application carries its own clock dependency
+        // regardless of which host wires AddApplication.
+        services.AddSingleton(TimeProvider.System);
+
         return services;
     }
 }

@@ -29,14 +29,10 @@ public static class DependencyInjection
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // IUserContext reads from the request HttpContext; HttpContextAccessor exposes
-        // the ambient async-local and is registered as a singleton by convention.
-        services.AddHttpContextAccessor();
+        // IUserContext reads from the request HttpContext; IHttpContextAccessor itself
+        // is registered by the API host (Program.cs) since it only makes sense in an
+        // HTTP composition root.
         services.AddScoped<IUserContext, HttpUserContext>();
-
-        // TimeProvider is stateless from a consumer's perspective — share one instance.
-        // Application handlers were authored against this abstraction in iteration 1.2.
-        services.AddSingleton(TimeProvider.System);
 
         return services;
     }
