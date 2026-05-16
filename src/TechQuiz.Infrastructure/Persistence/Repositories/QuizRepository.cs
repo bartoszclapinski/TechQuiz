@@ -28,9 +28,18 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
     public Task<QuizAttempt?> GetAttemptAsync(Guid attemptId, CancellationToken cancellationToken = default) =>
         db.QuizAttempts.FirstOrDefaultAsync(a => a.Id == attemptId, cancellationToken);
 
-    public async Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default)
+    /// <remarks>
+    /// Uses synchronous <c>Add</c> rather than <c>AddAsync</c> because <c>QuizAttempt.Id</c>
+    /// is supplied by the Domain (<c>QuizAttempt.Start(id, …)</c>) — there's no value
+    /// generator that needs an async sequence read, so <c>AddAsync</c> would just wrap
+    /// a synchronous operation in a task. The method is still <c>Task</c>-returning to
+    /// match <c>IQuizRepository</c> and keep the call site uniform with future
+    /// implementations that may legitimately need async work.
+    /// </remarks>
+    public Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default)
     {
-        await db.QuizAttempts.AddAsync(attempt, cancellationToken);
+        db.QuizAttempts.Add(attempt);
+        return Task.CompletedTask;
     }
 
     public async Task<IReadOnlyList<QuizAttempt>> GetAttemptsByUserAsync(

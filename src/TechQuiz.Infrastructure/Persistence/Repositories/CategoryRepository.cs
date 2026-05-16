@@ -12,16 +12,12 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
             .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyDictionary<Guid, int>> GetQuestionCountsAsync(CancellationToken cancellationToken = default)
-    {
-        var counts = await db.Questions
+    public async Task<IReadOnlyDictionary<Guid, int>> GetQuestionCountsAsync(CancellationToken cancellationToken = default) =>
+        await db.Questions
             .AsNoTracking()
             .GroupBy(q => q.CategoryId)
             .Select(g => new { CategoryId = g.Key, Count = g.Count() })
-            .ToListAsync(cancellationToken);
-
-        return counts.ToDictionary(x => x.CategoryId, x => x.Count);
-    }
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count, cancellationToken);
 
     /// <summary>
     /// MVP placeholder — returns an empty dictionary so <c>GetCategoriesQueryHandler</c>
