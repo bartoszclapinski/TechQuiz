@@ -25,6 +25,15 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
     /// <c>SubmitAnswer</c> / <c>Complete</c> and then save via <c>IUnitOfWork</c>.
     /// Owned <c>Answers</c> are loaded automatically (they live in the same aggregate).
     /// </summary>
+    /// <remarks>
+    /// Intentionally does NOT scope the lookup by <see cref="QuizAttempt.UserId"/>.
+    /// Ownership is a handler-level concern — every consuming handler
+    /// (<c>SubmitAnswerCommandHandler</c>, <c>CompleteQuizCommandHandler</c>) is
+    /// expected to compare <c>attempt.UserId</c> against the current
+    /// <c>IUserContext.UserId</c> and throw <see cref="UnauthorizedAccessException"/>
+    /// on mismatch before mutating. Calling this method without that guard would
+    /// leak attempts across users.
+    /// </remarks>
     public Task<QuizAttempt?> GetAttemptAsync(Guid attemptId, CancellationToken cancellationToken = default) =>
         db.QuizAttempts.FirstOrDefaultAsync(a => a.Id == attemptId, cancellationToken);
 

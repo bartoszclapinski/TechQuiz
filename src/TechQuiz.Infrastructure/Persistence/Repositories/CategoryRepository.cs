@@ -33,6 +33,9 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
     /// </remarks>
     public Task<IReadOnlyDictionary<Guid, double>> GetUserBestScoresAsync(
         Guid userId,
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult<IReadOnlyDictionary<Guid, double>>(new Dictionary<Guid, double>());
+        CancellationToken cancellationToken = default)
+    {
+        _ = userId; // intentionally unused — placeholder until ScorePercentage is denormalised on QuizAttempt
+        return Task.FromResult<IReadOnlyDictionary<Guid, double>>(new Dictionary<Guid, double>());
+    }
 }
