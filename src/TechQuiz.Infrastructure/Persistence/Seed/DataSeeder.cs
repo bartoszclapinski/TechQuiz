@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TechQuiz.Domain;
 using TechQuiz.Infrastructure.Persistence.Identity;
+using TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 namespace TechQuiz.Infrastructure.Persistence.Seed;
 
@@ -38,17 +39,11 @@ public sealed class DataSeeder(
                 "test doubles, and Moq. Questions sourced from EPAM .NET Fundamentals course (module 003).",
             iconCode: "test-tube");
 
+        var questions = UnitTestingQuestions.CreateAll(unitTesting.Id);
         var quiz = Quiz.Create(
             id: Guid.NewGuid(),
             categoryId: unitTesting.Id,
-            questions:
-            [
-                // Questions are attached in a follow-up commit; Quiz.Create requires at
-                // least one for the invariant, so seed a single placeholder for now to
-                // satisfy the Domain. This will be replaced when the real question bank
-                // lands in the next commit on this branch.
-                BuildPlaceholderQuestion(unitTesting.Id),
-            ]);
+            questions: questions);
 
         db.Categories.Add(unitTesting);
         db.Quizzes.Add(quiz);
@@ -70,28 +65,7 @@ public sealed class DataSeeder(
         }
 
         logger.LogInformation(
-            "Seeded category {CategoryName}, quiz {QuizId}, demo user {Email}",
-            unitTesting.Name, quiz.Id, demoUser.Email);
-    }
-
-    /// <summary>
-    /// Placeholder question used only until the real question bank lands in the next
-    /// commit on this branch. Removed there.
-    /// </summary>
-    private static Question BuildPlaceholderQuestion(Guid categoryId)
-    {
-        var questionId = Guid.NewGuid();
-        return Question.Create(
-            id: questionId,
-            categoryId: categoryId,
-            type: QuestionType.MultipleChoice,
-            difficulty: Difficulty.Easy,
-            text: "Placeholder — replaced by the real question bank in the next commit.",
-            explanation: "Placeholder explanation.",
-            options:
-            [
-                new Option(Guid.NewGuid(), questionId, "Yes", isCorrect: true, orderIndex: 0),
-                new Option(Guid.NewGuid(), questionId, "No",  isCorrect: false, orderIndex: 1),
-            ]);
+            "Seeded category {CategoryName} with {QuestionCount} questions, quiz {QuizId}, demo user {Email}",
+            unitTesting.Name, questions.Count, quiz.Id, demoUser.Email);
     }
 }
