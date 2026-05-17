@@ -7,6 +7,7 @@ using TechQuiz.Infrastructure.Identity;
 using TechQuiz.Infrastructure.Persistence;
 using TechQuiz.Infrastructure.Persistence.Identity;
 using TechQuiz.Infrastructure.Persistence.Repositories;
+using TechQuiz.Infrastructure.Persistence.Seed;
 
 namespace TechQuiz.Infrastructure;
 
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<DataSeeder>();
 
         // IUserContext reads from the request HttpContext; IHttpContextAccessor itself
         // is registered by the API host (Program.cs) since it only makes sense in an
