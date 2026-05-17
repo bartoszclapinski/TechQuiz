@@ -32,8 +32,8 @@ public static class DependencyInjection
         //
         // Password policy is bound from the Identity:Password configuration section so
         // production-safe defaults in appsettings.json can be relaxed per-environment.
-        // The dev override lives in docker-compose.yml as Identity__Password__* env vars,
-        // matching the seeded demo password (Demo123!).
+        // The dev override lives in appsettings.Development.json, matching the seeded
+        // demo password (Demo123!).
         services
             .AddIdentityCore<ApplicationUser>(options =>
             {
@@ -42,6 +42,16 @@ public static class DependencyInjection
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>();
+
+        // Defensive floor: refuse to start if password policy is misconfigured below
+        // the NIST-aligned minimum. Without this, a deploy slot accidentally setting
+        // Identity__Password__RequiredLength=0 would silently weaken auth.
+        services
+            .AddOptions<IdentityOptions>()
+            .Validate(
+                o => o.Password.RequiredLength >= 8,
+                "Identity:Password:RequiredLength must be at least 8.")
+            .ValidateOnStart();
 
         // Repositories + unit-of-work are scoped because they depend on AppDbContext
         // (scoped per request).
