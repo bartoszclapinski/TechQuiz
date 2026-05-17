@@ -81,10 +81,10 @@ app.MapControllers();
 // re-throw preserves the existing host-aborts-on-error behaviour.
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     try
     {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await seeder.SeedAsync();
     }
     catch (Exception ex)
