@@ -5,6 +5,7 @@ using Serilog;
 using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
+using TechQuiz.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,5 +74,15 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();
+
+// Dev-only seeding. The seeder itself is idempotent (no-op when categories exist),
+// but the Development guard makes the intent explicit and keeps staging/prod hosts
+// from running the demo bootstrap.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    await seeder.SeedAsync();
+}
 
 app.Run();
