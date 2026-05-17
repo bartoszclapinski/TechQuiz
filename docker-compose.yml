@@ -59,6 +59,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev"
       Serilog__WriteTo__1__Args__serverUrl: "http://seq:5341"
+      # Dev-only Identity policy overrides — relax appsettings.json's production-safe
+      # defaults so the seeded demo user (Demo123!) passes the password policy.
+      Identity__Password__RequiredLength: "8"
+      Identity__Password__RequireNonAlphanumeric: "false"
       # Dev-only JWT signing key. NEVER copy this anywhere; production must override.
       Jwt__SigningKey: "Yk2N+9P3uVw/AaQXkF1ZJzr8jbE6S0LpD4hCnTgRqIyMxv7K0BtUaH3WeOoiPlmd"
     ports:

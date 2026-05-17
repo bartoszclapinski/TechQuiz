@@ -28,17 +28,16 @@ public static class DependencyInjection
 
         // AddIdentityCore (rather than AddIdentity) so we get UserManager / RoleManager
         // without the cookie auth scheme — JWT bearer is the project's auth scheme and
-        // would conflict with Identity's default cookie wiring. Password policy is set
-        // to match the dev demo user (Demo123!): length 8, upper + lower + digit, no
-        // non-alphanumeric requirement.
+        // would conflict with Identity's default cookie wiring.
+        //
+        // Password policy is bound from the Identity:Password configuration section so
+        // production-safe defaults in appsettings.json can be relaxed per-environment.
+        // The dev override lives in docker-compose.yml as Identity__Password__* env vars,
+        // matching the seeded demo password (Demo123!).
         services
             .AddIdentityCore<ApplicationUser>(options =>
             {
-                options.Password.RequiredLength = 8;
-                options.Password.RequireDigit = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireNonAlphanumeric = false;
+                configuration.GetSection("Identity:Password").Bind(options.Password);
                 options.User.RequireUniqueEmail = true;
             })
             .AddRoles<IdentityRole<Guid>>()
