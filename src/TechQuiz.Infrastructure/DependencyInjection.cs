@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Infrastructure.Identity;
 using TechQuiz.Infrastructure.Persistence;
+using TechQuiz.Infrastructure.Persistence.Identity;
 using TechQuiz.Infrastructure.Persistence.Repositories;
 
 namespace TechQuiz.Infrastructure;
@@ -22,6 +24,24 @@ public static class DependencyInjection
             options
                 .UseNpgsql(connectionString)
                 .UseTechQuizConventions());
+
+        // AddIdentityCore (rather than AddIdentity) so we get UserManager / RoleManager
+        // without the cookie auth scheme — JWT bearer is the project's auth scheme and
+        // would conflict with Identity's default cookie wiring. Password policy is set
+        // to match the dev demo user (Demo123!): length 8, upper + lower + digit, no
+        // non-alphanumeric requirement.
+        services
+            .AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>();
 
         // Repositories + unit-of-work are scoped because they depend on AppDbContext
         // (scoped per request).
