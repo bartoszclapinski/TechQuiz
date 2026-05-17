@@ -78,6 +78,8 @@ public sealed class DataSeeder(
             EmailConfirmed = true,
         };
 
+        // UserManager.CreateAsync(TUser, string) has no CancellationToken overload —
+        // that's an Identity API gap, not something to "complete" higher up the chain.
         var result = await userManager.CreateAsync(demoUser, DemoUserPassword);
         if (!result.Succeeded)
         {
