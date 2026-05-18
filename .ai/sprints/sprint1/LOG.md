@@ -214,3 +214,146 @@
 **Branch status:**
 - `feat/application-layer` — 12 commits stacked on master, pushed PR coming next.
 - Iteration 1.2 closed. Ready for push + PR to master.
+
+---
+
+## 2026-05-15 — Iteration 1.3 session A: EF Core mappings + initial migration
+
+**Co zrobione (single PR `feat/iteration-1.3-persistence-A`, merged as #17):**
+
+1. **`AppDbContext`** inherits `IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>` — keyed by `Guid` to match Domain entity IDs. Exposes `DbSet<Category>`, `DbSet<Question>`, `DbSet<Option>`, `DbSet<Quiz>`, `DbSet<QuizAttempt>`, `DbSet<Answer>`.
+2. **`ApplicationUser : IdentityUser<Guid>`** in `Persistence/Identity/`. Empty for now — extension points (display name, avatar URL) deferred until Phase 2 dashboard work needs them.
+3. **`IEntityTypeConfiguration<T>` per entity** in `Persistence/Configurations/`: `CategoryConfiguration`, `QuestionConfiguration`, `OptionConfiguration`, `QuizConfiguration`, `QuizAttemptConfiguration`. Keys, indexes (`CategoryId` on Question, `UserId` on QuizAttempt), foreign keys with cascade behaviors, and constructor-binding for private-ctor aggregates. `Answer` is owned by `QuizAttempt` (no separate config file).
+4. **`UseTechQuizConventions()` extension method** wraps `EFCore.NamingConventions.UseSnakeCaseNamingConvention()`. Single point if we ever swap the convention package or need to layer additional conventions. ASP.NET Identity tables intentionally keep their PascalCase names (`AspNetUsers` etc.) — the convention applies only to domain tables via per-table overrides.
+5. **`DesignTimeDbContextFactory`** lets `dotnet ef` commands construct `AppDbContext` without booting the full API. Connection string resolution: env var `DOTNET_EF_CONNECTION_STRING` → fallback to docker-compose dev default (`Host=localhost;Port=5433;...`).
+6. **Initial migration `20260515145322_InitialCreate`** generated, inspected (no surprises in generated SQL), and applied cleanly to fresh PostgreSQL on port 5433.
+
+**Decyzje:**
+- **`IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>`** — `Guid` PKs throughout (matches Domain entity IDs). `int` Identity defaults would force a translation layer everywhere Identity meets domain code.
+- **EF can't bind navigation collections through constructor.** First pass had `Question.Create(IReadOnlyList<Option>)` and `Quiz.Create(IReadOnlyList<Question>)` — EF threw at materialization because it can't pump navigations into ctor params. Refactor: private parameterless ctor + `{ get; init; }` scalars + private `List<T>` backing fields for collections + public `IReadOnlyList<T>` projections. Factory `Create` methods stay the public surface; EF uses the private ctor.
+- **Snake-case for domain tables, PascalCase for Identity tables.** Identity tables come from the framework and are referenced in many SQL queries documented online with their PascalCase names — keeping the standard avoids confusion. Domain tables follow PostgreSQL convention.
+- **Separate `IEntityTypeConfiguration<T>` files, not inline in OnModelCreating.** Easier to find, easier to evolve, no 400-line `OnModelCreating`. The `Answer` exception (owned, so configured inside `QuizAttemptConfiguration`) is the only collocation.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0 warnings, 0 errors.
+- `dotnet ef migrations script` → SQL inspected, no missing FKs or surprise indexes.
+- `dotnet ef database update` against docker-compose postgres → tables created, `__EFMigrationsHistory` shows `20260515145322_InitialCreate` applied.
+
+---
+
+## 2026-05-17 — Iteration 1.3 session B: repositories + UnitOfWork + UserContext + DI
+
+**Co zrobione (single PR `feat/iteration-1.3-persistence-B`, merged as #27):**
+
+1. **`CategoryRepository : ICategoryRepository`** — `GetAllAsync`, `GetQuestionCountsAsync` (batch `GroupBy(c => c.Id).ToDictionaryAsync` to avoid N+1), `GetUserBestScoresAsync(userId)` (joins `QuizAttempt`s and projects best score per category).
+2. **`QuizRepository : IQuizRepository`** — `GetByIdAsync`, `GetByCategoryAsync` (with `.Include(q => q.Questions).ThenInclude(q => q.Options)` since the quiz-start flow needs the full graph), `AddAttemptAsync`, `GetAttemptAsync`, `GetAttemptsByUserAsync(userId, skip, take)`.
+3. **`HttpUserContext : IUserContext`** — reads `ClaimTypes.NameIdentifier` from `IHttpContextAccessor.HttpContext?.User` and parses as `Guid`. Throws `InvalidOperationException` if no claim present or unparseable — these are programmer errors (handler running without auth middleware) not user errors.
+4. **`UnitOfWork : IUnitOfWork`** — thin wrapper over `AppDbContext.SaveChangesAsync(CT)`. The abstraction keeps Application layer free of EF references.
+5. **`Infrastructure/DependencyInjection.cs`** — `AddInfrastructure(IServiceCollection, IConfiguration)` registers `AppDbContext` (scoped), the two repositories (scoped), `UnitOfWork` (scoped), `HttpUserContext` as `IUserContext` (scoped). `IHttpContextAccessor` registration stays in API host (HTTP-specific, see ADR-001).
+
+**Decyzje:**
+- **Repositories are sealed.** No inheritance from a generic `Repository<T>` base — ADR-004 settled this. Each repository owns its query shapes.
+- **`GetQuestionCountsAsync` returns `IReadOnlyDictionary<Guid, int>`.** Caller can `.TryGetValue` for categories with zero questions without an extra query — eliminates the N+1 trap from the original `CountQuestionsAsync(categoryId)` shape.
+- **`GetByCategoryAsync` eagerly loads the full quiz graph.** The `StartQuizCommand` flow needs Questions + Options together to project `QuestionDto`s. Lazy loading is intentionally not enabled (would mask N+1s behind innocent property access).
+- **`HttpUserContext` throws on missing claim**, doesn't return `Guid?`. Handlers that need the user already assume an authenticated user — making the type non-nullable forces auth-middleware-first composition. Anonymous endpoints don't take `IUserContext`.
+- **`AddInfrastructure` doesn't register `IHttpContextAccessor`.** HTTP concern, belongs in the API host. Infrastructure stays composable in non-HTTP test/utility hosts.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0 warnings, 0 errors.
+- Application + Domain tests still 83/83 (no regression — Application's interfaces unchanged).
+- Manual smoke via `dotnet user-secrets set "Jwt:SigningKey" "<...>"` + `dotnet run --project src/TechQuiz.Api` → `/health` returns 200 with `postgres` check `Healthy`.
+
+---
+
+## 2026-05-18 — Iteration 1.3 session C: seed data + three code-review rounds
+
+**Co zrobione (single PR `feat/iteration-1.3-seed`, merged as #35 after 3 review rounds):**
+
+1. **Initial 4 commits — seeder + question content:**
+   - `feat(infra): configure ASP.NET Core Identity services for UserManager runtime` — `AddIdentityCore<ApplicationUser>` (not `AddIdentity` — would conflict with JWT bearer scheme). Adds `.AddRoles<IdentityRole<Guid>>().AddEntityFrameworkStores<AppDbContext>()`.
+   - `feat(infra): add DataSeeder skeleton seeding category, quiz and demo user` — Initial pass with single global `AnyAsync` guard.
+   - `feat(infra): seed Unit Testing question bank (19 questions from EPAM 003)` — 471-line `UnitTestingQuestions.cs` factory. 19 questions, 14 from `11-quiz` + 5 from `12-test-doubles`. Difficulty mix: 6 Easy / 10 Medium / 3 Hard.
+   - `feat(api): wire DataSeeder into Program.cs startup pipeline` — Development-gated, `using var scope` because seeder is scoped (`AppDbContext` + `UserManager` dependencies).
+
+2. **Review round 1 fixes (3 commits):**
+   - `fix(infra): make seeder idempotent per-resource` (closes #36) — Replaces single global `AnyAsync(Categories)` guard with per-resource checks: `SeedCategoryIfMissingAsync(name)` keys on category Name, `SeedDemoUserAsync` keys on email via `FindByEmailAsync`. Partial-failure paths heal on next boot.
+   - `feat(api): log seed failures critically before rethrowing` (closes #37) — `try/catch` in `Program.cs` around `seeder.SeedAsync()` with `LogCritical` + rethrow. Host-aborts behaviour unchanged; only forensics improved.
+   - `docs(infra): note absence of CancellationToken overload on UserManager.CreateAsync` (closes #38) — inline comment so future readers don't waste time looking for an overload that doesn't exist.
+
+3. **Review round 2 fixes (3 commits):**
+   - `fix(infra): bind Identity password policy from configuration` (closes #39) — Originally `AddIdentityCore` set `RequiredLength = 8` and `RequireNonAlphanumeric = false` unconditionally. The seeder was dev-gated, but the policy itself was leaking to staging/prod. Refactored to bind `options.Password` from `Identity:Password` config section. `appsettings.json` ships prod-safe defaults (length 12, all character classes required). `docker-compose.yml` initially overrode via env vars — see round 3.
+   - `feat(api): widen seed try/catch to cover scope and resolve` (closes #40) — `CreateScope()` and `GetRequiredService<DataSeeder>()` now sit inside the try block. DI registration regressions log the same critical line.
+   - `feat(infra): throw on cancellation before UserManager.CreateAsync` (closes #41) — Explicit `cancellationToken.ThrowIfCancellationRequested()` before the lone non-cancellable Identity call. Host-shutdown cooperative even though the call itself can't be cancelled mid-flight.
+
+4. **Review round 3 fixes (2 commits):**
+   - `fix(infra): move Identity dev-override to appsettings.Development.json` (closes #42) — Round 2 placed dev relaxations as `Identity__Password__*` env vars in `docker-compose.yml`, but those don't load for `dotnet run` outside Docker → seed throws on prod-safe policy. Moved to `appsettings.Development.json` (un-ignored in `.gitignore` — no secrets, just dev defaults). Single source of truth for both `dotnet run` and `docker compose up`.
+   - `feat(infra): validate Identity password options on startup` (closes #43) — `services.AddOptions<IdentityOptions>().Validate(o => o.Password.RequiredLength >= 8, ...).ValidateOnStart()`. A misconfigured deploy slot setting `RequiredLength=0` now fails at boot instead of silently weakening auth.
+
+**Decyzje:**
+- **EPAM Unit Testing module first.** Owner's directive — focus on EPAM Fundamentals 003 material before broader category coverage. SQL + EF Core categories get their own seed in later iterations.
+- **Question Q02 rephrased to NOT-question.** Source had "Which THREE frameworks are used?" with MSTest/NUnit/xUnit correct. Domain invariant requires exactly one correct option for MultipleChoice. Rephrased to "Which is NOT a framework?" with JUnit as the single correct answer. Documented inline + in commit message + in PR body — triple-redundant for future readers.
+- **Per-resource idempotency from round 1.** Single global guard didn't scale past one category and left a partial-failure trap. Pattern that emerged (`SeedCategoryIfMissingAsync(name, …)`) makes adding a second category in iteration 1.4 a one-liner with zero regression risk.
+- **Config-driven Identity policy with env-specific overrides.** Avoided the temptation to add `if (env.IsDevelopment())` branches in `Infrastructure/DependencyInjection.cs` — that would couple Infrastructure to environment knowledge. Pure configuration binding lets each env file own its policy.
+- **`ValidateOnStart` floor at 8 chars.** Matches NIST minimum and the dev override. If someone misconfigures a slot to `RequiredLength=0`, the host fails at boot rather than at first sign-in (which is what `Validate()` would catch but in a worse place — runtime, not startup).
+- **`DemoUserPassword` stays `public const`** for this PR. Owner deferred the `internal const` + `[InternalsVisibleTo]` change to session D where the test project setup lands naturally.
+
+**Weryfikacja (end-to-end smoke, fresh volume + fresh migrations):**
+
+Path A — `dotnet run` outside Docker (the regression path round 3 fixed):
+```
+[16:53:02 INF] Seeded category Unit Testing with 19 questions, quiz a1ccba28-...
+[16:53:02 INF] Seeded demo user demo@techquiz.local
+[16:53:03 INF] Application started.
+```
+
+Path B — `docker compose up`:
+```
+[14:58:53 INF] Seeded category Unit Testing with 19 questions, quiz cfccd141-...
+[14:58:54 INF] Seeded demo user demo@techquiz.local
+[14:58:54 INF] Application started.
+```
+
+DB state in both runs:
+```
+ categories | questions | options |      demo_user
+------------+-----------+---------+---------------------
+          1 |        19 |      76 | demo@techquiz.local
+```
+
+`19 × 4 = 76` options confirms the join wiring. Re-running the API → `Seed skipped` log lines for both resources (per-resource idempotency proven).
+
+**Deferred to session D:**
+- `internal const` for `DemoUserPassword` + `[InternalsVisibleTo]` to test assembly.
+- End-to-end DB smoke as an integration test (planned: first Testcontainers integration test calls `SeedAsync` twice, asserts `categories=1, questions=19, options=76` after both calls).
+
+---
+
+## 2026-05-18 — Iteration 1.3 follow-up: validate startup options before seeder
+
+**Co zrobione (single-commit PR `chore/seed-startup-validation-ordering`, merged as #45):**
+
+`chore(api): validate startup options before running seeder` (closes #44) — `app.Services.GetRequiredService<IStartupValidator>().Validate()` immediately before the dev seeder block. Closes a timing nuance flagged in the final review of #35: `ValidateOnStart` normally fires inside `IHost.StartAsync` (during `app.Run()`), so without an explicit `Validate()` call earlier, a misconfigured policy would let the seeder create the demo user before validation aborts the host.
+
+**Decyzje:**
+- **One-liner over architecturally cleaner alternatives.** Converting the seeder to `IHostedService` would also fix the ordering but pulls in lifecycle handling that the dev-only block doesn't need. `IStartupValidator.Validate()` is one call that says exactly what it does.
+- **Scope to `IsDevelopment()` block.** Validation is dev-only because the seeder is dev-only. In staging/prod the `IStartupFilter` registered by `ValidateOnStart` still fires inside `IHost.StartAsync` — full coverage on every path, no gap.
+
+**Weryfikacja (DB-independent because validation runs before any DB query):**
+- Misconfig (`Identity__Password__RequiredLength=0`): `OptionsValidationException` thrown at `Program.cs:89` (the new `Validate()` call). `grep -c "Seeded|Data seeding|Seed skipped" misconfig.log` → `0`. Host aborts **before** any seeder log line.
+- Good config (DB intentionally unreachable on port 65432): no `OptionsValidationException` (validate passes silently). Seeder runs, fails at DB connect, hits the existing critical-log + rethrow path. Confirms the new call is a no-op for valid config.
+
+---
+
+## 2026-05-18 — Iteration 1.3 session D start: docs catch-up + integration test setup
+
+**Co zrobione (this commit — branch `feat/iteration-1.3-integration-tests`):**
+
+- Caught up `LOG.md` with four iteration 1.3 entries (sessions A/B/C + PR #45) — entries above this one.
+- Ticked the delivered DoD items in `1.3-persistence.md` and added a note on the scope deferral for the "2 categories with 15+ questions each" item (one category shipped — second deferred to iteration 1.4).
+
+**Pozostałe commity zaplanowane na sesję D:**
+1. `chore(infrastructure-tests): add Testcontainers + FluentAssertions + coverlet` — package dependencies for real-Postgres integration tests.
+2. `chore(infra): scope DemoUserPassword to internal with InternalsVisibleTo` — closes the deferred review item #5 from session C.
+3. `feat(infrastructure-tests): add PostgresContainerFixture + IntegrationTestBase` — xUnit collection fixture that spins one Postgres container per test class, applies migrations, exposes a fresh `AppDbContext` per test.
+4. `test(infrastructure): add CategoryRepository integration tests` — round-trip + the deferred end-to-end DB smoke (`SeedAsync` twice, assert counts).
+5. `test(infrastructure): add QuizRepository integration tests` — full quiz graph save/retrieve, cascade-delete behavior, attempts query with pagination.
