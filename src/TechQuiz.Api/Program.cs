@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using TechQuiz.Application;
@@ -81,6 +82,12 @@ app.MapControllers();
 // re-throw preserves the existing host-aborts-on-error behaviour.
 if (app.Environment.IsDevelopment())
 {
+    // ValidateOnStart normally fires inside IHost.StartAsync (i.e. during app.Run()).
+    // The seeder runs before app.Run(), so without an explicit Validate() here a
+    // misconfigured policy (e.g. Identity:Password:RequiredLength=0) would let the
+    // seeder create the demo user before validation aborts the host.
+    app.Services.GetRequiredService<IStartupValidator>().Validate();
+
     try
     {
         using var scope = app.Services.CreateScope();
