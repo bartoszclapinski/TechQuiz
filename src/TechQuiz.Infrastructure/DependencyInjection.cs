@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Infrastructure.Identity;
 using TechQuiz.Infrastructure.Persistence;
+using TechQuiz.Infrastructure.Persistence.Identity;
 using TechQuiz.Infrastructure.Persistence.Repositories;
+using TechQuiz.Infrastructure.Persistence.Seed;
 
 namespace TechQuiz.Infrastructure;
 
@@ -23,11 +26,39 @@ public static class DependencyInjection
                 .UseNpgsql(connectionString)
                 .UseTechQuizConventions());
 
+        // AddIdentityCore (rather than AddIdentity) so we get UserManager / RoleManager
+        // without the cookie auth scheme — JWT bearer is the project's auth scheme and
+        // would conflict with Identity's default cookie wiring.
+        //
+        // Password policy is bound from the Identity:Password configuration section so
+        // production-safe defaults in appsettings.json can be relaxed per-environment.
+        // The dev override lives in appsettings.Development.json, matching the seeded
+        // demo password (Demo123!).
+        services
+            .AddIdentityCore<ApplicationUser>(options =>
+            {
+                configuration.GetSection("Identity:Password").Bind(options.Password);
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>();
+
+        // Defensive floor: refuse to start if password policy is misconfigured below
+        // the NIST-aligned minimum. Without this, a deploy slot accidentally setting
+        // Identity__Password__RequiredLength=0 would silently weaken auth.
+        services
+            .AddOptions<IdentityOptions>()
+            .Validate(
+                o => o.Password.RequiredLength >= 8,
+                "Identity:Password:RequiredLength must be at least 8.")
+            .ValidateOnStart();
+
         // Repositories + unit-of-work are scoped because they depend on AppDbContext
         // (scoped per request).
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<DataSeeder>();
 
         // IUserContext reads from the request HttpContext; IHttpContextAccessor itself
         // is registered by the API host (Program.cs) since it only makes sense in an

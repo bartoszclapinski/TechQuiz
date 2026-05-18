@@ -5,6 +5,7 @@ using Serilog;
 using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
+using TechQuiz.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,5 +74,24 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();
+
+// Dev-only seeding. The seeder itself is idempotent per-resource, but the Development
+// guard makes the intent explicit and keeps staging/prod hosts from running the demo
+// bootstrap. Critical-level log on failure surfaces what stage of startup failed —
+// re-throw preserves the existing host-aborts-on-error behaviour.
+if (app.Environment.IsDevelopment())
+{
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(ex, "Data seeding failed — aborting startup");
+        throw;
+    }
+}
 
 app.Run();
