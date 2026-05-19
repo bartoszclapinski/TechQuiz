@@ -1,9 +1,6 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TechQuiz.Infrastructure.Persistence;
-using TechQuiz.Infrastructure.Persistence.Identity;
 using TechQuiz.Infrastructure.Persistence.Seed;
 using TechQuiz.Infrastructure.Tests.Support;
 
@@ -51,21 +48,7 @@ public sealed class DataSeederTests(PostgresContainerFixture fixture) : Integrat
 
     private async Task RunSeedAsync()
     {
-        // Build a minimal service provider with everything DataSeeder needs.
-        // Identity defaults already accept the seeded "Demo123!" password
-        // (length 8, mixed case, digit, '!'-non-alpha) — no per-test override needed.
-        var services = new ServiceCollection();
-        services.AddLogging(); // no providers — ILogger<DataSeeder> resolves to a no-op
-        services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(Fixture.ConnectionString).UseTechQuizConventions());
-        services
-            .AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<AppDbContext>();
-        services.AddScoped<DataSeeder>();
-
-        await using var sp = services.BuildServiceProvider();
-        using var scope = sp.CreateScope();
+        using var scope = Fixture.Services.CreateScope();
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await seeder.SeedAsync();
     }

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using TechQuiz.Domain;
-using TechQuiz.Infrastructure.Persistence.Identity;
 using TechQuiz.Infrastructure.Persistence.Repositories;
 using TechQuiz.Infrastructure.Tests.Support;
 
@@ -72,7 +71,7 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
     [Fact]
     public async Task AddAttemptAsync_PersistsAttempt_AfterSaveChanges()
     {
-        var userId = await SeedUserAsync();
+        var userId = await CreateUserAsync();
         var (_, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
 
         var attemptId = Guid.NewGuid();
@@ -98,13 +97,14 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
     [Fact]
     public async Task GetAttemptAsync_LoadsOwnedAnswers()
     {
-        var userId = await SeedUserAsync();
-        var (_, quizId, questionIds) = await SeedCategoryWithQuizAsync(questionCount: 1);
-        var questionId = questionIds[0];
+        var userId = await CreateUserAsync();
+        var (_, quizId, questions) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var question = questions[0];
+        var selectedOptionId = question.Options[0].Id;
 
         var attemptId = Guid.NewGuid();
         var attempt = QuizAttempt.Start(attemptId, userId, quizId, DateTimeOffset.UtcNow);
-        attempt.SubmitAnswer(questionId, selectedOptionId: Guid.NewGuid(), submittedAt: DateTimeOffset.UtcNow);
+        attempt.SubmitAnswer(question.Id, selectedOptionId, submittedAt: DateTimeOffset.UtcNow);
 
         await using (var writeCtx = CreateDbContext())
         {
@@ -117,14 +117,15 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
 
         roundTripped.Should().NotBeNull();
         roundTripped!.Answers.Should().HaveCount(1);
-        roundTripped.Answers[0].QuestionId.Should().Be(questionId);
+        roundTripped.Answers[0].QuestionId.Should().Be(question.Id);
+        roundTripped.Answers[0].SelectedOptionId.Should().Be(selectedOptionId);
     }
 
     [Fact]
     public async Task GetAttemptsByUserAsync_ScopesToUser_OrdersDescByStartedAt_AndPaginates()
     {
-        var userA = await SeedUserAsync();
-        var userB = await SeedUserAsync();
+        var userA = await CreateUserAsync();
+        var userB = await CreateUserAsync();
         var (_, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
 
         var baseTime = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -149,30 +150,13 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         firstPage.Select(a => a.StartedAt).Should().BeInDescendingOrder();
         firstPage[0].StartedAt.Should().Be(baseTime.AddMinutes(30));
 
-        secondPage.Should().HaveCount(1); // userA only has 3 attempts total
+        secondPage.Should().HaveCount(1);
         secondPage[0].StartedAt.Should().Be(baseTime.AddMinutes(10));
 
         firstPage.Concat(secondPage).Should().OnlyContain(a => a.UserId == userA);
     }
 
-    private async Task<Guid> SeedUserAsync()
-    {
-        var userId = Guid.NewGuid();
-        await using var db = CreateDbContext();
-        db.Users.Add(new ApplicationUser
-        {
-            Id = userId,
-            UserName = $"user-{userId:N}",
-            Email = $"user-{userId:N}@test.local",
-            NormalizedUserName = $"USER-{userId:N}",
-            NormalizedEmail = $"USER-{userId:N}@TEST.LOCAL",
-            SecurityStamp = Guid.NewGuid().ToString(),
-        });
-        await db.SaveChangesAsync();
-        return userId;
-    }
-
-    private async Task<(Guid CategoryId, Guid QuizId, Guid[] QuestionIds)> SeedCategoryWithQuizAsync(int questionCount)
+    private async Task<(Guid CategoryId, Guid QuizId, IReadOnlyList<Question> Questions)> SeedCategoryWithQuizAsync(int questionCount)
     {
         var categoryId = Guid.NewGuid();
         var quizId = Guid.NewGuid();
@@ -185,7 +169,7 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         db.Quizzes.Add(quiz);
         await db.SaveChangesAsync();
 
-        return (categoryId, quizId, questions.Select(q => q.Id).ToArray());
+        return (categoryId, quizId, questions);
     }
 
     private static Question CreateQuestion(Guid categoryId)

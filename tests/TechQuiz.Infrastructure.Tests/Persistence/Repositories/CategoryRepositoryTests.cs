@@ -90,19 +90,6 @@ public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : 
         result.Should().NotContainKey(empty.Id);
     }
 
-    [Fact]
-    public async Task GetUserBestScoresAsync_ReturnsEmptyDictionary_PlaceholderBehavior()
-    {
-        // MVP placeholder — real per-category best-score aggregation arrives once
-        // QuizAttempt persists a denormalised ScorePercentage column (tracked for 1.6).
-        await using var db = CreateDbContext();
-        var sut = new CategoryRepository(db);
-
-        var result = await sut.GetUserBestScoresAsync(Guid.NewGuid());
-
-        result.Should().BeEmpty();
-    }
-
     private static Question CreateQuestion(Guid categoryId)
     {
         var qid = Guid.NewGuid();
