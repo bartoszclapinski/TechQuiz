@@ -18,9 +18,9 @@ public sealed class DataSeeder(
     UserManager<ApplicationUser> userManager,
     ILogger<DataSeeder> logger)
 {
-    public const string DemoUserEmail = "demo@techquiz.local";
-    public const string DemoUserName = "demo";
-    public const string DemoUserPassword = "Demo123!";
+    internal const string DemoUserEmail = "demo@techquiz.local";
+    internal const string DemoUserName = "demo";
+    internal const string DemoUserPassword = "Demo123!";
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
