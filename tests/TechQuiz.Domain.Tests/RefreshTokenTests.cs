@@ -18,7 +18,7 @@ public class RefreshTokenTests
 
         token.Id.Should().Be(AnyTokenId);
         token.UserId.Should().Be(AnyUserId);
-        token.Token.Should().Be(AnyToken);
+        token.TokenHash.Should().Be(AnyToken);
         token.IssuedAt.Should().Be(AnyIssuedAt);
         token.ExpiresAt.Should().Be(AnyIssuedAt + AnyLifetime);
         token.RevokedAt.Should().BeNull();

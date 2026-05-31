@@ -30,7 +30,7 @@ public sealed class RefreshCommandHandler(
         existing.Revoke(now);
 
         var newRefresh = refreshTokenIssuer.Issue(existing.UserId, now);
-        await refreshTokenRepository.AddAsync(newRefresh, cancellationToken);
+        await refreshTokenRepository.AddAsync(newRefresh.Token, cancellationToken);
 
         var user = await userAccount.GetByIdAsync(existing.UserId, cancellationToken)
             ?? throw new InvalidOperationException(
@@ -42,7 +42,7 @@ public sealed class RefreshCommandHandler(
         return new AuthTokensDto(
             accessToken.Token,
             accessToken.ExpiresAt,
-            newRefresh.Token,
-            newRefresh.ExpiresAt);
+            newRefresh.RawValue,
+            newRefresh.Token.ExpiresAt);
     }
 }

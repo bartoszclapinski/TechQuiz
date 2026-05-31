@@ -24,21 +24,23 @@ public class RefreshCommandHandlerTests
     public async Task Handle_HappyPath_RotatesTokens()
     {
         var userId = Guid.NewGuid();
-        var oldToken = RefreshToken.Issue(Guid.NewGuid(), userId, "old-value", T0.AddDays(-1), TimeSpan.FromDays(14));
-        var newToken = RefreshToken.Issue(Guid.NewGuid(), userId, "new-value", T0, TimeSpan.FromDays(14));
+        var oldToken = RefreshToken.Issue(Guid.NewGuid(), userId, "old-hash", T0.AddDays(-1), TimeSpan.FromDays(14));
+        var newToken = RefreshToken.Issue(Guid.NewGuid(), userId, "new-hash", T0, TimeSpan.FromDays(14));
+        var issued = new IssuedRefreshToken(newToken, "new-raw-value");
         var access = new AccessTokenResult("access-value", T0.AddMinutes(15));
 
-        _refreshTokenRepository.FindByTokenAsync("old-value", Arg.Any<CancellationToken>()).Returns(oldToken);
+        _refreshTokenRepository.FindByTokenAsync("old-raw-value", Arg.Any<CancellationToken>()).Returns(oldToken);
         _timeProvider.GetUtcNow().Returns(T0);
-        _refreshTokenIssuer.Issue(userId, T0).Returns(newToken);
+        _refreshTokenIssuer.Issue(userId, T0).Returns(issued);
         _userAccount.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(new UserAccount(userId, "user@test.local"));
         _jwt.IssueAccessToken(userId, "user@test.local").Returns(access);
 
-        var result = await CreateSut().Handle(new RefreshCommand("old-value"), CancellationToken.None);
+        var result = await CreateSut().Handle(new RefreshCommand("old-raw-value"), CancellationToken.None);
 
         result.AccessToken.Should().Be("access-value");
-        result.RefreshToken.Should().Be("new-value");
+        // The DTO hands the client the raw value, never the persisted hash.
+        result.RefreshToken.Should().Be("new-raw-value");
 
         // Rotation: the old token is revoked and the new one is persisted.
         oldToken.RevokedAt.Should().Be(T0);
@@ -97,7 +99,8 @@ public class RefreshCommandHandlerTests
         _refreshTokenRepository.FindByTokenAsync("value", Arg.Any<CancellationToken>()).Returns(oldToken);
         _timeProvider.GetUtcNow().Returns(T0);
         _refreshTokenIssuer.Issue(userId, T0)
-            .Returns(RefreshToken.Issue(Guid.NewGuid(), userId, "new", T0, TimeSpan.FromDays(14)));
+            .Returns(new IssuedRefreshToken(
+                RefreshToken.Issue(Guid.NewGuid(), userId, "new-hash", T0, TimeSpan.FromDays(14)), "new-raw"));
         _userAccount.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns((UserAccount?)null);
 

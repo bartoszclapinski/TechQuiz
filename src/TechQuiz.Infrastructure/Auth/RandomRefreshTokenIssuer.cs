@@ -11,10 +11,12 @@ public sealed class RandomRefreshTokenIssuer(IOptions<JwtOptions> options) : IRe
 
     private readonly TimeSpan _lifetime = TimeSpan.FromDays(options.Value.RefreshTokenLifetimeDays);
 
-    public RefreshToken Issue(Guid userId, DateTimeOffset now)
+    public IssuedRefreshToken Issue(Guid userId, DateTimeOffset now)
     {
         var rawToken = GenerateOpaqueToken();
-        return RefreshToken.Issue(Guid.NewGuid(), userId, rawToken, now, _lifetime);
+        var entity = RefreshToken.Issue(
+            Guid.NewGuid(), userId, RefreshTokenHasher.Hash(rawToken), now, _lifetime);
+        return new IssuedRefreshToken(entity, rawToken);
     }
 
     private static string GenerateOpaqueToken()

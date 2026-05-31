@@ -4,7 +4,11 @@ public class RefreshToken
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public string Token { get; private set; } = null!;
+
+    // Persisted value is a hash of the opaque token, never the raw secret — the aggregate
+    // is what EF stores, so the raw value must never live here. Lookups hash the incoming
+    // value and compare. A DB leak therefore yields hashes, not usable tokens.
+    public string TokenHash { get; private set; } = null!;
     public DateTimeOffset IssuedAt { get; private set; }
     public DateTimeOffset ExpiresAt { get; private set; }
     public DateTimeOffset? RevokedAt { get; private set; }
@@ -15,11 +19,11 @@ public class RefreshToken
     public static RefreshToken Issue(
         Guid id,
         Guid userId,
-        string token,
+        string tokenHash,
         DateTimeOffset issuedAt,
         TimeSpan lifetime)
     {
-        if (string.IsNullOrWhiteSpace(token))
+        if (string.IsNullOrWhiteSpace(tokenHash))
         {
             throw new InvalidRefreshTokenException("Refresh token value must not be empty.");
         }
@@ -33,7 +37,7 @@ public class RefreshToken
         {
             Id = id,
             UserId = userId,
-            Token = token,
+            TokenHash = tokenHash,
             IssuedAt = issuedAt,
             ExpiresAt = issuedAt + lifetime,
         };

@@ -24,7 +24,8 @@ public class LoginCommandHandlerTests
     public async Task Handle_HappyPath_ReturnsTokenPair()
     {
         var userId = Guid.NewGuid();
-        var refresh = RefreshToken.Issue(Guid.NewGuid(), userId, "refresh-value", T0, TimeSpan.FromDays(14));
+        var refreshEntity = RefreshToken.Issue(Guid.NewGuid(), userId, "refresh-hash", T0, TimeSpan.FromDays(14));
+        var issued = new IssuedRefreshToken(refreshEntity, "raw-refresh-value");
         var access = new AccessTokenResult("access-value", T0.AddMinutes(15));
 
         // Caller logs in with mixed-case input; the stored canonical email is lower-case.
@@ -32,16 +33,17 @@ public class LoginCommandHandlerTests
         _userAccount.VerifyCredentialsAsync("User@Test.local", "Password1!", Arg.Any<CancellationToken>())
             .Returns(new UserAccount(userId, "user@test.local"));
         _timeProvider.GetUtcNow().Returns(T0);
-        _refreshTokenIssuer.Issue(userId, T0).Returns(refresh);
+        _refreshTokenIssuer.Issue(userId, T0).Returns(issued);
         _jwt.IssueAccessToken(userId, "user@test.local").Returns(access);
 
         var result = await CreateSut().Handle(
             new LoginCommand("User@Test.local", "Password1!"), CancellationToken.None);
 
         result.AccessToken.Should().Be("access-value");
-        result.RefreshToken.Should().Be("refresh-value");
+        // The DTO hands the client the raw value, never the persisted hash.
+        result.RefreshToken.Should().Be("raw-refresh-value");
         _jwt.Received(1).IssueAccessToken(userId, "user@test.local");
-        await _refreshTokenRepository.Received(1).AddAsync(refresh, Arg.Any<CancellationToken>());
+        await _refreshTokenRepository.Received(1).AddAsync(refreshEntity, Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

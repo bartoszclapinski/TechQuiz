@@ -19,13 +19,13 @@ public sealed class RegisterCommandHandler(
 
         var accessToken = jwt.IssueAccessToken(userId, request.Email);
         var refreshToken = refreshTokenIssuer.Issue(userId, timeProvider.GetUtcNow());
-        await refreshTokenRepository.AddAsync(refreshToken, cancellationToken);
+        await refreshTokenRepository.AddAsync(refreshToken.Token, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new AuthTokensDto(
             accessToken.Token,
             accessToken.ExpiresAt,
-            refreshToken.Token,
-            refreshToken.ExpiresAt);
+            refreshToken.RawValue,
+            refreshToken.Token.ExpiresAt);
     }
 }

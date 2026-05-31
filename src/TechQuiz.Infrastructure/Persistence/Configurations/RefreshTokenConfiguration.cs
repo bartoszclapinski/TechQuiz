@@ -12,15 +12,15 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.HasKey(t => t.Id);
 
         builder.Property(t => t.UserId).IsRequired();
-        builder.Property(t => t.Token).IsRequired().HasMaxLength(256);
+        builder.Property(t => t.TokenHash).IsRequired().HasMaxLength(256);
         builder.Property(t => t.IssuedAt).IsRequired();
         builder.Property(t => t.ExpiresAt).IsRequired();
         builder.Property(t => t.RevokedAt);
 
-        // Token is the lookup key in the refresh flow — uniqueness guarantees
+        // The token hash is the lookup key in the refresh flow — uniqueness guarantees
         // FindByTokenAsync returns at most one row and protects against accidental
         // duplicate inserts (which the random generator should already prevent).
-        builder.HasIndex(t => t.Token).IsUnique();
+        builder.HasIndex(t => t.TokenHash).IsUnique();
 
         // (UserId, ExpiresAt) is the natural shape for future cleanup queries
         // ("delete expired tokens for user X" or "list active sessions").
