@@ -27,17 +27,20 @@ public class LoginCommandHandlerTests
         var refresh = RefreshToken.Issue(Guid.NewGuid(), userId, "refresh-value", T0, TimeSpan.FromDays(14));
         var access = new AccessTokenResult("access-value", T0.AddMinutes(15));
 
-        _userAccount.VerifyCredentialsAsync("user@test.local", "Password1!", Arg.Any<CancellationToken>())
-            .Returns(userId);
+        // Caller logs in with mixed-case input; the stored canonical email is lower-case.
+        // The token claim must use the canonical value, not the caller's input casing.
+        _userAccount.VerifyCredentialsAsync("User@Test.local", "Password1!", Arg.Any<CancellationToken>())
+            .Returns(new UserAccount(userId, "user@test.local"));
         _timeProvider.GetUtcNow().Returns(T0);
         _refreshTokenIssuer.Issue(userId, T0).Returns(refresh);
         _jwt.IssueAccessToken(userId, "user@test.local").Returns(access);
 
         var result = await CreateSut().Handle(
-            new LoginCommand("user@test.local", "Password1!"), CancellationToken.None);
+            new LoginCommand("User@Test.local", "Password1!"), CancellationToken.None);
 
         result.AccessToken.Should().Be("access-value");
         result.RefreshToken.Should().Be("refresh-value");
+        _jwt.Received(1).IssueAccessToken(userId, "user@test.local");
         await _refreshTokenRepository.Received(1).AddAsync(refresh, Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -46,7 +49,7 @@ public class LoginCommandHandlerTests
     public async Task Handle_InvalidCredentials_ThrowsUnauthorized_AndDoesNotIssueTokens()
     {
         _userAccount.VerifyCredentialsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns((Guid?)null);
+            .Returns((UserAccount?)null);
 
         var act = async () => await CreateSut().Handle(
             new LoginCommand("user@test.local", "wrong"), CancellationToken.None);

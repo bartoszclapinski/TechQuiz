@@ -15,11 +15,11 @@ public sealed class LoginCommandHandler(
 {
     public async Task<AuthTokensDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var userId = await userAccount.VerifyCredentialsAsync(request.Email, request.Password, cancellationToken)
+        var account = await userAccount.VerifyCredentialsAsync(request.Email, request.Password, cancellationToken)
             ?? throw new UnauthorizedAccessException("Invalid email or password.");
 
-        var accessToken = jwt.IssueAccessToken(userId, request.Email);
-        var refreshToken = refreshTokenIssuer.Issue(userId, timeProvider.GetUtcNow());
+        var accessToken = jwt.IssueAccessToken(account.Id, account.Email);
+        var refreshToken = refreshTokenIssuer.Issue(account.Id, timeProvider.GetUtcNow());
         await refreshTokenRepository.AddAsync(refreshToken, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

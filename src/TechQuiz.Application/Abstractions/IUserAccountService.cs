@@ -15,11 +15,13 @@ public interface IUserAccountService
     Task<Guid> CreateAsync(string email, string password, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns the user id when the email+password pair matches, <c>null</c> otherwise.
-    /// Callers must not distinguish "no such user" from "wrong password" in the response —
-    /// the single null signal keeps the API from leaking which field was wrong.
+    /// Returns the matched account (id + canonical stored email) when the email+password
+    /// pair matches, <c>null</c> otherwise. Callers must not distinguish "no such user"
+    /// from "wrong password" in the response — the single null signal keeps the API from
+    /// leaking which field was wrong. The returned email is the stored value, not the
+    /// caller's input, so downstream token claims are independent of input casing.
     /// </summary>
-    Task<Guid?> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken = default);
+    Task<UserAccount?> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken = default);
 
     Task<UserAccount?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 }

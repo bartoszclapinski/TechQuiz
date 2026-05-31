@@ -36,18 +36,18 @@ public sealed class IdentityUserAccountService(UserManager<ApplicationUser> user
         return user.Id;
     }
 
-    public async Task<Guid?> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken = default)
+    public async Task<UserAccount?> VerifyCredentialsAsync(string email, string password, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await userManager.FindByEmailAsync(email);
-        if (user is null)
+        if (user is null || user.Email is null)
         {
             return null;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
         var passwordValid = await userManager.CheckPasswordAsync(user, password);
-        return passwordValid ? user.Id : null;
+        return passwordValid ? new UserAccount(user.Id, user.Email) : null;
     }
 
     public async Task<UserAccount?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
