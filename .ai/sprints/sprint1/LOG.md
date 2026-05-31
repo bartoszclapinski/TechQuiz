@@ -357,3 +357,75 @@ DB state in both runs:
 3. `feat(infrastructure-tests): add PostgresContainerFixture + IntegrationTestBase` — xUnit collection fixture that spins one Postgres container per test class, applies migrations, exposes a fresh `AppDbContext` per test.
 4. `test(infrastructure): add CategoryRepository integration tests` — round-trip + the deferred end-to-end DB smoke (`SeedAsync` twice, assert counts).
 5. `test(infrastructure): add QuizRepository integration tests` — full quiz graph save/retrieve, cascade-delete behavior, attempts query with pagination.
+
+---
+
+## 2026-05-21 — Iteration 1.3 session D complete + review-feedback refactor
+
+**Co zrobione (8 commits on `feat/iteration-1.3-integration-tests`, merged as #53):**
+
+1. `docs(sprint1): catch up LOG and iteration 1.3 DoD checkboxes` (closes #46) — the catch-up entry above plus DoD updates.
+2. `chore(infrastructure-tests): add Testcontainers + FluentAssertions` (closes #47) — `Testcontainers.PostgreSql` and `FluentAssertions` (later pinned to 7.2.2 / 4.11.0).
+3. `chore(infra): scope DemoUser constants to internal with InternalsVisibleTo` (closes #48) — closes the deferred review item from #35 round 1. `DemoUserEmail/Name/Password` move to `internal`, `Properties/AssemblyInfo.cs` exposes the assembly's internals to the test project.
+4. `feat(infrastructure-tests): add PostgresContainerFixture + IntegrationTestBase` (closes #49) — initial fixture + base class + `DatabaseCollection`.
+5. `test(infrastructure): add CategoryRepository integration tests` (closes #50) — 5 tests, one of which (placeholder GetUserBestScoresAsync) was later removed in commit 8.
+6. `test(infrastructure): add DataSeeder integration smoke tests` (closes #51) — closes the deferred E2E DB smoke from #35: 1 category / 19 questions / 76 options / 1 demo user, plus idempotent second invocation.
+7. `test(infrastructure): add QuizRepository integration tests` (closes #52) — 7 tests covering full graph load, attempt round-trip with owned `Answer`s, paginated user-scoped attempts.
+8. `refactor(infrastructure-tests): address review feedback on PR #53` (closes #54) — owner left 7 inline review comments, all non-blocking but each pointing at real drift/quality concerns. Consolidated fix:
+   - Deleted the placeholder `GetUserBestScoresAsync` test (testing a placeholder advertises a feature that does not exist).
+   - `PostgresContainerFixture` discovers truncate targets from `information_schema.tables` once after migrations — adding a domain or Identity table no longer requires editing the test base.
+   - `SeedCategoryWithQuizAsync` returns the full `Question[]` so `GetAttemptAsync_LoadsOwnedAnswers` uses a real `Option.Id`.
+   - Dropped a redundant comment.
+   - `IntegrationTestBase.CreateUserAsync` helper uses `UserManager.CreateAsync` instead of manual `NormalizedUserName/SecurityStamp` plumbing — drift-resistant.
+   - Pinned `FluentAssertions 7.2.2` / `Testcontainers.PostgreSql 4.11.0` (matches the rest of the solution).
+   - Moved the shared `IServiceProvider` to `PostgresContainerFixture.Services` (Identity + DataSeeder registered once after migrations). `DataSeederTests.RunSeedAsync` is now a 3-line scope+resolve+invoke. Single source of truth, closer to production DI.
+
+**Decyzje:**
+- **Shared SP on the fixture, not the test base.** Per-test SP would add noise (3-4s of Identity initialization × every test) and lose the "single source of truth" benefit. Per-fixture means one container, one migration pass, one DI build — only TRUNCATE pays per-test cost.
+- **TRUNCATE driven by `information_schema.tables`.** Initially had a hardcoded list. Reviewer flagged: adding a table = silent drift. Schema-driven means zero test changes for future migrations. `__EFMigrationsHistory` is excluded so the schema survives between tests.
+- **EF1002 (raw-SQL injection) suppressed locally** with a comment explaining the source is the schema catalog. Identifiers cannot be parameterised in DDL; rely on the input provenance instead.
+- **`internal const string DemoUser*`** + `[assembly: InternalsVisibleTo("TechQuiz.Infrastructure.Tests")]` — credentials aren't secret but `public` mis-signals "library API surface". Visibility relaxation belongs alongside the test project that consumes them.
+
+**Weryfikacja (DoD):**
+- `dotnet test TechQuiz.sln` → **96/96 pass** (37 Domain + 46 Application + 13 Infrastructure).
+- Container startup ~52s + tests ~30s = ~1m25s total on first run; subsequent runs container-startup-bound.
+- All 7 review concerns explicitly addressed in PR #53 comment trace.
+- Iteration 1.3 DoD now fully met (one item with documented scope adjustment for "2 categories" → 1 shipped, 1 deferred to 1.4).
+
+**Iteracja 1.3 zamknięta.** Ready for iteration 1.4.
+
+---
+
+## 2026-05-21 — Iteration 1.4 session A start: API auth endpoints
+
+**Cel sesji A:** Najszybsza ścieżka do "dotnet run + Postman zwracają JWT". Po tej sesji można się zalogować jako `demo@techquiz.local` / `Demo123!` przez REST i dostać access + refresh token.
+
+**Co już mamy gotowe** (z iteracji 1.3):
+- JWT bearer middleware wpięte w `Program.cs` z `TokenValidationParameters` (issuer/audience/signing-key/clock-skew).
+- `ApplicationUser : IdentityUser<Guid>` + `UserManager` w DI z password policy bound from config.
+- `IUserContext` (`HttpUserContext`) czyta `NameIdentifier` claim z JWT.
+- Identity DB schema (AspNet* tables) z migracji `InitialCreate`.
+
+**Co brakuje** (sesja 1.4-A dostarcza):
+- Domain `RefreshToken` aggregate z TDD-zaaplikowanymi inwariantami (issue/revoke/expiry).
+- Application: `RegisterCommand`, `LoginQuery`, `RefreshCommand` + validators + handler tests.
+- Infrastructure: `RefreshToken` EF mapping + migracja `AddRefreshTokens` + `RefreshTokenRepository`.
+- Infrastructure: `JwtTokenService` (wystawia access tokeny z claims, signed via configured key).
+- API: `AuthController` z 3 actions (POST register/login/refresh).
+- Postman collection (minimum: register + login + refresh w docs/postman/).
+
+**Plan commitów (7 atomic, jeden PR zamykający sesję A):**
+
+1. `docs(sprint1)`: this entry + status flag flips.
+2. `feat(domain)`: `RefreshToken` aggregate + tests (TDD — invariants for issue/revoke/expiry).
+3. `feat(application)`: auth commands + validators + handler tests (NSubstitute-mocked dependencies).
+4. `feat(infra)`: `RefreshToken` EF configuration + migration `AddRefreshTokens` + `RefreshTokenRepository`.
+5. `feat(infra)`: `JwtTokenService` wystawiający access tokeny (Microsoft.IdentityModel.Tokens already referenced in Api).
+6. `feat(api)`: `AuthController` z 3 actions, request/response DTOs, registration in Program.cs.
+7. `docs(api)`: Postman collection (register + login + refresh) + smoke instructions.
+
+**Zaplanowane sesje 1.4 B/C/D** (poza scope sesji A):
+- B — Quiz endpoints (Categories/Quizzes/Attempts controllers, 6 endpointów).
+- C — Cross-cutting: ProblemDetails exception middleware + Swagger UI z JWT auth + CORS dla Vite.
+- D — API integration tests via `WebApplicationFactory<Program>` + pełen Postman collection + E2E smoke.
+

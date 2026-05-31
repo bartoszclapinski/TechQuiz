@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TechQuiz.Application.Abstractions;
+using TechQuiz.Infrastructure.Auth;
 using TechQuiz.Infrastructure.Identity;
 using TechQuiz.Infrastructure.Persistence;
 using TechQuiz.Infrastructure.Persistence.Identity;
@@ -57,6 +58,7 @@ public static class DependencyInjection
         // (scoped per request).
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IQuizRepository, QuizRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DataSeeder>();
 
@@ -64,6 +66,29 @@ public static class DependencyInjection
         // is registered by the API host (Program.cs) since it only makes sense in an
         // HTTP composition root.
         services.AddScoped<IUserContext, HttpUserContext>();
+
+        // Strongly-typed Jwt:* binding. SigningKey must come from a secret store in
+        // staging/prod (env var, KeyVault); appsettings.json carries only public values.
+        // ValidateOnStart prevents booting with an empty/missing signing key.
+        services
+            .AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(
+                o => !string.IsNullOrWhiteSpace(o.SigningKey),
+                "Jwt:SigningKey must be configured (env var or dotnet user-secrets).")
+            .Validate(
+                o => o.AccessTokenLifetimeMinutes > 0,
+                "Jwt:AccessTokenLifetimeMinutes must be positive.")
+            .Validate(
+                o => o.RefreshTokenLifetimeDays > 0,
+                "Jwt:RefreshTokenLifetimeDays must be positive.")
+            .ValidateOnStart();
+
+        // Auth services. Singleton for the stateless ones (JWT signing, RNG); scoped for
+        // IdentityUserAccountService since UserManager itself is scoped.
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
+        services.AddSingleton<IRefreshTokenIssuer, RandomRefreshTokenIssuer>();
+        services.AddScoped<IUserAccountService, IdentityUserAccountService>();
 
         return services;
     }

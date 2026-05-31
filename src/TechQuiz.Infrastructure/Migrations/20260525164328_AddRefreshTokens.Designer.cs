@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TechQuiz.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TechQuiz.Infrastructure.Persistence;
 namespace TechQuiz.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260525164328_AddRefreshTokens")]
+    partial class AddRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,11 +375,11 @@ namespace TechQuiz.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
 
-                    b.Property<string>("TokenHash")
+                    b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("token_hash");
+                        .HasColumnName("token");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -385,9 +388,9 @@ namespace TechQuiz.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_refresh_tokens");
 
-                    b.HasIndex("TokenHash")
+                    b.HasIndex("Token")
                         .IsUnique()
-                        .HasDatabaseName("ix_refresh_tokens_token_hash");
+                        .HasDatabaseName("ix_refresh_tokens_token");
 
                     b.HasIndex("UserId", "ExpiresAt")
                         .HasDatabaseName("ix_refresh_tokens_user_id_expires_at");
