@@ -40,4 +40,13 @@ public sealed class QuizzesController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new CompleteQuizCommand(attemptId), cancellationToken);
         return Ok(result);
     }
+
+    [HttpGet("{attemptId:guid}/result")]
+    public async Task<ActionResult<QuizResultDto>> Result(
+        Guid attemptId,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetQuizResultQuery(attemptId), cancellationToken);
+        return Ok(result);
+    }
 }
