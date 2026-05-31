@@ -2,11 +2,11 @@ namespace TechQuiz.Domain;
 
 public class RefreshToken
 {
-    public Guid Id { get; init; }
-    public Guid UserId { get; init; }
-    public required string Token { get; init; }
-    public DateTimeOffset IssuedAt { get; init; }
-    public DateTimeOffset ExpiresAt { get; init; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public string Token { get; private set; } = null!;
+    public DateTimeOffset IssuedAt { get; private set; }
+    public DateTimeOffset ExpiresAt { get; private set; }
     public DateTimeOffset? RevokedAt { get; private set; }
 
     // Parameterless constructor for EF Core materialisation.
