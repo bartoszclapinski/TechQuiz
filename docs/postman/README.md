@@ -1,13 +1,15 @@
 # TechQuiz API — Postman collection
 
-Auth endpoints delivered in iteration 1.4 session A. Quiz endpoints arrive in session 1.4-B.
+Auth endpoints delivered in iteration 1.4 session A; quiz endpoints in session 1.4-B.
 
 ## Files
 
-- `TechQuiz.postman_collection.json` — three POSTs under an `Auth/` folder: register, login, refresh.
+- `TechQuiz.postman_collection.json` — two folders:
+  - `Auth/` — three POSTs: register, login, refresh.
+  - `Quiz/` — the full play-through: get categories, start, submit answer, complete, get result, get attempt history.
 - `TechQuiz.local.postman_environment.json` — `baseUrl`, `accessToken`, `refreshToken` for the local docker-compose stack.
 
-Login + refresh include post-response scripts that stash `accessToken` and `refreshToken` into the active Postman environment, so quiz endpoints in 1.4-B will pick them up automatically without copy-paste.
+Login + refresh include post-response scripts that stash `accessToken` and `refreshToken` into the active Postman environment. The Quiz requests send `Authorization: Bearer {{accessToken}}` and chain via post-response scripts: `Get Categories` stashes `categoryId`, `Start Quiz` stashes `attemptId` plus the first `questionId`/`selectedOptionId`, so the remaining requests run without copy-paste.
 
 ## Prerequisites
 
@@ -30,6 +32,13 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
 3. Run `Auth/Login (demo user)` — pre-filled with `demo@techquiz.local` / `Demo123!`. Expected: `200 OK` with `accessToken`, `accessTokenExpiresAt`, `refreshToken`, `refreshTokenExpiresAt`. The post-response script saves both tokens to the environment.
 4. Run `Auth/Refresh` — picks up the saved `refreshToken`, rotates it (server-side: marks the old token revoked, issues a new pair), returns `200 OK`. Re-running `Refresh` against the *previous* token now fails (rotation = single-use).
 5. (Optional) Run `Auth/Register` with the pre-filled payload to create a fresh user; receives a `200 OK` with tokens.
+6. With a valid `accessToken` in the environment, run the `Quiz/` folder top to bottom:
+   - `Get Categories` → `200 OK` list; stashes the first `categoryId`.
+   - `Start Quiz` → `200 OK` with `attemptId` + questions (no `isCorrect` on options — Hard Rule #4); stashes `attemptId`, first `questionId`, first `selectedOptionId`.
+   - `Submit Answer` → `204 No Content`. Re-run with a different question/option to answer more.
+   - `Complete Quiz` → `200 OK` `QuizResultDto` (score, per-question breakdown — `isCorrect` is exposed here, on the result view only).
+   - `Get Result` → `200 OK`, same result, read-only (re-fetchable).
+   - `Get Attempt History` → `200 OK` paginated list including the attempt you just completed.
 
 ## Status & limits
 
@@ -37,5 +46,5 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
   - `RegistrationFailedException` → `400 Bad Request` with field errors
   - `UnauthorizedAccessException` → `401 Unauthorized`
   - `ValidationException` (FluentValidation) → `400 Bad Request` with per-field messages
-- **No quiz endpoints yet** — categories, quiz lifecycle, attempt history land in session 1.4-B.
+- **No Swagger Authorize button / CORS yet** — wiring the bearer scheme into Swagger UI and enabling CORS for the web app land in session 1.4-C.
 - **No Newman / CI runner** — session 1.4-D adds the Newman command + smoke script for CI.
