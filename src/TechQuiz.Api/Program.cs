@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using TechQuiz.Api.ErrorHandling;
 using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
@@ -18,6 +19,12 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Global exception → ProblemDetails (RFC 7807). AddProblemDetails wires the
+// IProblemDetailsService that GlobalExceptionHandler writes through; without it
+// every error path returns a bare 500 (or the dev HTML error page in Development).
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // IHttpContextAccessor exposes the ambient HttpContext to scoped services (consumed by
 // HttpUserContext in Infrastructure). Registered here because it's an HTTP-host concern
@@ -63,6 +70,11 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+
+// Catches exceptions from all downstream middleware (incl. controllers + MediatR) and
+// renders ProblemDetails via GlobalExceptionHandler. Registered before routing so it
+// wraps the whole request pipeline; sits inside Serilog logging so the mapped status is logged.
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
