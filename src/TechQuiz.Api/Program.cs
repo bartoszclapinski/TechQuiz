@@ -2,8 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Serilog;
 using TechQuiz.Api.ErrorHandling;
+using TechQuiz.Api.OpenApi;
 using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
@@ -18,7 +20,10 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 // ─── Services ────────────────────────────────────────────────────────────────
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 // Global exception → ProblemDetails (RFC 7807). AddProblemDetails wires the
 // IProblemDetailsService that GlobalExceptionHandler writes through; without it
@@ -79,6 +84,7 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
