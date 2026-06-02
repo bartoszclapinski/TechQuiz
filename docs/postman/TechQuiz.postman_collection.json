@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "techquiz-auth-1.4a",
     "name": "TechQuiz API",
-    "description": "Auth endpoints for iteration 1.4 session A. Login/refresh stash tokens into the active environment via post-response scripts so the next request can reference {{accessToken}} / {{refreshToken}} without copy-paste.",
+    "description": "Auth + Quiz endpoints. Iteration 1.4 sessions A & B. Login/refresh stash tokens into the active environment via post-response scripts so the next request can reference {{accessToken}} / {{refreshToken}} without copy-paste. The Quiz folder chains categories -> start -> answer -> complete -> result -> attempts, stashing attemptId/questionId/optionId along the way.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -90,6 +90,146 @@
               "raw": "{{baseUrl}}/api/auth/refresh",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quiz",
+      "item": [
+        {
+          "name": "Get Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (Array.isArray(body) && body.length > 0) {",
+                  "    pm.environment.set('categoryId', body[0].id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Start Quiz",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('attemptId', body.attemptId);",
+                  "  if (Array.isArray(body.questions) && body.questions.length > 0) {",
+                  "    const q = body.questions[0];",
+                  "    pm.environment.set('questionId', q.id);",
+                  "    if (Array.isArray(q.options) && q.options.length > 0) {",
+                  "      pm.environment.set('selectedOptionId', q.options[0].id);",
+                  "    }",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "quizzes", "start"]
+            }
+          }
+        },
+        {
+          "name": "Submit Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"{{questionId}}\",\n  \"selectedOptionId\": \"{{selectedOptionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/{{attemptId}}/answer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "quizzes", "{{attemptId}}", "answer"]
+            }
+          }
+        },
+        {
+          "name": "Complete Quiz",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/{{attemptId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "quizzes", "{{attemptId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Get Result",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/{{attemptId}}/result",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "quizzes", "{{attemptId}}", "result"]
+            }
+          }
+        },
+        {
+          "name": "Get Attempt History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/attempts?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attempts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
             }
           }
         }

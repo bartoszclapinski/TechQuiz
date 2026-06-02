@@ -4,14 +4,12 @@ using TechQuiz.Domain;
 
 namespace TechQuiz.Application.Features.Quizzes;
 
-public sealed class CompleteQuizCommandHandler(
+public sealed class GetQuizResultQueryHandler(
     IQuizRepository quizRepository,
-    IUserContext userContext,
-    IUnitOfWork unitOfWork,
-    TimeProvider timeProvider)
-    : IRequestHandler<CompleteQuizCommand, QuizResultDto>
+    IUserContext userContext)
+    : IRequestHandler<GetQuizResultQuery, QuizResultDto>
 {
-    public async Task<QuizResultDto> Handle(CompleteQuizCommand request, CancellationToken cancellationToken)
+    public async Task<QuizResultDto> Handle(GetQuizResultQuery request, CancellationToken cancellationToken)
     {
         var attempt = await quizRepository.GetAttemptAsync(request.AttemptId, cancellationToken)
             ?? throw new KeyNotFoundException(
@@ -23,17 +21,14 @@ public sealed class CompleteQuizCommandHandler(
                 "Attempt does not belong to the current user.");
         }
 
-        if (attempt.IsCompleted)
+        if (!attempt.IsCompleted)
         {
-            throw new QuizAlreadyCompletedException();
+            throw new QuizNotCompletedException();
         }
 
         var quiz = await quizRepository.GetByIdAsync(attempt.QuizId, cancellationToken)
             ?? throw new InvalidOperationException(
                 $"Attempt {attempt.Id} references missing quiz {attempt.QuizId}.");
-
-        attempt.Complete(timeProvider.GetUtcNow());
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var score = Score.Calculate(quiz.Questions, attempt.Answers);
 
