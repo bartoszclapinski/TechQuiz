@@ -100,7 +100,7 @@ public class GetQuizResultQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Unauthorized()
+    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Forbidden()
     {
         var s = BuildScenario();
         s.Attempt.Complete(TComplete);
@@ -109,7 +109,7 @@ public class GetQuizResultQueryHandlerTests
         var act = async () => await CreateSut().Handle(
             new GetQuizResultQuery(s.Attempt.Id), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<ForbiddenAccessException>();
     }
 
     [Fact]
