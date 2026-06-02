@@ -70,6 +70,20 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// CORS for the Vite dev frontend. AllowCredentials is required because the refresh token
+// rides in an HttpOnly cookie (memory-only JWT + cookie refresh — see CLAUDE.md), and that
+// rules out AllowAnyOrigin, so the dev origin is listed explicitly. Production CORS is a
+// Phase 4 (deployment) concern.
+const string webCorsPolicy = "web";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(webCorsPolicy, policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 // ─── Pipeline ────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
@@ -88,6 +102,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(webCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
