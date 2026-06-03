@@ -19,7 +19,7 @@ public sealed class CompleteQuizCommandHandler(
 
         if (attempt.UserId != userContext.UserId)
         {
-            throw new UnauthorizedAccessException(
+            throw new ForbiddenAccessException(
                 "Attempt does not belong to the current user.");
         }
 

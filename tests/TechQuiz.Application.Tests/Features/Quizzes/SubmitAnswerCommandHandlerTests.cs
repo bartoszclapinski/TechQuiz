@@ -99,7 +99,7 @@ public class SubmitAnswerCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Unauthorized()
+    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Forbidden()
     {
         var s = BuildScenario();
         _userContext.UserId.Returns(Guid.NewGuid()); // different user
@@ -108,7 +108,7 @@ public class SubmitAnswerCommandHandlerTests
             new SubmitAnswerCommand(s.Attempt.Id, s.Question.Id, s.Question.Options[0].Id),
             CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<ForbiddenAccessException>();
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

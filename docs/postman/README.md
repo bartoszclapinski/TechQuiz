@@ -42,9 +42,13 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
 
 ## Status & limits
 
-- **Failure responses are temporarily ugly** — wrong password / duplicate email currently surface as `500 Internal Server Error` in Development mode (ASP.NET's developer exception page is enabled). Session 1.4-C introduces a `ProblemDetails`-shaped exception middleware that maps:
-  - `RegistrationFailedException` → `400 Bad Request` with field errors
-  - `UnauthorizedAccessException` → `401 Unauthorized`
-  - `ValidationException` (FluentValidation) → `400 Bad Request` with per-field messages
-- **No Swagger Authorize button / CORS yet** — wiring the bearer scheme into Swagger UI and enabling CORS for the web app land in session 1.4-C.
+- **Failure responses are RFC 7807 ProblemDetails** (session 1.4-C). Errors carry `type`/`title`/`status`/`detail`/`traceId`, and validation failures add a per-field `errors` map. Status mapping:
+  - `ValidationException` (FluentValidation) / `RegistrationFailedException` / `ArgumentException` → `400 Bad Request`
+  - `UnauthorizedAccessException` (bad login, invalid/expired refresh) → `401 Unauthorized`
+  - `ForbiddenAccessException` (acting on someone else's attempt) → `403 Forbidden`
+  - `KeyNotFoundException` (missing attempt/quiz) → `404 Not Found`
+  - `DomainException` (e.g. result requested before the quiz is completed) → `409 Conflict`
+  - anything else → `500` with a generic message (no stack trace leaked)
+- **Interactive API reference (Scalar)** at `http://127.0.0.1:8080/scalar/v1` in Development — use the **Authorize** button to paste the access token from login, then call secured endpoints from the browser.
+- **CORS** is enabled for the Vite dev origin `http://localhost:5173` (with credentials, for the refresh cookie).
 - **No Newman / CI runner** — session 1.4-D adds the Newman command + smoke script for CI.

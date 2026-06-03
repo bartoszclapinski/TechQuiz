@@ -133,7 +133,7 @@ public class CompleteQuizCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Unauthorized()
+    public async Task Handle_AttemptBelongsToDifferentUser_Throws_Forbidden()
     {
         var s = BuildScenario();
         _userContext.UserId.Returns(Guid.NewGuid()); // different user
@@ -141,7 +141,7 @@ public class CompleteQuizCommandHandlerTests
         var act = async () => await CreateSut().Handle(
             new CompleteQuizCommand(s.Attempt.Id), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<ForbiddenAccessException>();
         s.Attempt.IsCompleted.Should().BeFalse();
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }

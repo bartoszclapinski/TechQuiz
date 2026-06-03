@@ -2,7 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Serilog;
+using TechQuiz.Api.ErrorHandling;
+using TechQuiz.Api.OpenApi;
 using TechQuiz.Application;
 using TechQuiz.Infrastructure;
 using TechQuiz.Infrastructure.Persistence;
@@ -17,7 +20,16 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 // ─── Services ────────────────────────────────────────────────────────────────
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
+
+// Global exception → ProblemDetails (RFC 7807). AddProblemDetails wires the
+// IProblemDetailsService that GlobalExceptionHandler writes through; without it
+// every error path returns a bare 500 (or the dev HTML error page in Development).
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // IHttpContextAccessor exposes the ambient HttpContext to scoped services (consumed by
 // HttpUserContext in Infrastructure). Registered here because it's an HTTP-host concern
@@ -58,18 +70,39 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// CORS for the Vite dev frontend. AllowCredentials is required because the refresh token
+// rides in an HttpOnly cookie (memory-only JWT + cookie refresh — see CLAUDE.md), and that
+// rules out AllowAnyOrigin, so the dev origin is listed explicitly. Production CORS is a
+// Phase 4 (deployment) concern.
+const string webCorsPolicy = "web";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(webCorsPolicy, policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 // ─── Pipeline ────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
+// Catches exceptions from all downstream middleware (incl. controllers + MediatR) and
+// renders ProblemDetails via GlobalExceptionHandler. Registered before routing so it
+// wraps the whole request pipeline; sits inside Serilog logging so the mapped status is logged.
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
+app.UseCors(webCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
