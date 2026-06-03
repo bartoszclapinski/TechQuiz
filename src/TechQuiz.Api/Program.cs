@@ -135,3 +135,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+// Exposes the implicit Program class so WebApplicationFactory<Program> in the API test
+// project can boot the real host. Top-level statements otherwise compile Program as internal.
+public partial class Program;
