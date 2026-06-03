@@ -60,9 +60,7 @@ jobs:
       - name: Start API
         env:
           ASPNETCORE_ENVIRONMENT: Development
-        run: |
-          dotnet run --project src/TechQuiz.Api/TechQuiz.Api.csproj --configuration Release --no-build &
-          echo "API_PID=$!" >> "$GITHUB_ENV"
+        run: dotnet run --project src/TechQuiz.Api/TechQuiz.Api.csproj --configuration Release --no-build &
 
       - name: Wait for health
         run: |
