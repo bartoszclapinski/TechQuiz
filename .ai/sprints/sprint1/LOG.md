@@ -429,3 +429,29 @@ DB state in both runs:
 - C — Cross-cutting: ProblemDetails exception middleware + Swagger UI z JWT auth + CORS dla Vite.
 - D — API integration tests via `WebApplicationFactory<Program>` + pełen Postman collection + E2E smoke.
 
+---
+
+## 2026-06-03 — Iteration 1.4 session D: integration tests + Newman/CI smoke runner
+
+**Co zrobione:**
+- Nowy projekt `tests/TechQuiz.Api.Tests` (`Microsoft.NET.Sdk.Web`) bootujący prawdziwy host przez `WebApplicationFactory<Program>` przeciw Testcontainers `postgres:16-alpine`, kontener współdzielony przez run xUnit collection fixture. `Program.cs` wystawia `public partial class Program;`.
+- Sześć testów integracyjnych, wszystkie zielone:
+  - `HealthEndpointTests` — `GET /health` → 200.
+  - `AuthorizationTests` — 401 bez tokena na `/api/categories` i `/api/attempts`, 200 z tokenem demo.
+  - `AuthEndpointsTests` — rejestracja z błędnym payloadem → 400 `application/problem+json` z per-field `errors` dla `Email`/`Password`.
+  - `QuizFlowTests` — pełen E2E: login → categories → start (asercja **braku `iscorrect`** — Hard Rule #4) → answer ×N → complete → re-fetch result.
+- Newman runner: `docs/postman/package.json` ze skryptem `npm run smoke` + workflow `.github/workflows/api-smoke.yml` na `workflow_dispatch`.
+
+**Decyzje:**
+- **Override konfiguracji przez zmienne środowiskowe, nie `AddInMemoryCollection`.** `WebApplicationFactory` prowadzi minimal hosting przez `DeferredHostBuilder`, więc overe'y `ConfigureAppConfiguration` są ponownie nadpisywane przez appsettings aplikacji. `ConnectionStrings__DefaultConnection` i `Jwt__SigningKey` jako env vary wygrywają z appsettings i user-secrets. Ustawiane w `InitializeAsync`, czyszczone w `DisposeAsync`.
+- **Factory migruje przed bootem hosta.** Seeder startowy (gated `IsDevelopment`) nie aplikuje migracji — factory robi `MigrateAsync` na osobnym `AppDbContext` zanim host wstanie i zacznie seedować.
+- **Newman jako `workflow_dispatch`, nie per-PR gate.** Flow jest już pokryty in-process przez `WebApplicationFactory` E2E; wartość workflowa to realny HTTP stack z tą samą kolekcją, którą deweloperzy odpalają ręcznie. Migracje w CI z `ASPNETCORE_ENVIRONMENT=Production` (seeder off, bo nie ma design-time factory), start API z `Development` (seeduje dane demo).
+- **Bez zmian w CI dla testów integracyjnych.** Istniejący job `backend` (`dotnet test TechQuiz.sln`) sam je podnosi — Testcontainers działa na `ubuntu-latest`.
+
+**Weryfikacja:**
+- `dotnet test tests/TechQuiz.Api.Tests` → 6/6 zielonych przeciw Testcontainers Postgres.
+- `npm run smoke` przeciw stackowi docker → 9 requestów, 0 failures.
+
+**Punkt wznowienia:**
+Iteracja 1.4 zamknięta — kamień milowy backendu MVP. Cztery commity sesji D na `feat/iteration-1.4-api-tests` (#83 harness+health, #84 integration coverage, #85 Newman runner, + ten docs). Następny krok: push gałęzi i jeden PR zamykający iterację 1.4. Kolejne iteracje (1.5–1.8) to frontend — nie zaczynać bez potwierdzenia.
+
