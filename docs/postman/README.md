@@ -51,4 +51,14 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
   - anything else → `500` with a generic message (no stack trace leaked)
 - **Interactive API reference (Scalar)** at `http://127.0.0.1:8080/scalar/v1` in Development — use the **Authorize** button to paste the access token from login, then call secured endpoints from the browser.
 - **CORS** is enabled for the Vite dev origin `http://localhost:5173` (with credentials, for the refresh cookie).
-- **No Newman / CI runner** — session 1.4-D adds the Newman command + smoke script for CI.
+- **Newman runner** (session 1.4-D). With the stack up (`docker compose up -d`), run the whole
+  collection headless from this folder:
+  ```
+  npm install   # first time only
+  npm run smoke
+  ```
+  This executes `Auth/` then `Quiz/` against `{{baseUrl}}` (`http://localhost:8080`) and chains the
+  saved tokens, so it is the same play-through as the manual Postman steps above. The
+  `.github/workflows/api-smoke.yml` workflow runs the identical command on a manual dispatch
+  against a CI-booted API; it is not a per-PR gate because the full flow is already covered in
+  process by the `TechQuiz.Api.Tests` `WebApplicationFactory` integration tests.

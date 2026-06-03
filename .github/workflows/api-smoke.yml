@@ -1,0 +1,88 @@
+name: API smoke (Newman)
+
+# Manual smoke check: runs the committed Postman collection against a freshly booted API.
+# Kept on workflow_dispatch (not a per-PR gate) — the full quiz flow is already covered in
+# process by the WebApplicationFactory integration tests in the backend CI job. This job's
+# value is exercising the real HTTP stack with the same collection developers run by hand,
+# and it doubles as the runner template for smoke-testing a deployed environment later.
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Newman smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: techquiz
+          POSTGRES_PASSWORD: techquiz_ci
+          POSTGRES_DB: techquiz
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_ci"
+      # Throwaway signing key for the smoke run only — never a real secret.
+      Jwt__SigningKey: "techquiz-ci-smoke-signing-key-0123456789abcd"
+      ASPNETCORE_URLS: "http://localhost:8080"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build API
+        run: dotnet build src/TechQuiz.Api/TechQuiz.Api.csproj --configuration Release
+
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
+      # Production environment so the dev seeder (guarded by IsDevelopment in Program.cs) stays
+      # off while EF boots the host to apply migrations — there is no design-time factory, so
+      # ef runs the real startup path. Seeding here would fail against the not-yet-migrated DB.
+      - name: Apply migrations
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+        run: dotnet ef database update --project src/TechQuiz.Infrastructure --startup-project src/TechQuiz.Api
+
+      # Development so the seeder populates the demo user + Unit Testing quiz the collection plays.
+      - name: Start API
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+        run: |
+          dotnet run --project src/TechQuiz.Api/TechQuiz.Api.csproj --configuration Release --no-build &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/health > /dev/null; then
+              echo "API is healthy"; exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy in time"; exit 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman
+        working-directory: docs/postman
+        run: npm ci
+
+      - name: Run Postman collection
+        working-directory: docs/postman
+        run: npm run smoke

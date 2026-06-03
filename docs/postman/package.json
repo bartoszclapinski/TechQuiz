@@ -1,0 +1,12 @@
+{
+  "name": "techquiz-api-smoke",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Newman smoke runner for the TechQuiz API Postman collection.",
+  "scripts": {
+    "smoke": "newman run TechQuiz.postman_collection.json -e TechQuiz.local.postman_environment.json --reporters cli"
+  },
+  "devDependencies": {
+    "newman": "^6.2.1"
+  }
+}
