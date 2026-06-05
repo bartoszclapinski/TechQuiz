@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './theme/theme-provider'
 import { AuthProvider } from './features/auth/auth-provider'
+import { ThemedToaster } from './components/ui/themed-toaster'
 import { queryClient } from './lib/query-client'
 
 createRoot(document.getElementById('root')!).render(
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <App />
         </AuthProvider>
+        <ThemedToaster />
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
