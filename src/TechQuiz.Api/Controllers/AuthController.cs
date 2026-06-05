@@ -57,6 +57,23 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
         return Ok(tokens);
     }
 
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        // Delete the refresh cookie so the browser can no longer refresh. The token row
+        // lingers in the DB until the cleanup job (#68); that's acceptable because the token
+        // was only ever held in this HttpOnly cookie, so deleting it leaves no party able to
+        // use it. Attributes must match the original cookie for the browser to clear it.
+        Response.Cookies.Delete(RefreshCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !environment.IsDevelopment(),
+            SameSite = SameSiteMode.Strict,
+            Path = RefreshCookiePath,
+        });
+        return NoContent();
+    }
+
     private void SetRefreshCookie(AuthTokensDto tokens)
     {
         Response.Cookies.Append(RefreshCookieName, tokens.RefreshToken, new CookieOptions

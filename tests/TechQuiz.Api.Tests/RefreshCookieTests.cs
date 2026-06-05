@@ -41,4 +41,24 @@ public sealed class RefreshCookieTests(TechQuizApiFactory factory)
 
         refresh.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task Logout_clears_the_refresh_cookie_so_refresh_then_fails()
+    {
+        var client = factory.CreateClient();
+        await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginRequest(ApiTestExtensions.DemoEmail, ApiTestExtensions.DemoPassword));
+
+        var logout = await client.PostAsync("/api/auth/logout", content: null);
+        logout.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        logout.Headers.TryGetValues("Set-Cookie", out var setCookies).Should().BeTrue();
+        setCookies!.Single(c => c.StartsWith("refresh_token=")).ToLowerInvariant()
+            .Should().Contain("expires=", "deleting a cookie sends it back with a past expiry");
+
+        // The cookie jar dropped the refresh token, so a subsequent refresh is unauthorized.
+        var refresh = await client.PostAsync("/api/auth/refresh", content: null);
+        refresh.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 }
