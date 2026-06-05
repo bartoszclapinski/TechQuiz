@@ -4,6 +4,9 @@
 export const Difficulty = { Easy: 0, Medium: 1, Hard: 2 } as const
 export type DifficultyValue = (typeof Difficulty)[keyof typeof Difficulty]
 
+export const QuestionType = { MultipleChoice: 0, CodeOutput: 1 } as const
+export type QuestionTypeValue = (typeof QuestionType)[keyof typeof QuestionType]
+
 export type QuizOption = {
   id: string
   text: string
@@ -12,8 +15,8 @@ export type QuizOption = {
 
 export type QuizQuestion = {
   id: string
-  type: number
-  difficulty: number
+  type: QuestionTypeValue
+  difficulty: DifficultyValue
   text: string
   options: QuizOption[]
 }

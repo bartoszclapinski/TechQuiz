@@ -94,12 +94,16 @@ function CategoryCard({
       </div>
       <p className="mb-0.5 text-[13px] font-semibold">{category.name}</p>
       <p className="mb-2.5 text-[11px] leading-snug text-secondary">{category.description}</p>
-      <div className="flex items-center gap-2">
-        <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-elevated">
-          <div className="h-full rounded-full bg-accent" style={{ width: `${score}%` }} />
+      {score > 0 ? (
+        <div className="flex items-center gap-2">
+          <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-elevated">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${score}%` }} />
+          </div>
+          <span className="font-mono text-[10px] font-semibold text-accent-text">{score}%</span>
         </div>
-        <span className="font-mono text-[10px] font-semibold text-accent-text">{score}%</span>
-      </div>
+      ) : (
+        <p className="font-mono text-[10px] text-muted">Not started</p>
+      )}
     </button>
   )
 }

@@ -640,3 +640,10 @@ PR #110 zmergowany (`squash`, `f20890c`), issues #106–#109 + #111/#112 zamkni�
 **Punkt wznowienia:**
 Branch `feat/iteration-1.6-categories`, 1 commit (#113) + ten docs. Następny krok: PR sesji A (zamyka #113 + docs). Potem **sesja B** — `QuizPage` czyta sesję z cache pod `quizSessionKey`, mini-header (progress + exit X), `Question` (4 opcje, prefiksy mono 1–4), stan selected wg ADR-015 (border + filled prefix + glow).
 
+**Code review PR #115 — poprawki (1 commit):**
+- **#1 reload nieodzyskiwalny (medium)** → wybrana opcja tania: notatka „Known MVP limitation" w pliku iteracji 1.6. Cache sesji jest tylko w pamięci (`setQueryData` bez `queryFn`), brak `GET` dla pytań trwającego attempt. QuizPage w sesji B wykryje cache-miss i przekieruje na `/categories`. Pełny resume (`GET /api/quizzes/{attemptId}/questions` bez `IsCorrect`) odłożony do późniejszej iteracji.
+- **#2 typy enumów (nit)** → `QuizQuestion.type/difficulty` zacieśnione z gołego `number` do `QuestionTypeValue`/`DifficultyValue`; dodany `QuestionType` const (0=MultipleChoice, 1=CodeOutput) — przyda się w sesji B do rozgałęzienia renderu.
+- **#3 aktywna-niezagrana 0% (low)** → mockup pokazuje „Not started" dla niezagranych; aktywna karta z `userBestScore === 0` też renderuje „Not started" zamiast paska 0%.
+- **#4 spójność kluczy (nit)** → dodana fabryka `categoriesKey()` (`features/categories/query-keys.ts`), `useCategories` jej używa — symetrycznie do `quizSessionKey`.
+- Weryfikacja: `tsc -b` + `eslint .` zielone. Klikany przepływ wciąż do ręcznego potwierdzenia przez ownera.
+
