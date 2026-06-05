@@ -455,3 +455,28 @@ DB state in both runs:
 **Punkt wznowienia:**
 Iteracja 1.4 zamknięta — kamień milowy backendu MVP. Cztery commity sesji D na `feat/iteration-1.4-api-tests` (#83 harness+health, #84 integration coverage, #85 Newman runner, + ten docs). Następny krok: push gałęzi i jeden PR zamykający iterację 1.4. Kolejne iteracje (1.5–1.8) to frontend — nie zaczynać bez potwierdzenia.
 
+> Iteracja 1.4 domknięta: PR #87 zmergowany do `master` jako `7bb402e`; drobne sprzątanie `API_PID` w smoke workflow (#88).
+
+---
+
+## 2026-06-04 — Iteration 1.5 session A: React foundation (design tokens + theme)
+
+**Kontekst:** `web/` było zescaffoldowane w Phase 0 (React 19 + Vite 8 + Tailwind 3.4 z pustym theme, goły `App.tsx`). Iterację 1.5 dzielimy na 4 sesje: A — fundament (tokeny + theme), B — auth plumbing (+ backendowy refresh-cookie slice), C — routing + AppShell, D — strony Login/Register pod mockupy.
+
+**Co zrobione:**
+- **Design tokeny** w `web/src/index.css`: semantyczne CSS variables (`--bg-*`, `--text-*`, `--accent*`, `--border-*`, `--success/warning/danger`) z `docs/ARCHITECTURE.md`. Dark w `:root`, light jako override na `[data-theme="light"]`.
+- **Fonty** Geist (400/600) + JetBrains Mono (400) z Google Fonts w `index.html` (preconnect + stylesheet). Statyczny `data-theme="dark"` na `<html>` — strona renderuje themowana zanim React zamontuje.
+- **Mapowanie Tailwind** (`tailwind.config.js`): tokeny → utilities (`bg-surface`, `text-secondary`, `font-mono`, …). Kolory borderów w `borderColor` (nie `colors`), żeby `border-default`/`border-strong`/themowany `border` czytały się czysto zamiast `border-border-default`.
+- **Runtime motywu** (`web/src/theme/`): `ThemeProvider` (init z localStorage → fallback `prefers-color-scheme` → default dark; reflect na `data-theme`; persist), hook `useTheme`, `ThemeToggle` (inline SVG sun/moon) w `components/ui/`. Context/provider/hook w osobnych modułach, by Fast Refresh nie krzyczał (`react-refresh/only-export-components`).
+
+**Decyzje:**
+- **Brak nowych zależności npm w sesji A.** Fonty przez `<link>` Google Fonts (zgodnie z ARCHITECTURE), motyw to czysty React. Router/axios/react-query/rhf/zod/sonner instalujemy w sesjach, które ich faktycznie używają (Hard Rule #6 — uzasadnienie depów w PR).
+- **`data-theme` jako nośnik motywu**, nie klasa `.light`. Pogodzone z istniejącym `darkMode: [data-theme="dark"]` w configu i zadaniem 2 iteracji. ARCHITECTURE opisuje `.light`, ale całość i tak jedzie na CSS variables — utility czytają zmienną, więc atrybut wystarcza.
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite build) → zielone. `pnpm lint` (eslint) → 0 błędów.
+- `pnpm dev` → serwuje HTTP 200, brak błędów runtime; serwowany HTML ma `data-theme="dark"` + linki do fontów. **Wizualny test toggla w przeglądarce nie był wykonany z tego środowiska** — do potwierdzenia ręcznie przez ownera.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.5-react-foundation`, 2 commity (#89 tokeny/fonty/mapowanie, #90 theme provider/toggle) + ten docs. Następny krok: PR sesji A. Potem **sesja B** — backendowy slice refresh-cookie (`AuthController` ustawia `HttpOnly; SameSite; Secure` cookie i czyta refresh z cookie) + axios client z refresh-on-401 + `AuthContext` + React Query. Uwaga scope: obecnie API zwraca refresh w body JSON — to wymaga zmiany pod model bezpieczeństwa z DoD.
+
