@@ -526,3 +526,46 @@ Branch `feat/iteration-1.5-react-foundation`, 2 commity (#89 tokeny/fonty/mapowa
 **Punkt wznowienia:**
 Branch `feat/iteration-1.5-auth-plumbing`, 4 commity (#93–#96) + ten docs. Następny krok: PR sesji B (zamyka #93/#94/#95/#96 + docs). Potem **sesja C** — React Router + `RequireAuth` + `AppShell` (topbar route-aware, ukryty na `/quiz/:id`), zastąpienie tymczasowego wskaźnika auth w `App.tsx`.
 
+**Review PR #98 (owner) — obsłużone w `d0e4bd5`:**
+- #2 `vite-env.d.ts` `type` → `interface` (declaration-merging z `vite/client` — carve-out z CLAUDE.md).
+- #3 `jwt.ts` komentarz "display-only, no signature check" (nie używać `user.id` jako authz po stronie klienta).
+- #4 `jwt.ts` dekodowanie payloadu przez `TextDecoder` zamiast `atob` (UTF-8 safe — non-ASCII email).
+- #1 (medium) refresh token wciąż w body JSON: **świadomy defer** — Postman/Newman zależą od `body.refreshToken`, a czyste usunięcie rusza `AuthTokensDto` (Application) + kolekcję Postmana. Złagodzony komentarz w `AuthController`; pełne wyjęcie śledzone w **#99**.
+PR #98 zmergowany (`squash`), issues #93–#97 + #100 zamknięte, #99 otwarte jako follow-up.
+
+---
+
+## 2026-06-05 — Iteration 1.5 session C: routing + app shell
+
+**Kontekst:** Sesja B (auth plumbing) zmergowana (PR #98). Sesja C realizuje zadania 5–6 planu iteracji: React Router + `RequireAuth` + route-aware `AppShell`. To zdejmuje tymczasowy wskaźnik `auth: {status}` z `App.tsx` i daje realną nawigację pod strony, które wypełnią iteracje 1.6/1.7.
+
+**Co zrobione (3 atomic commity):**
+
+1. `feat(web): add React Router with routing skeleton and placeholder pages` (`1c76a90`, #101)
+   - `react-router-dom` **przypięty do v6** (6.30.4). pnpm domyślnie zaciągnął v7.17.0 — cofnięte, bo ADR-007 i plan iteracji mówią v6, a używane API (`BrowserRouter`/`Routes`/`Route`/`Navigate`/`Outlet`/`NavLink`/`useMatch`) jest w obu identyczne; brak powodu na cichy bump wbrew udokumentowanej decyzji.
+   - `App.tsx` jako host routera: trasy `/login`, `/register`, `/categories`, `/quiz/:id`, `/result/:attemptId`, catch-all → `/categories`. Znika tymczasowy wskaźnik auth z sesji B.
+   - Page-stuby w feature folderach: `features/categories`, `features/quiz`, `features/results` (treść w 1.6/1.7). Login/Register w `features/auth` jako **minimalne, ale funkcjonalne** stuby (form + `useAuth().login/register`) — żeby guard i przepływ auth dało się przejść end-to-end już w C; pełne UI pod mockupy w sesji D.
+
+2. `feat(web): RequireAuth guard for protected routes` (`7856d88`, #102)
+   - `RequireAuth` jako layout route owijający trasy chronione. `status === 'loading'` (bootstrap silent refresh) → `FullPageSpinner` zamiast redirectu, żeby wracający user z ważnym refresh-cookie **nie mignął** ekranem logowania. `unauthenticated` → `<Navigate to="/login">` z `state.from = ścieżka`, którą `LoginPage` czyta i wraca po zalogowaniu.
+   - Nowy prymityw UI `FullPageSpinner` (`components/ui/`).
+
+3. `feat(web): route-aware AppShell topbar` (`434af71`, #103)
+   - `AppShell` jako layout route zagnieżdżony w `RequireAuth`, wg `docs/mockups/categories-*.html` + ADR-014: logo (kafel "T" + wordmark), aktywny `Categories` (`NavLink`), wyłączone `Daily review`/`Generate`/`Dashboard`/`History` z badge'ami `soon`, prawa strona theme toggle + avatar.
+   - Avatar = inicjały z emaila (`initialsFromEmail`) i **przycisk logout**: `logout()` czyści sesję → `status` → `unauthenticated` → `RequireAuth` sam przekierowuje na `/login` (bez ręcznego `navigate`).
+   - **Route-aware**: na `/quiz/:id` (`useMatch`) renderuje sam `<Outlet />` bez topbara — focused quiz screen (gotcha z CLAUDE.md + ADR-014).
+   - Tokeny zamiast hardcoded hex z mockupu; `text-white` na pełnym `bg-accent` (brak tokena "on-accent", biały daje poprawny kontrast w obu themach).
+
+**Decyzje:**
+- **React Router v6, nie v7.** Zgodnie z ADR-007 i planem; v7 cofnięty mimo że to obecny major. Bump rozważymy świadomie później, nie przy okazji.
+- **Login/Register jako funkcjonalne stuby w C.** Kompromis: na tyle działające, by zweryfikować guard/redirect/logout end-to-end teraz, ale celowo surowe — mockupowe UI (split-screen, rhf+zod, demo, sonner) to sesja D, żeby nie mieszać scope.
+- **Logout bez ręcznej nawigacji.** Redirect spada naturalnie z `RequireAuth` po flipie statusu — jedno źródło prawdy dla "gdzie ląduje niezalogowany".
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite) + `pnpm lint` → zielone po każdym z 3 commitów.
+- `pnpm dev` → HTTP 200, bootuje bez błędu runtime; serwuje shell z `#root`.
+- **Klikany przepływ w przeglądarce NIE był weryfikowany** (brak headless browsera): logowanie → guard → shell, toggle motywu, ukrycie topbara na `/quiz/:id`, logout→redirect — do potwierdzenia ręcznie przez ownera. Brak mandatu testów front w MVP, więc bar to zielony build+lint.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.5-routing-shell`, 3 commity (#101–#103) + ten docs. Następny krok: PR sesji C (zamyka #101/#102/#103 + docs). Potem **sesja D** (zadania 7–10) — strony Login/Register dokładnie pod `mockups/login-*.html` (split-screen, gradient hero, "Continue as demo", `react-hook-form` + `zod`), loading states, błędy inline + `sonner` na nieoczekiwane.
+
