@@ -602,3 +602,41 @@ Branch `feat/iteration-1.5-routing-shell`, 3 commity (#101–#103) + ten docs. N
 **Punkt wznowienia:**
 Branch `feat/iteration-1.5-auth-ui`, 3 commity (#106–#108) + ten docs. Następny krok: PR sesji D (zamyka #106/#107/#108 + docs) — **domyka iterację 1.5**. Potem **iteracja 1.6**: siatka kategorii + pełny runner quizu (realna luka do "robienia zadań z pierwszego tematu").
 
+**Review PR #110 (owner) — obsłużone w `31b4eed` + `32143f1`:**
+- #1 (medium) obsługa błędów rejestracji: zamiast sztywnego zgadywania czytam `errors` z ProblemDetails. Niuans: `RegistrationFailedException` (realna ścieżka — zajęty email / słabe hasło) serializuje **płaską `string[]`**, a FluentValidation `{ pole: string[] }`. `fieldErrorsFromProblem` normalizuje oba i kieruje komunikaty „password…" na pole hasła, resztę na email. Ścieżka inline zawężona z `< 500` do `400 || 409`.
+- #2 (low-med) a11y: `aria-invalid` + `aria-describedby` na wszystkich polach obu formularzy + `id` na każdym `<p>` błędu.
+- #3 (low) dryf nazwy mockupu: DoD i drzewo mockupów w CLAUDE.md wskazują na realny `login-dual-theme.html`.
+- #4 (nit) hardcoded rgba w `AuthHero`: świadomy defer (tokeny bez kanału alpha), dodany komentarz honesty.
+PR #110 zmergowany (`squash`, `f20890c`), issues #106–#109 + #111/#112 zamknięte. **Iteracja 1.5 done.**
+
+---
+
+## 2026-06-05 — Iteration 1.6 session A: Categories grid + start-a-quiz
+
+**Kontekst:** Iteracja 1.5 zamknięta (PR #110). 1.6 to najcięższa iteracja (10 zadań, najwięcej UX) — pocięta na 3 sesje/PR-y: **A** kategorie + start, **B** rdzeń runnera (mini-header, pytanie, stan selected wg ADR-015), **C** interakcje + persystencja (klawiatura, submit odpowiedzi, modal wyjścia, complete→result). Ta sesja realizuje zadania 1–2.
+
+**Realny kontrakt API (zweryfikowany w kodzie, nie z pliku iteracji):**
+- `GET /api/categories` → `CategoryDto[] { id, name, description, iconCode, questionCount, userBestScore }`.
+- `POST /api/quizzes/start` body `{ categoryId }` → `QuizSessionDto { attemptId, questions[] }`; `questions[] = { id, type, difficulty, text, options[{ id, text, orderIndex }] }` — bez `isCorrect` (hard rule #4) i bez `explanation`.
+- `POST /api/quizzes/{attemptId}/answer` body `{ questionId, selectedOptionId|null }` → 204. `POST .../complete` → `QuizResultDto`.
+- **Brak `JsonStringEnumConverter` w API** → enumy lecą jako liczby (Difficulty Easy=0/Medium=1/Hard=2). Front mapuje liczbowo (`features/quiz/types.ts`).
+
+**Co zrobione (1 commit):**
+
+1. `feat(web): categories grid with start-a-quiz wiring` (`b190ee8`, #113)
+   - Warstwa API/hooków: `features/categories/{api.ts,use-categories.ts}` (`useQuery(['categories'])`), `features/quiz/{types.ts,api.ts,query-keys.ts,use-start-quiz.ts}`.
+   - `CategoriesPage` wg `mockups/categories-*.html`: responsywna siatka 3-kol, **active vs „Coming soon" z `questionCount > 0`** (bez hardcode'u), pasek best-score na aktywnych kartach, stany loading/error z retry. Strona daje własny kontener (`AppShell` renderuje goły `<Outlet/>`).
+   - `useStartQuiz` = mutacja (start tworzy attempt → write): `POST /start` na klik aktywnej karty → `setQueryData(quizSessionKey(attemptId), session)` → `navigate('/quiz/:attemptId')`. **Bez tranzytowej trasy `/quiz/start`** z planu — mutacja na kliknięciu jest czystsza. QuizPage odczyta cache w sesji B.
+
+**Decyzje:**
+- **Active/coming-soon wyprowadzone z danych (`questionCount`), nie z hardcoded listy.** Gdy backend zaseeduje kolejną kategorię, karta sama staje się grywalna — zero zmian we froncie.
+- **Start jako mutacja + seed cache, nie trasa pośrednia.** Plan proponował `/quiz/start?categoryId=X`; mutacja na kliknięciu unika migającej trasy i daje QuizPage gotowe pytania z cache (jeden round-trip).
+- **Enumy liczbowo na froncie.** Konwerter string-enum w API ruszyłby testy/Postmana — świadomy defer poza scope 1.6.
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite) + `pnpm lint` → zielone.
+- **Klikany przepływ NIE był weryfikowany** (brak headless browsera): siatka w dark/light, klik karty → start → wejście w `/quiz/:attemptId`, stany loading/error — do potwierdzenia ręcznie przez ownera (`pnpm dev`, demo-login → Categories). Backend pokryty testami z wcześniejszych iteracji.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.6-categories`, 1 commit (#113) + ten docs. Następny krok: PR sesji A (zamyka #113 + docs). Potem **sesja B** — `QuizPage` czyta sesję z cache pod `quizSessionKey`, mini-header (progress + exit X), `Question` (4 opcje, prefiksy mono 1–4), stan selected wg ADR-015 (border + filled prefix + glow).
+
