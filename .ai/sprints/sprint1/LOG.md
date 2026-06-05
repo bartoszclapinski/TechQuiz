@@ -647,3 +647,29 @@ Branch `feat/iteration-1.6-categories`, 1 commit (#113) + ten docs. Następny kr
 - **#4 spójność kluczy (nit)** → dodana fabryka `categoriesKey()` (`features/categories/query-keys.ts`), `useCategories` jej używa — symetrycznie do `quizSessionKey`.
 - Weryfikacja: `tsc -b` + `eslint .` zielone. Klikany przepływ wciąż do ręcznego potwierdzenia przez ownera.
 
+## 2026-06-05 — Iteration 1.6 session B: Quiz runner shell (mini-header + question + selected state)
+
+**Kontekst:** PR #115 zmergowany (`3cc5b0d`). Sesja B realizuje zadania 3–6: `QuizPage` (rdzeń runnera), mini-header, komponent pytania, stan selected wg ADR-015. Branch `feat/iteration-1.6-quiz-runner`.
+
+**Referencje zweryfikowane:** `mockups/quiz-multiple-choice-dark.html` (struktura full-screen, kolory), ADR-015 (3 zmiany stanu selected: violet border + filled prefix + 3px outer glow; badge trudności emerald/amber/red @10%; full-screen z mini-headerem; bez feedbacku do Result). Trasa to `/quiz/:id` (param `id`, nie `attemptId`). `AppShell` na tej trasie zwraca goły `<Outlet/>` — QuizPage sam bierze pełny ekran (`min-h-screen flex flex-col`).
+
+**Co zrobione (1 commit):**
+- `QuizPage` przepisany ze stuba na pełny runner: czyta sesję z cache pod `quizSessionKey(id)`; **cache-miss → `<Navigate to="/categories" replace />`** (realizacja decyzji #1 z review). Lokalny stan: `currentIndex`, `answers: Record<questionId, optionId>`. Mini-header (nazwa kategorii · licznik, pasek progresu `transition-[width] duration-300`, przycisk exit X). Pytanie: badge trudności + treść. 4 opcje z prefiksami mono 1–4. Stopka: podpowiedź klawiszy (`<Kbd>`) + przycisk Next/„Submit quiz" (disabled dopóki brak odpowiedzi). Nawigacja **tylko w przód** (mockup nie ma Back).
+- **Stan selected wg ADR-015** — 3 zmiany jednocześnie: `border-accent`, prefiks `bg-accent text-white`, glow `shadow-[0_0_0_3px_rgba(139,92,246,0.15)]`. Tło opcji pozostaje `bg-surface`.
+- **Nazwa kategorii do mini-headera:** `QuizSessionDto` jej nie niesie. Zamiast pola w backendzie — nowy typ `QuizRunnerSession = QuizSession & { categoryName: string }`; `useStartQuiz` przyjmuje teraz `{ id, name }`, woła `startQuiz(id)` i seeduje cache wzbogacony o `categoryName`. `CategoriesPage` woła `start.mutate({ id, name })`, `startingId = start.variables?.id`.
+
+**Decyzje:**
+- **Nazwa kategorii przepuszczona przez mutację → cache, bez zmiany backendu.** Tańsze niż nowe pole w DTO + handler + test; nazwa i tak jest pod ręką na klik karty.
+- **Badge trudności:** kolor tekstu z tokenu (`text-success/-warning/-danger`, flipuje w light), tło literalnym `rgba(...,0.1)` — tokeny nie mają kanału alpha, więc `bg-warning/10` jest cicho gubione (ten sam gotcha co w auth-hero). Glow też arbitrary value (`shadow-[...]`) z literalnym rgba — dokładnie jak mockup.
+- **Tekst opcji zwykły, nie violet-mono.** Mockup pokazuje opcje jako `<code>` (bo to słowa kluczowe C#); realne odpowiedzi bywają prozą — prefiks/stan selected wg ADR-015, ale treść opcji to zwykły `text-[14px]`.
+- **Interim wiring (do podmiany w sesji C):** exit X → `navigate('/categories')` (sesja C owinie w modal potwierdzenia); „Submit quiz" na ostatnim pytaniu → `navigate('/result/:id')` (sesja C dołoży `POST /complete` przed nawigacją; Result to wciąż stub do 1.7). Nawigacje zostają, sesja C tylko dokłada bramki — nie throwaway.
+
+**Poza zakresem (sesja C):** klawiatura (1–4/Enter/Esc), persystencja `POST /answer`, modal wyjścia (forfeit), `POST /complete` → Result.
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite, 229 modułów) + `eslint .` → zielone.
+- **Klikany przepływ NIE weryfikowany** (brak headless browsera): full-screen w dark/light, klik opcji → stan selected (3 zmiany), pasek progresu, Next disabled/enabled, exit X → Categories — do potwierdzenia ręcznie przez ownera (`pnpm dev`, demo-login → Categories → klik aktywnej karty → quiz).
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.6-quiz-runner`, 1 commit + ten docs. Następny krok: PR sesji B. Potem **sesja C** — handler klawiatury (`useEffect` + keydown), mutacja `POST /answer` (idempotentna), modal wyjścia (rekomendacja: `@radix-ui/react-dialog`), `POST /complete` → `/result/:id`.
+

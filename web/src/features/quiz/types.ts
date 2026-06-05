@@ -25,3 +25,8 @@ export type QuizSession = {
   attemptId: string
   questions: QuizQuestion[]
 }
+
+// The API's QuizSessionDto carries no category name, but the quiz mini-header needs one
+// ("C# Basics · 3 of 10"). Rather than add a backend field, we thread the name from the clicked
+// category through useStartQuiz into the cache, so the runner reads it without an extra request.
+export type QuizRunnerSession = QuizSession & { categoryName: string }
