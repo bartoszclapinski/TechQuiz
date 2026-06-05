@@ -11,9 +11,12 @@ namespace TechQuiz.Api.Controllers;
 [Route("api/auth")]
 public sealed class AuthController(IMediator mediator, IWebHostEnvironment environment) : ControllerBase
 {
-    // The refresh token rides in an HttpOnly cookie so browser JS (and any XSS) can never
-    // read it — the SPA holds only the access token, in memory. Scoped to the refresh
+    // The refresh token rides in an HttpOnly cookie so it can't be read back from storage by
+    // browser JS — the SPA holds only the access token, in memory. Scoped to the refresh
     // endpoint path so it isn't sent on every other API call.
+    // Caveat: these endpoints still return the refresh token in the JSON body (for non-cookie
+    // clients like Postman/tests), so it is briefly JS-readable in the auth response itself.
+    // Omitting it from the browser response is tracked as a follow-up (see PR/LOG).
     private const string RefreshCookieName = "refresh_token";
     private const string RefreshCookiePath = "/api/auth/refresh";
 
