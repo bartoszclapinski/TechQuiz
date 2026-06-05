@@ -480,3 +480,49 @@ Iteracja 1.4 zamknięta — kamień milowy backendu MVP. Cztery commity sesji D 
 **Punkt wznowienia:**
 Branch `feat/iteration-1.5-react-foundation`, 2 commity (#89 tokeny/fonty/mapowanie, #90 theme provider/toggle) + ten docs. Następny krok: PR sesji A. Potem **sesja B** — backendowy slice refresh-cookie (`AuthController` ustawia `HttpOnly; SameSite; Secure` cookie i czyta refresh z cookie) + axios client z refresh-on-401 + `AuthContext` + React Query. Uwaga scope: obecnie API zwraca refresh w body JSON — to wymaga zmiany pod model bezpieczeństwa z DoD.
 
+---
+
+## 2026-06-05 — Iteration 1.5 session B: auth plumbing (refresh-cookie slice + axios + AuthContext)
+
+**Kontekst:** Sesja A (fundament) zmergowana jako PR #92 (`990ff97`). Sesja B realizuje model bezpieczeństwa z DoD: **memory-only JWT + HttpOnly refresh cookie**. Przed nią API zwracało refresh token tylko w body JSON, a `/refresh` czytał go z body — XSS-podatne, gdyby front trzymał refresh w JS. Sesja przenosi nośnik refresh tokena do HttpOnly cookie i buduje całą frontendową hydraulikę auth.
+
+**Co zrobione (4 atomic commity):**
+
+1. `feat(api): set refresh token in HttpOnly cookie` (`94b2975`, #93)
+   - `AuthController`: po Register/Login/Refresh ustawia cookie `refresh_token` przez `SetRefreshCookie(tokens)` — `HttpOnly=true`, `Secure=!IsDevelopment()`, `SameSite=Strict`, `Path=/api/auth/refresh`, `Expires=RefreshTokenExpiresAt`. Path-scoped: cookie leci tylko na endpoint refresh, nie na każde żądanie.
+   - `RefreshRequest(string? RefreshToken)` — refresh w body teraz **opcjonalny** (`[FromBody(EmptyBodyBehavior.Allow)]`). Browser carry'uje go w cookie (puste body), klienci bez cookie jar (Postman/testy) wciąż mogą wysłać w body. `Refresh` czyta `Request.Cookies[...] ?? request?.RefreshToken`.
+   - `RefreshCookieTests` (in-memory `WebApplicationFactory`): login ustawia httponly cookie path-scoped → refresh z pustym body czyta cookie → 200; refresh bez cookie i bez body → 401.
+
+2. `feat(web): axios api client + React Query setup` (`5757239`, #94)
+   - `web/src/lib/api-client.ts`: instancja axios (`baseURL` z `VITE_API_BASE_URL` ?? `http://localhost:8080`, `withCredentials:true`). Module-scoped `accessToken` (memory-only, nie localStorage). Request interceptor dokłada `Bearer`. `refreshAccessToken()` z jednym współdzielonym `refreshPromise` (deduplikacja równoległych 401). Response interceptor: retry raz na 401 (`_retry` guard, skip dla samego refresh-calla), a po porażce refresh czyści token i woła `onRefreshFailure`.
+   - `web/src/lib/query-client.ts`: `QueryClient` (`staleTime 30s`, `retry 1`, bez refetch-on-focus). Nowe depy: `axios`, `@tanstack/react-query` (uzasadnione w stacku CLAUDE.md).
+
+3. `feat(api): logout endpoint clears the refresh cookie` (`6b6aa05`, #95)
+   - `POST /api/auth/logout` → `Response.Cookies.Delete(refresh_token, ...)` z tymi samymi atrybutami (Path musi się zgadzać, inaczej przeglądarka nie skasuje) → 204. Bez tego HttpOnly cookie zostałoby i po reloadzie cicho re-auth'owało. Rewokacja tokena w DB odroczona (spójne z długiem MVP #66/#68).
+   - Dodatkowy test w `RefreshCookieTests`: login → logout (204, Set-Cookie z `expires=1970`) → refresh → 401.
+
+4. `feat(web): auth context with login, register, logout, and silent refresh` (`0e10db3`, #96)
+   - `features/auth/`: `types.ts` (`AuthTokens`, `User`), `jwt.ts` (`decodeUserFromToken` — base64url decode payloadu, czyta `sub`+`email`), `auth-context.ts` (`AuthStatus` loading/authenticated/unauthenticated), `auth-provider.tsx`, `use-auth.ts`.
+   - `AuthProvider`: `login`/`register` POST-ują i `applyAccessToken` (set memory token + decode user). `logout` POST `/logout` finally `clearSession`. Effect rejestruje `setOnRefreshFailure(clearSession)` — gdy interceptor 401 nie odświeży, React leci do unauthenticated. Bootstrap effect z `useRef` guardem (StrictMode double-invoke) robi silent `refreshAccessToken()` na starcie — wracający user z ważnym refresh-cookie zostaje wciągnięty bez logowania.
+   - `main.tsx`: drzewo `QueryClientProvider > ThemeProvider > AuthProvider > App`. `App.tsx` ma **tymczasowy** wskaźnik `auth: {status}` obok ThemeToggle (zastąpiony routingiem w sesji C).
+
+**Decyzje:**
+- **Cookie jako nośnik, body jako fallback.** Zamiast twardo wymagać cookie, `/refresh` akceptuje też body — żeby Postman i integracyjne testy API (bez cookie jar) dalej działały. Browser i tak nigdy nie zobaczy refresh tokena w JS (memory-only access token + HttpOnly refresh).
+- **Path-scoped cookie (`/api/auth/refresh`).** Refresh token nie wisi na każdym żądaniu — mniejszy attack surface, leci tylko tam gdzie potrzebny.
+- **Rewokacja w DB odroczona.** Logout czyści cookie po stronie klienta, ale nie unieważnia tokena w bazie — świadomy dług MVP (#66/#68), nie regres. Pełna rotacja/rewokacja w późniejszej iteracji.
+- **Memory-only access token.** Zgodnie z gotcha w CLAUDE.md — żaden JWT nie ląduje w localStorage. Token żyje w module-scoped zmiennej; po refreshu strony znika i jest odtwarzany przez silent refresh.
+
+**Weryfikacja:**
+- `dotnet build` → 0 warnings. `dotnet test` → **9/9 zielone** (`RefreshCookieTests` na realnie skompilowanym branchu przez `WebApplicationFactory<Program>`).
+- `pnpm build` + `pnpm lint` → zielone.
+- **Runtime check na żywym dockerowym API** (obraz przebudowany z brancha — `docker compose up -d --build api`): pełny łańcuch cookie potwierdzony curl-em →
+  - register → `Set-Cookie: refresh_token=…; path=/api/auth/refresh; samesite=strict; httponly; expires=<future>`,
+  - refresh z cookie + pustym body → **200**,
+  - logout → **204**, `Set-Cookie` z `expires=1970` (cookie skasowane),
+  - refresh po logout → **401**.
+  - CORS preflight z `Origin: http://localhost:5173` → 204 z `Access-Control-Allow-Credentials: true` + `Allow-Origin: http://localhost:5173` (cross-origin cookie flow z dev serwera React przejdzie).
+- **Przeglądarkowy przepływ React (klik przez Login UI) NIE był weryfikowany** — brak headless browsera w tym środowisku; UI loginu/rejestracji powstaje w sesji D. Backend i hydraulika pokryte testami + curl-em.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.5-auth-plumbing`, 4 commity (#93–#96) + ten docs. Następny krok: PR sesji B (zamyka #93/#94/#95/#96 + docs). Potem **sesja C** — React Router + `RequireAuth` + `AppShell` (topbar route-aware, ukryty na `/quiz/:id`), zastąpienie tymczasowego wskaźnika auth w `App.tsx`.
+
