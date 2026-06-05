@@ -22,6 +22,7 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --auth-grid-line: rgba(255, 255, 255, 0.018);
 }
 
 [data-theme='light'] {
@@ -39,6 +40,7 @@
   --success: #059669;
   --warning: #d97706;
   --danger: #dc2626;
+  --auth-grid-line: rgba(15, 23, 42, 0.04);
 }
 
 @layer base {
@@ -51,5 +53,48 @@
   h2,
   h3 {
     letter-spacing: -0.02em;
+  }
+}
+
+/* Auth hero decoration: a faint 40px grid that adapts to the theme, plus gentle float
+   animations on the showcase cards. Decorative only — disabled for reduced-motion users. */
+.auth-grid {
+  background-image: linear-gradient(var(--auth-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--auth-grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+@keyframes auth-float-hero {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes auth-float-stack {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.auth-float-hero {
+  animation: auth-float-hero 8s ease-in-out infinite;
+}
+
+.auth-float-stack {
+  animation: auth-float-stack 6.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-float-hero,
+  .auth-float-stack {
+    animation: none;
   }
 }

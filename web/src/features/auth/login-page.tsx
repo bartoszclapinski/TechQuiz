@@ -1,70 +1,172 @@
-import { useState, type FormEvent } from 'react'
-import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { isAxiosError } from 'axios'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from './use-auth'
+import { AuthLayout } from './auth-layout'
 
-// Minimal placeholder. The mockup-matching split-screen login (react-hook-form + zod, demo
-// button, gradient hero) is built in session D. This stub exists so RequireAuth has a real
-// /login target and the auth flow is exercisable end to end in session C.
+const DEMO_EMAIL = 'demo@techquiz.local'
+const DEMO_PASSWORD = 'Demo123!'
+
+const loginSchema = z.object({
+  email: z.email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+})
+
+type LoginValues = z.infer<typeof loginSchema>
+
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
 
   const redirectTo = (location.state as { from?: string } | null)?.from ?? '/categories'
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    setError(null)
-    setSubmitting(true)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  })
+
+  // 401 means the credentials were wrong — surface that inline on the form. Anything else
+  // (network, 500) isn't the user's fault, so it goes to a toast instead of the field.
+  function reportSignInError(error: unknown) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      setError('password', { message: 'Incorrect email or password' })
+      return
+    }
+    toast.error('Something went wrong. Please try again.')
+  }
+
+  async function onSubmit(values: LoginValues) {
     try {
-      await login(email, password)
+      await login(values.email, values.password)
       navigate(redirectTo, { replace: true })
-    } catch {
-      setError('Login failed. Check your credentials and try again.')
-    } finally {
-      setSubmitting(false)
+    } catch (error) {
+      reportSignInError(error)
     }
   }
 
+  async function onDemo() {
+    setDemoLoading(true)
+    try {
+      await login(DEMO_EMAIL, DEMO_PASSWORD)
+      navigate(redirectTo, { replace: true })
+    } catch (error) {
+      reportSignInError(error)
+    } finally {
+      setDemoLoading(false)
+    }
+  }
+
+  const busy = isSubmitting || demoLoading
+
   return (
-    <section className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border bg-surface px-3 py-2"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border bg-surface px-3 py-2"
-          required
-        />
+    <AuthLayout>
+      <div className="mb-8">
+        <h1 className="mb-2 text-[28px] font-semibold leading-tight tracking-tight">Welcome back.</h1>
+        <p className="text-sm text-secondary">
+          Continue where you left off, or start fresh with a new category.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="mb-3.5">
+          <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-secondary">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            {...register('email')}
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+          />
+          {errors.email ? (
+            <p className="mt-1.5 text-xs text-danger">{errors.email.message}</p>
+          ) : null}
+        </div>
+
+        <div className="mb-5">
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="password" className="text-xs font-medium text-secondary">
+              Password
+            </label>
+            <button
+              type="button"
+              onClick={() => toast.info('Password recovery arrives in a later phase.')}
+              className="text-xs text-secondary transition-colors hover:text-primary"
+            >
+              Forgot password?
+            </button>
+          </div>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••••"
+            {...register('password')}
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+          />
+          {errors.password ? (
+            <p className="mt-1.5 text-xs text-danger">{errors.password.message}</p>
+          ) : null}
+        </div>
+
         <button
           type="submit"
-          disabled={submitting}
-          className="rounded-lg bg-accent px-3 py-2 text-white disabled:opacity-60"
+          disabled={busy}
+          className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {submitting ? 'Signing in…' : 'Sign in'}
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
       </form>
-      <p className="mt-4 text-sm text-muted">
-        No account?{' '}
-        <Link to="/register" className="text-accent">
-          Register
+
+      <div className="my-4 flex items-center gap-3">
+        <div className="h-px flex-1 bg-[var(--border-default)]" />
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">or</span>
+        <div className="h-px flex-1 bg-[var(--border-default)]" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onDemo}
+        disabled={busy}
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-strong bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:bg-elevated disabled:opacity-60"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        {demoLoading ? 'Signing in…' : 'Continue as demo'}
+      </button>
+
+      <p className="mt-7 text-center text-[13px] text-secondary">
+        Don't have an account?{' '}
+        <Link to="/register" className="font-medium text-accent-text hover:underline">
+          Create one
         </Link>
       </p>
-    </section>
+    </AuthLayout>
   )
 }
