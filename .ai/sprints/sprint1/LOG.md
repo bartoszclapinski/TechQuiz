@@ -569,3 +569,36 @@ PR #98 zmergowany (`squash`), issues #93–#97 + #100 zamknięte, #99 otwarte ja
 **Punkt wznowienia:**
 Branch `feat/iteration-1.5-routing-shell`, 3 commity (#101–#103) + ten docs. Następny krok: PR sesji C (zamyka #101/#102/#103 + docs). Potem **sesja D** (zadania 7–10) — strony Login/Register dokładnie pod `mockups/login-*.html` (split-screen, gradient hero, "Continue as demo", `react-hook-form` + `zod`), loading states, błędy inline + `sonner` na nieoczekiwane.
 
+---
+
+## 2026-06-05 — Iteration 1.5 session D: Login/Register UI under mockup
+
+**Kontekst:** Sesja C (routing + shell) zmergowana (PR #105). Sesja D realizuje zadania 7–10 planu: zastąpienie funkcjonalnych stubów Login/Register pełnym UI pod `docs/mockups/login-dual-theme.html` (split-screen, gradient hero, `react-hook-form` + `zod`, "Continue as demo", `sonner`). To domyka iterację 1.5.
+
+**Co zrobione (3 atomic commity):**
+
+1. `chore(web): add react-hook-form, zod, sonner; mount themed Toaster` (`f439580`, #106)
+   - Deps: `react-hook-form`, `zod`, `@hookform/resolvers`, `sonner`.
+   - `ThemedToaster` (`components/ui/`) czyta motyw z `useTheme` i podaje go `<Toaster>` — toasty trzymają się tego samego `data-theme` co reszta UI. Zamontowany w `main.tsx` wewnątrz `ThemeProvider`, obok `<App/>`.
+
+2. `feat(web): split-screen login page matching mockup` (`b3ec1aa`, #107)
+   - `AuthLayout` — wspólna rama split-screen: lewa kolumna (header logo "T" + `ThemeToggle`, slot na formularz, stopka `© 2026 TechQuiz · v0.1.0`), prawa = `AuthHero`. Hero `hidden lg:block` — poniżej lg formularz bierze całą szerokość.
+   - `AuthHero` — dekoracyjny panel: dwa bloby `radial-gradient` (inline style, fiolet/indygo), siatka `.auth-grid` (theme-aware, 40px) i karty z `.auth-float-*` (gentle float, wyłączone przy `prefers-reduced-motion`). Statyczne dane demo (C# Advanced 87% + ASP/EF/SQL) — sprzedaje produkt wizualnie.
+   - `LoginPage` na `react-hook-form` + `zod`: walidacja email/hasło, przycisk **"Continue as demo"** (loguje seedowanym `demo@techquiz.local`), osobne loading per-przycisk, **401 → błąd inline** na polu hasła, reszta → `toast.error`.
+   - `index.css`: token `--auth-grid-line` (dla obu themów), `.auth-grid`, `@keyframes auth-float-hero/-stack` + reduced-motion guard.
+
+3. `feat(web): register page with confirm-password validation` (`a859b7a`, #108)
+   - `RegisterPage` reużywa `AuthLayout`: `react-hook-form` + `zod` z polem **confirm password** i `refine()` sprawdzającym zgodność haseł (min. 8 znaków). 4xx (email zajęty / słabe hasło) → inline, reszta → toast. Krzyżowa nawigacja do `/login`.
+
+**Decyzje:**
+- **Brak opacity-modifierów na tokenach `var()`.** Kolory w `tailwind.config.js` to gołe `var(--token)` bez kanału `<alpha-value>`, więc `bg-surface/75`, `border-accent/35` są **cicho ignorowane**. `AuthHero` i inputy używają solidnych tokenów (`bg-elevated` vs `bg-surface` dla kontrastu) zamiast półprzezroczystości z mockupu; focus-ring solidny `ring-accent`. Pełny refaktor do alpha-tokenów ruszyłby fundament z sesji A — poza scope 1.5.
+- **"Forgot password?" i "Keep me signed in" — kosmetyka.** Link "Forgot password?" pokazuje toast "later phase"; checkbox "Keep me signed in" z mockupu **pominięty**, bo żywotność refresh-cookie jest ustalana po stronie serwera (stała), więc kontrolka byłaby myląca.
+- **Rozróżnienie błędów: inline vs toast.** 401/4xx to wina inputu użytkownika → komunikat przy polu; sieć/5xx to nie jego wina → `sonner` toast. Spójne między Login i Register.
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite) + `pnpm lint` → zielone po każdym z 3 commitów.
+- **Klikany przepływ w przeglądarce NIE był weryfikowany** (brak headless browsera w tym środowisku): wygląd split-screen w dark/light, "Continue as demo", walidacja rhf+zod, inline-401 vs toast — do potwierdzenia ręcznie przez ownera. Brak mandatu testów front w MVP; bar to zielony build+lint.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.5-auth-ui`, 3 commity (#106–#108) + ten docs. Następny krok: PR sesji D (zamyka #106/#107/#108 + docs) — **domyka iterację 1.5**. Potem **iteracja 1.6**: siatka kategorii + pełny runner quizu (realna luka do "robienia zadań z pierwszego tematu").
+
