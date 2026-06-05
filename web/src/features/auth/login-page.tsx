@@ -88,11 +88,15 @@ export function LoginPage() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
             className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.email ? (
-            <p className="mt-1.5 text-xs text-danger">{errors.email.message}</p>
+            <p id="email-error" className="mt-1.5 text-xs text-danger">
+              {errors.email.message}
+            </p>
           ) : null}
         </div>
 
@@ -114,11 +118,15 @@ export function LoginPage() {
             type="password"
             autoComplete="current-password"
             placeholder="••••••••••"
+            aria-invalid={errors.password ? true : undefined}
+            aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
             className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.password ? (
-            <p className="mt-1.5 text-xs text-danger">{errors.password.message}</p>
+            <p id="password-error" className="mt-1.5 text-xs text-danger">
+              {errors.password.message}
+            </p>
           ) : null}
         </div>
 
