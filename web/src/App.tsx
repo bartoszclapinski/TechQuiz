@@ -1,11 +1,20 @@
 import { ThemeToggle } from './components/ui/theme-toggle'
+import { useAuth } from './features/auth/use-auth'
 
 function App() {
+  const { status, user } = useAuth()
+
   return (
     <main className="min-h-screen bg-base text-primary">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <span className="font-semibold">TechQuiz</span>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-muted">
+            auth: {status}
+            {user ? ` · ${user.email}` : ''}
+          </span>
+          <ThemeToggle />
+        </div>
       </header>
       <section className="mx-auto max-w-2xl px-6 py-16">
         <h1 className="text-3xl font-semibold">Design system check</h1>
