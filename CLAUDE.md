@@ -279,8 +279,7 @@ UI mockups exist as standalone HTML files in `docs/mockups/`. Each MVP screen ha
 
 ```
 docs/mockups/
-├── login-dark.html
-├── login-light.html
+├── login-dual-theme.html           ← dark + light side by side in one file
 ├── categories-dark.html
 ├── categories-light.html
 ├── quiz-multiple-choice-dark.html
