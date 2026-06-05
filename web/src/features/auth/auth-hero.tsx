@@ -1,5 +1,8 @@
 // Decorative showcase panel on the right half of the auth split-screen. Static sample data —
 // it sells the product visually for the portfolio demo and is hidden below the lg breakpoint.
+// The gradient blobs and card boxShadow below use literal accent-hued rgba (--accent #8b5cf6,
+// indigo #6366f1): the design tokens carry no alpha channel, so these decorations can't derive
+// from them and won't track a future --accent change. Acceptable for a static showcase panel.
 const SUPPORTING = [
   { code: 'ASP', label: 'ASP.NET Core', pct: 72 },
   { code: 'EF', label: 'Entity Framework', pct: 94 },
