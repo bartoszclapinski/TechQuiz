@@ -235,7 +235,7 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
     {
         var categoryId = Guid.NewGuid();
         var quizId = Guid.NewGuid();
-        var category = new Category(categoryId, "Test Category", "desc", "icon");
+        var category = new Category(categoryId, $"Test Category {categoryId}", "desc", "icon");
         var questions = Enumerable.Range(0, questionCount).Select(_ => CreateQuestion(categoryId)).ToArray();
         var quiz = Quiz.Create(quizId, categoryId, questions);
 
