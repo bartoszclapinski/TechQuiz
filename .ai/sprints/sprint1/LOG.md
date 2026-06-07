@@ -743,3 +743,35 @@ Branch `feat/iteration-1.6-quiz-interactions`, 1 commit + ten docs. Iteracja 1.6
 
 **Punkt wznowienia:**
 PR sesji A (backend) → po zielonym CI merge. Następnie Sesja B (frontend): `useQuizResult` (`GET /result`) + `ResultPage` wg `mockups/result-*.html`. DoD 8–11 (polish, Lighthouse ≥90, README, demo 90s) — po stronie ownera.
+
+**Domknięcie sesji A:** CI najpierw padło (Backend) — mój helper `SeedCategoryWithQuizAsync` w `QuizRepositoryTests` nadawał kategorii stałą nazwę „Test Category", a nowy test seeduje dwie kategorie → kolizja na unikalnym indeksie `ix_categories_name` (Postgres 23505). Fix: nazwa pochodna od `id` (#127). Po fixie CI zielone, PR #126 zmergowany (squash), zamyka #122–#125 + #127.
+
+
+---
+
+## 2026-06-07 — Iteration 1.7 Session B: Result screen (frontend)
+
+**Kontekst:** Sesja A wystawiła komplet danych na `GET /api/quizzes/{attemptId}/result` (kategoria, best, previous, per-question z `isCorrect` + explanation). Sesja B renderuje ekran wyniku wg `mockups/result-*.html`. Route `/result/:attemptId` i nawigacja z `useCompleteQuiz` już istniały z 1.6 — był tylko stub strony.
+
+**Co zrobione (2 atomic commits, branch `feat/iteration-1.7-result-screen`):**
+
+1. `feat(web): result data layer — useQuizResult hook + types` (#128)
+   - `features/results/`: `types.ts` (QuizResult/ResultQuestion/ResultOption — camelCase, `byDifficulty` jako `Record<string, …>` bo enum-klucze przychodzą jako liczby-stringi), `api.ts` (`fetchQuizResult` → `GET …/result`), `query-keys.ts`, `use-quiz-result.ts` (`useQuery`, `staleTime: Infinity` — wynik ukończonego podejścia jest niezmienny).
+
+2. `feat(web): ResultPage — score hero, metric cards, breakdown, CTAs` (#129)
+   - Score hero (gradient violet, duży %, „+X% from your last attempt" / „First attempt" gdy `previousPercentage === null`, pill z etykietą jakościową).
+   - 4 metric cards: Correct/Total, Time, Avg/question (Time + Avg **liczone na froncie** z `startedAt`/`completedAt`), Best score.
+   - Review: pytania błędne rozwinięte (your answer vs correct + blok explanation z violet border-left), poprawne za toggle „Show N more correct answers"; każdy wiersz osobno rozwijalny (`ReviewRow` z lokalnym stanem, błędne domyślnie otwarte).
+   - CTA: „Back to categories" (primary) + „Try again" (reużywa `useStartQuiz` z tym samym `categoryId`/`categoryName`).
+
+**Decyzje:**
+- **Tła statusowe jako literalne rgba** (inline `style`), tekst przez tokeny `text-success`/`text-danger`/`text-accent-text` — ta sama konwencja co `quiz-page.tsx` (tokeny kolorów nie mają kanału alfa, więc `bg-*/10` jest po cichu pomijane).
+- **„Try again" = `useStartQuiz`** — żadnego nowego hooka; start to mutacja tworząca nowe podejście i nawigująca do `/quiz/:newId`.
+- **Brak biblioteki ikon** — inline SVG jak w istniejących komponentach (hard rule #6: bez nowych zależności).
+
+**Weryfikacja:**
+- `pnpm tsc --noEmit`, `eslint .`, `pnpm build` (289 modułów) — zielone.
+- **Wizualny przebieg w przeglądarce NIE wykonany lokalnie** — ekran wymaga działającego API (Postgres/Docker), którego nie ma w tym środowisku. Render wyniku do potwierdzenia przez ownera w środowisku ze wstałym stackiem (dark + light, golden path + „first attempt" bez porównania).
+
+**Punkt wznowienia:**
+PR sesji B → po zielonym CI merge. Pozostałe DoD 1.7: polish pass, Lighthouse a11y ≥90, README (screeny + demo creds), nagranie 90s — po stronie ownera (wymagają przeglądarki/działającego stacku).
