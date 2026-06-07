@@ -8,6 +8,10 @@ public class QuizAttempt
     public DateTimeOffset StartedAt { get; }
     public DateTimeOffset? CompletedAt { get; private set; }
 
+    // Score percentage denormalised at completion so best/previous-score aggregates are a
+    // simple MAX/ORDER-BY over quiz_attempts instead of re-scoring every attempt's answers.
+    public double? ScorePercentage { get; private set; }
+
     private readonly List<Answer> _answers = [];
     public IReadOnlyList<Answer> Answers => _answers;
 
@@ -46,7 +50,7 @@ public class QuizAttempt
         }
     }
 
-    public void Complete(DateTimeOffset completedAt)
+    public void Complete(DateTimeOffset completedAt, double scorePercentage)
     {
         if (IsCompleted)
         {
@@ -54,5 +58,6 @@ public class QuizAttempt
         }
 
         CompletedAt = completedAt;
+        ScorePercentage = scorePercentage;
     }
 }

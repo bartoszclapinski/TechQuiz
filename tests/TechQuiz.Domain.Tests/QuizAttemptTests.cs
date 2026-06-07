@@ -64,24 +64,33 @@ public class QuizAttemptTests
     }
 
     [Fact]
-    public void Complete_SetsCompletedAt_AndMarksIsCompleted()
+    public void Complete_SetsCompletedAt_AndMarksIsCompleted_AndRecordsScore()
     {
         var attempt = QuizAttempt.Start(AnyAttemptId, AnyUserId, AnyQuizId, T0);
         var t1 = T0.AddMinutes(5);
 
-        attempt.Complete(t1);
+        attempt.Complete(t1, scorePercentage: 73.5d);
 
         attempt.CompletedAt.Should().Be(t1);
         attempt.IsCompleted.Should().BeTrue();
+        attempt.ScorePercentage.Should().Be(73.5d);
+    }
+
+    [Fact]
+    public void ScorePercentage_IsNull_BeforeComplete()
+    {
+        var attempt = QuizAttempt.Start(AnyAttemptId, AnyUserId, AnyQuizId, T0);
+
+        attempt.ScorePercentage.Should().BeNull();
     }
 
     [Fact]
     public void Complete_Twice_Throws()
     {
         var attempt = QuizAttempt.Start(AnyAttemptId, AnyUserId, AnyQuizId, T0);
-        attempt.Complete(T0.AddMinutes(5));
+        attempt.Complete(T0.AddMinutes(5), scorePercentage: 50d);
 
-        var act = () => attempt.Complete(T0.AddMinutes(10));
+        var act = () => attempt.Complete(T0.AddMinutes(10), scorePercentage: 60d);
 
         act.Should().Throw<QuizAlreadyCompletedException>().WithMessage("*already completed*");
     }
@@ -90,7 +99,7 @@ public class QuizAttemptTests
     public void SubmitAnswer_AfterComplete_Throws()
     {
         var attempt = QuizAttempt.Start(AnyAttemptId, AnyUserId, AnyQuizId, T0);
-        attempt.Complete(T0.AddMinutes(5));
+        attempt.Complete(T0.AddMinutes(5), scorePercentage: 50d);
 
         var act = () => attempt.SubmitAnswer(AnyQuestionId, AnyOptionId, T0.AddMinutes(6));
 
