@@ -16,6 +16,10 @@ public sealed class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAtte
         builder.Property(a => a.StartedAt).IsRequired();
         builder.Property(a => a.CompletedAt);
 
+        // Denormalised at completion (null while in progress) so best/previous-score
+        // lookups aggregate over this column instead of re-scoring every attempt.
+        builder.Property(a => a.ScorePercentage);
+
         // CompletedAt drives IsCompleted — don't persist the derived property.
         builder.Ignore(a => a.IsCompleted);
 

@@ -90,6 +90,73 @@ public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : 
         result.Should().NotContainKey(empty.Id);
     }
 
+    [Fact]
+    public async Task GetUserBestScoresAsync_ReturnsMaxPercentagePerCategory_ScopedToUser()
+    {
+        var user = await CreateUserAsync();
+        var other = await CreateUserAsync();
+        var (catA, quizA) = await SeedCategoryWithQuizAsync();
+        var (catB, quizB) = await SeedCategoryWithQuizAsync();
+
+        await SeedCompletedAttemptAsync(user, quizA, scorePercentage: 40d);
+        await SeedCompletedAttemptAsync(user, quizA, scorePercentage: 90d);
+        await SeedCompletedAttemptAsync(user, quizB, scorePercentage: 55d);
+        await SeedCompletedAttemptAsync(other, quizA, scorePercentage: 100d);
+
+        await using var db = CreateDbContext();
+        var sut = new CategoryRepository(db);
+
+        var result = await sut.GetUserBestScoresAsync(user);
+
+        result.Should().HaveCount(2);
+        result[catA].Should().Be(90d);
+        result[catB].Should().Be(55d);
+    }
+
+    [Fact]
+    public async Task GetUserBestScoresAsync_OmitsCategoriesWithoutCompletedAttempt()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizA) = await SeedCategoryWithQuizAsync();
+        await SeedCategoryWithQuizAsync(); // category B — never attempted
+        await SeedInProgressAttemptAsync(user, quizA); // in progress: no score yet
+
+        await using var db = CreateDbContext();
+        var sut = new CategoryRepository(db);
+
+        var result = await sut.GetUserBestScoresAsync(user);
+
+        result.Should().BeEmpty();
+    }
+
+    private async Task<(Guid CategoryId, Guid QuizId)> SeedCategoryWithQuizAsync()
+    {
+        var categoryId = Guid.NewGuid();
+        var quizId = Guid.NewGuid();
+        await using var db = CreateDbContext();
+        db.Categories.Add(new Category(categoryId, $"Cat-{categoryId:N}", "x", "icon"));
+        db.Quizzes.Add(Quiz.Create(quizId, categoryId, [CreateQuestion(categoryId)]));
+        await db.SaveChangesAsync();
+        return (categoryId, quizId);
+    }
+
+    private async Task SeedCompletedAttemptAsync(Guid userId, Guid quizId, double scorePercentage)
+    {
+        var attempt = QuizAttempt.Start(Guid.NewGuid(), userId, quizId, DateTimeOffset.UtcNow);
+        attempt.Complete(DateTimeOffset.UtcNow.AddMinutes(5), scorePercentage);
+        await using var db = CreateDbContext();
+        db.QuizAttempts.Add(attempt);
+        await db.SaveChangesAsync();
+    }
+
+    private async Task SeedInProgressAttemptAsync(Guid userId, Guid quizId)
+    {
+        var attempt = QuizAttempt.Start(Guid.NewGuid(), userId, quizId, DateTimeOffset.UtcNow);
+        await using var db = CreateDbContext();
+        db.QuizAttempts.Add(attempt);
+        await db.SaveChangesAsync();
+    }
+
     private static Question CreateQuestion(Guid categoryId)
     {
         var qid = Guid.NewGuid();

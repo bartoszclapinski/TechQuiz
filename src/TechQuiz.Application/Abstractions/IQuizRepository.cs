@@ -17,4 +17,15 @@ public interface IQuizRepository
         int skip,
         int take,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the score percentage of the user's most recently completed attempt for the
+    /// given quiz, excluding <paramref name="excludeAttemptId"/> (the one just finished).
+    /// Null when the user has no earlier completed attempt for that quiz.
+    /// </summary>
+    Task<double?> GetLastCompletedScoreAsync(
+        Guid userId,
+        Guid quizId,
+        Guid excludeAttemptId,
+        CancellationToken cancellationToken = default);
 }

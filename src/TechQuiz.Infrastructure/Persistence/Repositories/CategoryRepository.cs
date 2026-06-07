@@ -20,22 +20,22 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
             .ToDictionaryAsync(x => x.CategoryId, x => x.Count, cancellationToken);
 
     /// <summary>
-    /// MVP placeholder — returns an empty dictionary so <c>GetCategoriesQueryHandler</c>
-    /// falls back to its <c>0d</c> default for every category.
+    /// Best score percentage per category for the user, aggregated from the denormalised
+    /// <see cref="Domain.QuizAttempt.ScorePercentage"/>. Categories the user has not completed
+    /// an attempt in are absent from the result (caller treats them as 0%).
     /// </summary>
-    /// <remarks>
-    /// Computing real best-scores per category requires loading every completed attempt's
-    /// answers + the quiz's questions + their options and running <c>Score.Calculate</c>
-    /// for each — heavy for a denormalisable metric. The proper fix is to persist the
-    /// score percentage on <c>QuizAttempt</c> at <c>Complete</c> time and aggregate via a
-    /// simple <c>MAX() GROUP BY</c> query. Tracked separately for when iteration 1.6
-    /// (Categories UI) actually consumes this method.
-    /// </remarks>
-    public Task<IReadOnlyDictionary<Guid, double>> GetUserBestScoresAsync(
+    public async Task<IReadOnlyDictionary<Guid, double>> GetUserBestScoresAsync(
         Guid userId,
-        CancellationToken cancellationToken = default)
-    {
-        _ = userId; // intentionally unused — placeholder until ScorePercentage is denormalised on QuizAttempt
-        return Task.FromResult<IReadOnlyDictionary<Guid, double>>(new Dictionary<Guid, double>());
-    }
+        CancellationToken cancellationToken = default) =>
+        await db.QuizAttempts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId && a.ScorePercentage != null)
+            .Join(
+                db.Quizzes,
+                attempt => attempt.QuizId,
+                quiz => quiz.Id,
+                (attempt, quiz) => new { quiz.CategoryId, attempt.ScorePercentage })
+            .GroupBy(x => x.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Best = g.Max(x => x.ScorePercentage!.Value) })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Best, cancellationToken);
 }

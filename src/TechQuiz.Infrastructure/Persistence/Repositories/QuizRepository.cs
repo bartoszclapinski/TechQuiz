@@ -63,4 +63,20 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
+
+    public Task<double?> GetLastCompletedScoreAsync(
+        Guid userId,
+        Guid quizId,
+        Guid excludeAttemptId,
+        CancellationToken cancellationToken = default) =>
+        db.QuizAttempts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId
+                && a.QuizId == quizId
+                && a.Id != excludeAttemptId
+                && a.CompletedAt != null
+                && a.ScorePercentage != null)
+            .OrderByDescending(a => a.CompletedAt)
+            .Select(a => a.ScorePercentage)
+            .FirstOrDefaultAsync(cancellationToken);
 }
