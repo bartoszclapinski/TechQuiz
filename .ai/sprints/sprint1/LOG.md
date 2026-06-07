@@ -708,3 +708,38 @@ Branch `feat/iteration-1.6-quiz-interactions`, 1 commit + ten docs. Iteracja 1.6
 - **#4 forfeit tylko po stronie klienta (low)** → nota w pliku iteracji: exit to `navigate('/categories')`, brak endpointu forfeit, attempt zostaje in-progress w DB (ten sam dług co reload z sesji A). Tylko dokumentacja.
 - Weryfikacja: `pnpm build` (286 modułów) + `eslint .` zielone. Klikany/klawiszowy przepływ wciąż do ręcznego potwierdzenia przez ownera (w tym: wymuszony błąd `/answer` → rollback + toast + Next disabled; szybki submit na ostatnim pytaniu → ostatnia odpowiedź policzona).
 
+
+---
+
+## 2026-06-07 — Iteration 1.7 Session A: denormalizacja ScorePercentage (backend)
+
+**Kontekst:** Ekran wyniku (mockup `result-*.html`) potrzebuje nazwy kategorii, best-score i porównania „+X% from your last attempt". Przy analizie odkryto, że `ICategoryRepository.GetUserBestScoresAsync` to **placeholder zwracający pusty słownik** (dlatego siatka kategorii pokazuje wszędzie 0%). Komentarz w kodzie wprost wskazywał właściwą poprawkę: zdenormalizować procent wyniku na `QuizAttempt` przy `Complete` i agregować przez `MAX() GROUP BY`. Owner wybrał tę drogę zamiast wariantu pragmatycznego (wątek cache na froncie).
+
+**Co zrobione (3 atomic commits, branch `feat/iteration-1.7-score-denormalization`):**
+
+1. `feat(domain): denormalise ScorePercentage on QuizAttempt at completion` (#122)
+   - `QuizAttempt.ScorePercentage` (nullable, null do ukończenia), ustawiane w `Complete(completedAt, scorePercentage)`.
+   - `CompleteQuizCommandHandler` liczy `Score` **przed** `Complete` i przekazuje procent.
+   - Zmiana sygnatury `Complete` — zaktualizowani wszyscy wywołujący (1 produkcyjny + 7 w testach). TDD na encji.
+
+2. `feat(infra): persist score percentage and add best/last-score queries` (#123)
+   - Mapowanie EF + migracja `AddQuizAttemptScorePercentage` (kolumna `score_percentage double precision`, nullable).
+   - Prawdziwe `GetUserBestScoresAsync` — `JOIN` attempts→quizzes po `QuizId`, `GROUP BY CategoryId`, `MAX(ScorePercentage)`, scoped do usera, omija niezukończone.
+   - Nowe `IQuizRepository.GetLastCompletedScoreAsync(user, quiz, excludeAttempt)` — najświeższy ukończony wynik dla quizu z wykluczeniem bieżącego podejścia (null gdy brak). Testy Testcontainers dla obu.
+
+3. `feat(app): expose category, best and previous score on quiz result` (#124)
+   - `QuizResultDto` + `CategoryId`, `CategoryName`, `BestPercentage`, `PreviousPercentage`; wpięte w współdzieloną `QuizResultProjection`.
+   - Oba handlery (`GetQuizResult`, `CompleteQuiz`) wzbogacają wynik: nazwa kategorii (`GetAllAsync`), best (`GetUserBestScoresAsync`, fallback do bieżącego wyniku), previous (`GetLastCompletedScoreAsync`). W complete best czytany **po** zapisie (zawiera świeżo ukończone podejście).
+
+**Decyzje:**
+- **Denormalizacja zamiast liczenia w locie** — best/previous to teraz prosty aggregate/ORDER-BY zamiast re-scoringu odpowiedzi każdego podejścia. Odblokowuje też realne best-score na siatce kategorii (1.6 używała fallbacku 0%).
+- **`previous` z wykluczeniem bieżącego podejścia** — w MVP kategoria = jeden quiz, więc „ostatnie podejście" to najświeższy ukończony attempt tego samego `QuizId` poza bieżącym.
+- **Pól nie przekazujemy przez cache frontu** — DTO niesie komplet, więc ekran wyniku przeżyje refresh/deep-link (w przeciwieństwie do runnera).
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → zielone, 0 ostrzeżeń.
+- Domain 50/50, Application 76/76 (lokalnie).
+- **Testy Infrastructure (Testcontainers) NIE uruchomione lokalnie** — brak działającego Dockera; kompilują się, wykona je CI.
+
+**Punkt wznowienia:**
+PR sesji A (backend) → po zielonym CI merge. Następnie Sesja B (frontend): `useQuizResult` (`GET /result`) + `ResultPage` wg `mockups/result-*.html`. DoD 8–11 (polish, Lighthouse ≥90, README, demo 90s) — po stronie ownera.
