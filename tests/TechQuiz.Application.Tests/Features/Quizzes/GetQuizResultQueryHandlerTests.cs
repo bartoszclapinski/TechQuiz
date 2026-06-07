@@ -58,7 +58,7 @@ public class GetQuizResultQueryHandlerTests
         var s = BuildScenario(questionCount: 3);
         s.Attempt.SubmitAnswer(s.Fixtures[0].Question.Id, s.Fixtures[0].CorrectOptionId, T0.AddSeconds(1));
         s.Attempt.SubmitAnswer(s.Fixtures[1].Question.Id, s.Fixtures[1].WrongOptionId,  T0.AddSeconds(2));
-        s.Attempt.Complete(TComplete);
+        s.Attempt.Complete(TComplete, scorePercentage: 0d);
 
         var result = await CreateSut().Handle(new GetQuizResultQuery(s.Attempt.Id), CancellationToken.None);
 
@@ -78,7 +78,7 @@ public class GetQuizResultQueryHandlerTests
     {
         var s = BuildScenario(questionCount: 1);
         s.Attempt.SubmitAnswer(s.Fixtures[0].Question.Id, s.Fixtures[0].CorrectOptionId, T0.AddSeconds(1));
-        s.Attempt.Complete(TComplete);
+        s.Attempt.Complete(TComplete, scorePercentage: 0d);
 
         var result = await CreateSut().Handle(new GetQuizResultQuery(s.Attempt.Id), CancellationToken.None);
 
@@ -103,7 +103,7 @@ public class GetQuizResultQueryHandlerTests
     public async Task Handle_AttemptBelongsToDifferentUser_Throws_Forbidden()
     {
         var s = BuildScenario();
-        s.Attempt.Complete(TComplete);
+        s.Attempt.Complete(TComplete, scorePercentage: 0d);
         _userContext.UserId.Returns(Guid.NewGuid()); // different user
 
         var act = async () => await CreateSut().Handle(

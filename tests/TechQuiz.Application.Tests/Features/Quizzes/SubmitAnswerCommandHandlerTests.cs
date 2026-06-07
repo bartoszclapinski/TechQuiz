@@ -116,7 +116,7 @@ public class SubmitAnswerCommandHandlerTests
     public async Task Handle_CompletedAttempt_Throws_QuizAlreadyCompleted()
     {
         var s = BuildScenario();
-        s.Attempt.Complete(T1);
+        s.Attempt.Complete(T1, scorePercentage: 0d);
 
         var act = async () => await CreateSut().Handle(
             new SubmitAnswerCommand(s.Attempt.Id, s.Question.Id, s.Question.Options[0].Id),

@@ -22,7 +22,7 @@ public class GetAttemptHistoryQueryHandlerTests
             startedAt: new DateTimeOffset(2026, 5, 13, 10, 0, 0, TimeSpan.Zero));
         if (completed)
         {
-            attempt.Complete(attempt.StartedAt.AddMinutes(5));
+            attempt.Complete(attempt.StartedAt.AddMinutes(5), scorePercentage: 0d);
         }
         return attempt;
     }

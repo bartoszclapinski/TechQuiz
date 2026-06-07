@@ -32,10 +32,9 @@ public sealed class CompleteQuizCommandHandler(
             ?? throw new InvalidOperationException(
                 $"Attempt {attempt.Id} references missing quiz {attempt.QuizId}.");
 
-        attempt.Complete(timeProvider.GetUtcNow());
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
         var score = Score.Calculate(quiz.Questions, attempt.Answers);
+        attempt.Complete(timeProvider.GetUtcNow(), score.Percentage);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return QuizResultProjection.Build(attempt, quiz, score);
     }

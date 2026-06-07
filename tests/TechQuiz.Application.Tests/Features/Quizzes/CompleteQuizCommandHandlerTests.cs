@@ -150,7 +150,7 @@ public class CompleteQuizCommandHandlerTests
     public async Task Handle_AlreadyCompleted_Throws_QuizAlreadyCompleted()
     {
         var s = BuildScenario();
-        s.Attempt.Complete(T0.AddMinutes(1));
+        s.Attempt.Complete(T0.AddMinutes(1), scorePercentage: 0d);
 
         var act = async () => await CreateSut().Handle(
             new CompleteQuizCommand(s.Attempt.Id), CancellationToken.None);
