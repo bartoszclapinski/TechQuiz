@@ -673,3 +673,30 @@ Branch `feat/iteration-1.6-categories`, 1 commit (#113) + ten docs. Następny kr
 **Punkt wznowienia:**
 Branch `feat/iteration-1.6-quiz-runner`, 1 commit + ten docs. Następny krok: PR sesji B. Potem **sesja C** — handler klawiatury (`useEffect` + keydown), mutacja `POST /answer` (idempotentna), modal wyjścia (rekomendacja: `@radix-ui/react-dialog`), `POST /complete` → `/result/:id`.
 
+## 2026-06-05 — Iteration 1.6 session C: interactions + persistence (keyboard, answer, exit modal, complete)
+
+**Kontekst:** PR #118 zmergowany (`6c3a46f`). Sesja C zamyka iterację 1.6 (zadania 7–10). Branch `feat/iteration-1.6-quiz-interactions`. Kontrakt zweryfikowany w kodzie: `POST /api/quizzes/{attemptId}/answer` body `{ questionId, selectedOptionId? }` → 204; `POST .../complete` → `QuizResultDto`.
+
+**Nowa zależność:** `@radix-ui/react-dialog` (1.1.16) — modal wyjścia. Sankcjonowana wprost w pliku iteracji („radix-ui Dialog component or shadcn equivalent"), więc bez ADR.
+
+**Co zrobione (1 commit):**
+- **API + hooki:** `api.ts` += `submitAnswer(attemptId, questionId, selectedOptionId)` i `completeQuiz(attemptId)`. `use-submit-answer.ts` (mutacja, fire-on-select, toast tylko na błędzie), `use-complete-quiz.ts` (mutacja → `onSuccess` `navigate('/result/:id')`).
+- **`ExitQuizDialog`** (radix, kontrolowany `open`/`onOpenChange`/`onConfirm`): „Exit quiz? … Your progress will be lost." + Cancel / „Yes, exit" (danger). Ten sam modal obsługuje X w headerze i Esc.
+- **`QuizPage` rozbity na `QuizPage` (lookup cache + redirect) i `QuizRunner` (wszystkie hooki, sesja zawsze ważna)** — eliminuje problem warunkowych hooków po early-return.
+- **Klawiatura** (`useEffect` + global `keydown`): 1–4 wybiera opcję, Enter idzie dalej (jeśli odpowiedziano), Esc otwiera modal. Zawieszona gdy modal otwarty (radix przejmuje Esc). `selectAnswer`/`handleAdvance` w `useCallback` (stabilne dzięki destrukturyzacji `.mutate`), więc deps efektu są poprawne bez eslint-disable.
+- **Persystencja:** `selectAnswer` optymistycznie ustawia stan + odpala `submitAnswer.mutate` (idempotentny upsert per pytanie — bezpieczny przy zmianie zdania przed Next).
+- **Submit:** ostatnie pytanie → `handleAdvance` woła `completeMutate(attemptId)` → nawigacja do `/result/:id`. Przycisk disabled gdy brak odpowiedzi lub `isCompleting` (guard też w Enter — bez podwójnego complete).
+
+**Decyzje:**
+- **`QuizPage`/`QuizRunner` split** — czystsze niż guardy wokół hooków; runner dostaje już zwalidowaną sesję.
+- **Fire-on-select zamiast zapisu przy Next** — zgodne z zadaniem 8 i ADR-015 („answer can be changed before Next"); backend upsertuje, więc wielokrotny POST jest idempotentny.
+- **`completeQuiz` nie konsumuje odpowiedzi** — Result (1.7) pobierze breakdown przez `GET /result`; tu tylko complete + nawigacja.
+- **Znana, zaakceptowana krawędź:** Enter na sfokusowanym przycisku Next (Tab) mógłby teoretycznie podwoić advance; w praktyce 1–4 nie przenoszą fokusu (zostaje na body), więc Enter→advance działa raz. Guard `isCompleting` chroni complete. MVP-OK.
+
+**Weryfikacja:**
+- `pnpm build` (tsc -b + vite, 286 modułów) + `eslint .` → zielone.
+- **Klikany/klawiszowy przepływ NIE weryfikowany** (brak headless browsera): 1–4 → select, Enter → next, Esc → modal, „Yes, exit" → Categories, ostatnie pytanie → Submit → `/result/:id`, błąd answer/complete → toast — do potwierdzenia ręcznie przez ownera.
+
+**Punkt wznowienia:**
+Branch `feat/iteration-1.6-quiz-interactions`, 1 commit + ten docs. Iteracja 1.6 **zamknięta** (wszystkie DoD ✓). Następny krok: PR sesji C → merge → iteracja **1.7** (Result page — `GET /result`, breakdown wg `mockups/result-*.html`).
+

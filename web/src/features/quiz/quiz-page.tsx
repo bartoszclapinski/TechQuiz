@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { quizSessionKey } from './query-keys'
 import { Difficulty, type DifficultyValue, type QuizRunnerSession } from './types'
+import { useSubmitAnswer } from './use-submit-answer'
+import { useCompleteQuiz } from './use-complete-quiz'
+import { ExitQuizDialog } from './exit-quiz-dialog'
 
 // Difficulty badge styling per ADR-015: emerald/amber/red at ~10% opacity. The text color uses a
 // theme-aware token; the tint background is a literal rgba because the color tokens carry no alpha
@@ -15,43 +18,72 @@ const DIFFICULTY_META = {
 
 export function QuizPage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   // The session was seeded into the cache by useStartQuiz before navigating here. There is no
   // queryFn behind this key and the cache is memory-only, so a hard refresh or deep-link has no
   // data to render — redirect to Categories (known MVP limitation; see iteration 1.6 notes).
   const session = queryClient.getQueryData<QuizRunnerSession>(quizSessionKey(id ?? ''))
-  if (!session) {
+  if (!id || !session) {
     return <Navigate to="/categories" replace />
   }
 
+  return <QuizRunner attemptId={id} session={session} />
+}
+
+function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRunnerSession }) {
+  const navigate = useNavigate()
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [exitOpen, setExitOpen] = useState(false)
+
+  const { mutate: submitAnswerMutate } = useSubmitAnswer()
+  const completeQuiz = useCompleteQuiz()
+  const { mutate: completeMutate, isPending: isCompleting } = completeQuiz
+
   const total = session.questions.length
+  const isLast = currentIndex === total - 1
+
+  const selectAnswer = useCallback(
+    (questionId: string, optionId: string) => {
+      setAnswers((prev) => ({ ...prev, [questionId]: optionId }))
+      submitAnswerMutate({ attemptId, questionId, selectedOptionId: optionId })
+    },
+    [attemptId, submitAnswerMutate],
+  )
+
+  const handleAdvance = useCallback(() => {
+    if (isCompleting) return
+    if (currentIndex === total - 1) {
+      completeMutate(attemptId)
+    } else {
+      setCurrentIndex((index) => index + 1)
+    }
+  }, [attemptId, completeMutate, currentIndex, isCompleting, total])
+
+  // Global keyboard control (ADR-015): 1-4 selects, Enter advances, Esc opens the exit modal.
+  // Suspended while the modal is open so its own Esc/handlers take over.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (exitOpen) return
+      const question = session.questions[currentIndex]
+      if (event.key >= '1' && event.key <= '4') {
+        const option = question.options[Number(event.key) - 1]
+        if (option) selectAnswer(question.id, option.id)
+      } else if (event.key === 'Enter') {
+        if (answers[question.id]) handleAdvance()
+      } else if (event.key === 'Escape') {
+        setExitOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [session, currentIndex, answers, exitOpen, selectAnswer, handleAdvance])
+
   const question = session.questions[currentIndex]
   const difficulty = DIFFICULTY_META[question.difficulty]
   const selectedOptionId = answers[question.id]
-  const isLast = currentIndex === total - 1
   const progress = ((currentIndex + 1) / total) * 100
-
-  function selectAnswer(questionId: string, optionId: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }))
-  }
-
-  function handleAdvance() {
-    if (isLast) {
-      // Session C wires POST /complete before this navigation; for now it lands on the result stub.
-      navigate(`/result/${id}`)
-      return
-    }
-    setCurrentIndex((index) => index + 1)
-  }
-
-  function handleExit() {
-    // Session C replaces this direct exit with a confirmation modal (exiting forfeits the attempt).
-    navigate('/categories')
-  }
 
   return (
     <div className="flex min-h-screen flex-col bg-base text-primary">
@@ -69,7 +101,7 @@ export function QuizPage() {
         </div>
         <button
           type="button"
-          onClick={handleExit}
+          onClick={() => setExitOpen(true)}
           aria-label="Exit quiz"
           className="flex h-7 w-7 items-center justify-center rounded-md border border-default text-secondary transition-colors hover:bg-elevated"
         >
@@ -127,7 +159,7 @@ export function QuizPage() {
             <button
               type="button"
               onClick={handleAdvance}
-              disabled={!selectedOptionId}
+              disabled={!selectedOptionId || isCompleting}
               className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[13px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isLast ? 'Submit quiz' : 'Next'}
@@ -141,6 +173,12 @@ export function QuizPage() {
           </div>
         </div>
       </div>
+
+      <ExitQuizDialog
+        open={exitOpen}
+        onOpenChange={setExitOpen}
+        onConfirm={() => navigate('/categories')}
+      />
     </div>
   )
 }
