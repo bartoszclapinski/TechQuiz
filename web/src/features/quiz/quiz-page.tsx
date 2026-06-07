@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { quizSessionKey } from './query-keys'
 import { Difficulty, type DifficultyValue, type QuizRunnerSession } from './types'
+import { useSubmitAnswer } from './use-submit-answer'
+import { useCompleteQuiz } from './use-complete-quiz'
+import { ExitQuizDialog } from './exit-quiz-dialog'
 
 // Difficulty badge styling per ADR-015: emerald/amber/red at ~10% opacity. The text color uses a
 // theme-aware token; the tint background is a literal rgba because the color tokens carry no alpha
@@ -15,43 +19,100 @@ const DIFFICULTY_META = {
 
 export function QuizPage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   // The session was seeded into the cache by useStartQuiz before navigating here. There is no
   // queryFn behind this key and the cache is memory-only, so a hard refresh or deep-link has no
   // data to render — redirect to Categories (known MVP limitation; see iteration 1.6 notes).
   const session = queryClient.getQueryData<QuizRunnerSession>(quizSessionKey(id ?? ''))
-  if (!session) {
+  if (!id || !session) {
     return <Navigate to="/categories" replace />
   }
 
+  return <QuizRunner attemptId={id} session={session} />
+}
+
+function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRunnerSession }) {
+  const navigate = useNavigate()
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [exitOpen, setExitOpen] = useState(false)
+
+  const { mutateAsync: submitAnswerAsync } = useSubmitAnswer()
+  const { mutateAsync: completeAsync, isPending: isCompleting } = useCompleteQuiz()
+
+  // Holds the in-flight save for the latest selection so completion can await it — a fast submit on
+  // the last question must not let /complete outrun the last /answer and score a missing answer.
+  const pendingSaveRef = useRef<Promise<unknown> | null>(null)
+  // Synchronous latch: a rapid double-Enter (or Enter racing the native button click) could observe
+  // isCompleting === false twice before React re-renders the disabled button and fire /complete twice.
+  const completingRef = useRef(false)
+
   const total = session.questions.length
-  const question = session.questions[currentIndex]
-  const difficulty = DIFFICULTY_META[question.difficulty]
-  const selectedOptionId = answers[question.id]
   const isLast = currentIndex === total - 1
-  const progress = ((currentIndex + 1) / total) * 100
 
-  function selectAnswer(questionId: string, optionId: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }))
-  }
+  const selectAnswer = useCallback(
+    (questionId: string, optionId: string) => {
+      setAnswers((prev) => ({ ...prev, [questionId]: optionId }))
+      const save = submitAnswerAsync({ attemptId, questionId, selectedOptionId: optionId })
+      pendingSaveRef.current = save
+      // Roll the optimistic selection back if the save fails — but only if the user hasn't since
+      // picked a different option for this question, otherwise we'd clobber the newer choice.
+      save.catch(() => {
+        setAnswers((prev) => {
+          if (prev[questionId] !== optionId) return prev
+          const next = { ...prev }
+          delete next[questionId]
+          return next
+        })
+        toast.error('Could not save your answer. Please pick it again.')
+      })
+    },
+    [attemptId, submitAnswerAsync],
+  )
 
-  function handleAdvance() {
-    if (isLast) {
-      // Session C wires POST /complete before this navigation; for now it lands on the result stub.
-      navigate(`/result/${id}`)
+  const handleAdvance = useCallback(async () => {
+    if (!isLast) {
+      setCurrentIndex((index) => index + 1)
       return
     }
-    setCurrentIndex((index) => index + 1)
-  }
+    if (completingRef.current) return
+    completingRef.current = true
+    try {
+      // Wait for the last answer to persist before scoring; if it rejected, the catch above already
+      // rolled it back and toasted, so abort rather than complete with a missing answer.
+      await pendingSaveRef.current
+      await completeAsync(attemptId)
+    } catch {
+      completingRef.current = false
+    }
+  }, [attemptId, completeAsync, isLast])
 
-  function handleExit() {
-    // Session C replaces this direct exit with a confirmation modal (exiting forfeits the attempt).
-    navigate('/categories')
-  }
+  // Global keyboard control (ADR-015): 1-4 selects, Enter advances, Esc opens the exit modal.
+  // Suspended while the modal is open so its own Esc/handlers take over.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (exitOpen) return
+      const question = session.questions[currentIndex]
+      if (event.key >= '1' && event.key <= '4') {
+        const option = question.options[Number(event.key) - 1]
+        if (option) selectAnswer(question.id, option.id)
+      } else if (event.key === 'Enter') {
+        if (answers[question.id]) handleAdvance()
+      } else if (event.key === 'Escape') {
+        setExitOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [session, currentIndex, answers, exitOpen, selectAnswer, handleAdvance])
+
+  const question = session.questions[currentIndex]
+  // Fallback keeps a difficulty outside 0-2 (a bad/extended enum from the API) from white-screening
+  // the runner on the undefined lookup.
+  const difficulty = DIFFICULTY_META[question.difficulty] ?? DIFFICULTY_META[Difficulty.Medium]
+  const selectedOptionId = answers[question.id]
+  const progress = ((currentIndex + 1) / total) * 100
 
   return (
     <div className="flex min-h-screen flex-col bg-base text-primary">
@@ -69,7 +130,7 @@ export function QuizPage() {
         </div>
         <button
           type="button"
-          onClick={handleExit}
+          onClick={() => setExitOpen(true)}
           aria-label="Exit quiz"
           className="flex h-7 w-7 items-center justify-center rounded-md border border-default text-secondary transition-colors hover:bg-elevated"
         >
@@ -127,7 +188,7 @@ export function QuizPage() {
             <button
               type="button"
               onClick={handleAdvance}
-              disabled={!selectedOptionId}
+              disabled={!selectedOptionId || isCompleting}
               className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[13px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isLast ? 'Submit quiz' : 'Next'}
@@ -141,6 +202,12 @@ export function QuizPage() {
           </div>
         </div>
       </div>
+
+      <ExitQuizDialog
+        open={exitOpen}
+        onOpenChange={setExitOpen}
+        onConfirm={() => navigate('/categories')}
+      />
     </div>
   )
 }
