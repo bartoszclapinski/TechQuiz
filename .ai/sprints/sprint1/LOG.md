@@ -700,3 +700,11 @@ Branch `feat/iteration-1.6-quiz-runner`, 1 commit + ten docs. Następny krok: PR
 **Punkt wznowienia:**
 Branch `feat/iteration-1.6-quiz-interactions`, 1 commit + ten docs. Iteracja 1.6 **zamknięta** (wszystkie DoD ✓). Następny krok: PR sesji C → merge → iteracja **1.7** (Result page — `GET /result`, breakdown wg `mockups/result-*.html`).
 
+**Code review PR #120 — poprawki (1 commit, ten sam branch przed mergem):**
+- **#1 wyścig complete vs zapis (medium)** → zapis odpowiedzi na `mutateAsync`, bieżący zapis trzymany w `pendingSaveRef`; `handleAdvance` na ostatnim pytaniu **awaitu­je `pendingSaveRef` przed `completeAsync`**. Jeśli zapis padł — abort completu (nie zliczamy bez ostatniej odpowiedzi).
+- **#2 nieaktualny optimistic state przy błędzie zapisu (medium)** → `selectAnswer` na `save.catch` **rolluje** zaznaczenie (tylko jeśli user nie wybrał w międzyczasie innej opcji dla tego pytania) + toast „pick it again"; przez rollback Next się dezaktywuje. Toast usunięty z hooka `useSubmitAnswer` (runner jest jedynym właścicielem błędu).
+- **#3 podwójny complete (low–medium)** → `completingRef` (`useRef`) jako synchroniczny latch wokół completu — zamyka okno między dwoma synchronicznymi zdarzeniami przed re-renderem. Reset latcha tylko na błędzie (sukces → nawigacja/unmount).
+- **#5 brak fallbacku trudności (nit)** → `DIFFICULTY_META[difficulty] ?? Medium` — enum spoza 0–2 nie white-screen'uje runnera.
+- **#4 forfeit tylko po stronie klienta (low)** → nota w pliku iteracji: exit to `navigate('/categories')`, brak endpointu forfeit, attempt zostaje in-progress w DB (ten sam dług co reload z sesji A). Tylko dokumentacja.
+- Weryfikacja: `pnpm build` (286 modułów) + `eslint .` zielone. Klikany/klawiszowy przepływ wciąż do ręcznego potwierdzenia przez ownera (w tym: wymuszony błąd `/answer` → rollback + toast + Next disabled; szybki submit na ostatnim pytaniu → ostatnia odpowiedź policzona).
+

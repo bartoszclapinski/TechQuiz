@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { quizSessionKey } from './query-keys'
 import { Difficulty, type DifficultyValue, type QuizRunnerSession } from './types'
 import { useSubmitAnswer } from './use-submit-answer'
@@ -37,9 +38,15 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [exitOpen, setExitOpen] = useState(false)
 
-  const { mutate: submitAnswerMutate } = useSubmitAnswer()
-  const completeQuiz = useCompleteQuiz()
-  const { mutate: completeMutate, isPending: isCompleting } = completeQuiz
+  const { mutateAsync: submitAnswerAsync } = useSubmitAnswer()
+  const { mutateAsync: completeAsync, isPending: isCompleting } = useCompleteQuiz()
+
+  // Holds the in-flight save for the latest selection so completion can await it — a fast submit on
+  // the last question must not let /complete outrun the last /answer and score a missing answer.
+  const pendingSaveRef = useRef<Promise<unknown> | null>(null)
+  // Synchronous latch: a rapid double-Enter (or Enter racing the native button click) could observe
+  // isCompleting === false twice before React re-renders the disabled button and fire /complete twice.
+  const completingRef = useRef(false)
 
   const total = session.questions.length
   const isLast = currentIndex === total - 1
@@ -47,19 +54,39 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
   const selectAnswer = useCallback(
     (questionId: string, optionId: string) => {
       setAnswers((prev) => ({ ...prev, [questionId]: optionId }))
-      submitAnswerMutate({ attemptId, questionId, selectedOptionId: optionId })
+      const save = submitAnswerAsync({ attemptId, questionId, selectedOptionId: optionId })
+      pendingSaveRef.current = save
+      // Roll the optimistic selection back if the save fails — but only if the user hasn't since
+      // picked a different option for this question, otherwise we'd clobber the newer choice.
+      save.catch(() => {
+        setAnswers((prev) => {
+          if (prev[questionId] !== optionId) return prev
+          const next = { ...prev }
+          delete next[questionId]
+          return next
+        })
+        toast.error('Could not save your answer. Please pick it again.')
+      })
     },
-    [attemptId, submitAnswerMutate],
+    [attemptId, submitAnswerAsync],
   )
 
-  const handleAdvance = useCallback(() => {
-    if (isCompleting) return
-    if (currentIndex === total - 1) {
-      completeMutate(attemptId)
-    } else {
+  const handleAdvance = useCallback(async () => {
+    if (!isLast) {
       setCurrentIndex((index) => index + 1)
+      return
     }
-  }, [attemptId, completeMutate, currentIndex, isCompleting, total])
+    if (completingRef.current) return
+    completingRef.current = true
+    try {
+      // Wait for the last answer to persist before scoring; if it rejected, the catch above already
+      // rolled it back and toasted, so abort rather than complete with a missing answer.
+      await pendingSaveRef.current
+      await completeAsync(attemptId)
+    } catch {
+      completingRef.current = false
+    }
+  }, [attemptId, completeAsync, isLast])
 
   // Global keyboard control (ADR-015): 1-4 selects, Enter advances, Esc opens the exit modal.
   // Suspended while the modal is open so its own Esc/handlers take over.
@@ -81,7 +108,9 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
   }, [session, currentIndex, answers, exitOpen, selectAnswer, handleAdvance])
 
   const question = session.questions[currentIndex]
-  const difficulty = DIFFICULTY_META[question.difficulty]
+  // Fallback keeps a difficulty outside 0-2 (a bad/extended enum from the API) from white-screening
+  // the runner on the undefined lookup.
+  const difficulty = DIFFICULTY_META[question.difficulty] ?? DIFFICULTY_META[Difficulty.Medium]
   const selectedOptionId = answers[question.id]
   const progress = ((currentIndex + 1) / total) * 100
 
