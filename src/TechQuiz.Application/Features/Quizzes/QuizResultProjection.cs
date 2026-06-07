@@ -11,7 +11,13 @@ namespace TechQuiz.Application.Features.Quizzes;
 /// </summary>
 internal static class QuizResultProjection
 {
-    public static QuizResultDto Build(QuizAttempt attempt, Quiz quiz, Score score)
+    public static QuizResultDto Build(
+        QuizAttempt attempt,
+        Quiz quiz,
+        Score score,
+        string categoryName,
+        double bestPercentage,
+        double? previousPercentage)
     {
         var answersByQuestion = attempt.Answers.ToDictionary(a => a.QuestionId);
 
@@ -44,11 +50,15 @@ internal static class QuizResultProjection
 
         return new QuizResultDto(
             attempt.Id,
+            quiz.CategoryId,
+            categoryName,
             attempt.StartedAt,
             attempt.CompletedAt!.Value,
             score.CorrectCount,
             score.TotalCount,
             score.Percentage,
+            bestPercentage,
+            previousPercentage,
             byDifficulty,
             questionResults);
     }

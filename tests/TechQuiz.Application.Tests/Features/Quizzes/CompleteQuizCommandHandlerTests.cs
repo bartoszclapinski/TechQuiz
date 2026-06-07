@@ -9,6 +9,7 @@ namespace TechQuiz.Application.Tests.Features.Quizzes;
 public class CompleteQuizCommandHandlerTests
 {
     private readonly IQuizRepository _quizRepository = Substitute.For<IQuizRepository>();
+    private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly IUserContext _userContext = Substitute.For<IUserContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
@@ -17,7 +18,7 @@ public class CompleteQuizCommandHandlerTests
     private static readonly DateTimeOffset TComplete = T0.AddMinutes(8);
 
     private CompleteQuizCommandHandler CreateSut() =>
-        new(_quizRepository, _userContext, _unitOfWork, _timeProvider);
+        new(_quizRepository, _categoryRepository, _userContext, _unitOfWork, _timeProvider);
 
     private sealed record QuestionFixture(Question Question, Guid CorrectOptionId, Guid WrongOptionId);
 
@@ -52,6 +53,11 @@ public class CompleteQuizCommandHandlerTests
         _timeProvider.GetUtcNow().Returns(TComplete);
         _quizRepository.GetAttemptAsync(attempt.Id, Arg.Any<CancellationToken>()).Returns(attempt);
         _quizRepository.GetByIdAsync(quiz.Id, Arg.Any<CancellationToken>()).Returns(quiz);
+
+        _categoryRepository.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<Category> { new(categoryId, "C# Basics", "desc", "icon") });
+        _categoryRepository.GetUserBestScoresAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, double>());
 
         return new Scenario(attempt, quiz, userId, fixtures);
     }
@@ -104,6 +110,32 @@ public class CompleteQuizCommandHandlerTests
         var q2 = result.Questions.Single(q => q.QuestionId == s.Fixtures[2].Question.Id);
         q2.IsCorrect.Should().BeFalse();
         q2.UserSelectedOptionId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_EnrichesResult_WithCategoryName_BestAndPreviousScore()
+    {
+        var s = BuildScenario(questionCount: 4);
+        s.Attempt.SubmitAnswer(s.Fixtures[0].Question.Id, s.Fixtures[0].CorrectOptionId, T0.AddSeconds(1));
+
+        _categoryRepository.GetUserBestScoresAsync(s.UserId, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, double> { [s.Quiz.CategoryId] = 88d });
+        _quizRepository.GetLastCompletedScoreAsync(s.UserId, s.Quiz.Id, s.Attempt.Id, Arg.Any<CancellationToken>())
+            .Returns(40d);
+
+        var result = await CreateSut().Handle(new CompleteQuizCommand(s.Attempt.Id), CancellationToken.None);
+
+        result.CategoryName.Should().Be("C# Basics");
+        result.BestPercentage.Should().Be(88d);
+        result.PreviousPercentage.Should().Be(40d);
+
+        // Best is read after the attempt is saved (so it can include the just-finished score);
+        // previous excludes the current attempt.
+        Received.InOrder(() =>
+        {
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>());
+            _categoryRepository.GetUserBestScoresAsync(s.UserId, Arg.Any<CancellationToken>());
+        });
     }
 
     [Fact]
