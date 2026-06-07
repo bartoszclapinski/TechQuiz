@@ -5,7 +5,7 @@ import { useStartQuiz } from '../quiz/use-start-quiz'
 export function CategoriesPage() {
   const { data: categories, isLoading, isError, refetch } = useCategories()
   const start = useStartQuiz()
-  const startingId = start.isPending ? start.variables : undefined
+  const startingId = start.isPending ? start.variables?.id : undefined
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 sm:px-9">
@@ -35,7 +35,7 @@ export function CategoriesPage() {
               category={category}
               starting={startingId === category.id}
               disabled={start.isPending}
-              onStart={() => start.mutate(category.id)}
+              onStart={() => start.mutate({ id: category.id, name: category.name })}
             />
           ))}
         </div>
