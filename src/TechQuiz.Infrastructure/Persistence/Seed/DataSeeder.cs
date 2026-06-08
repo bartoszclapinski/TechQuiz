@@ -43,6 +43,16 @@ public sealed class DataSeeder(
             buildQuestions: SqlQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "EF Core",
+            description:
+                "Entity Framework Core fundamentals — ORM role, DbContext and DbSet, migrations, " +
+                "model configuration (annotations and Fluent API), loading strategies, change " +
+                "tracking, and persistence. Questions sourced from EPAM .NET Fundamentals course (module 013).",
+            iconCode: "EF",
+            buildQuestions: EfCoreQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
