@@ -799,3 +799,20 @@ PR sesji B → po zielonym CI merge. Pozostałe DoD 1.7: polish pass, Lighthouse
 
 **Punkt wznowienia:**
 PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1: EF Core, ASP.NET Core, C#/.NET.
+
+---
+
+## 2026-06-08 — Content expansion batch 1: EF Core question bank (kategoria #3)
+
+**Co zrobione (branch `feat/efcore-question-bank`, issue #134):**
+- `EfCoreQuestions.cs` — bank 20 pytań MultipleChoice, źródło: kurs EPAM moduł 013 (Entity Framework Core) graded + ungraded quizy, uzupełnione pod interview. Zakres: rola ORM, ADO.NET vs EF Core, DbContext/DbSet, code-first/database-first, migracje (add/update), data annotations vs Fluent API + precedencja, strategie ładowania (eager/lazy/explicit), Include, change tracking, AsNoTracking, optimistic concurrency, Remove→DELETE.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Pytania "select ALL"/"pick TWO" przerobione na single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — trzecia `SeedCategoryIfMissingAsync` (name "EF Core", iconCode "EF").
+- `DataSeederTests` — liczniki: 3 kategorie, 59 pytań (19+20+20), 236 opcji (59×4), nazwy `["Unit Testing","SQL","EF Core"]`.
+
+**Weryfikacja:**
+- `dotnet build` testów — zielone; invariant ręcznie: 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
+
+**Punkt wznowienia:** PR EF Core → po zielonym CI merge (za potwierdzeniem). Następne w batchu 1: ASP.NET Core, potem C#/.NET.
