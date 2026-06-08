@@ -816,3 +816,21 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
 
 **Punkt wznowienia:** PR EF Core → po zielonym CI merge (za potwierdzeniem). Następne w batchu 1: ASP.NET Core, potem C#/.NET.
+
+---
+
+## 2026-06-08 — Content expansion batch 1: ASP.NET Core question bank (kategoria #4)
+
+**Co zrobione (branch `feat/aspnetcore-question-bank`, issue #136):**
+- `AspNetCoreQuestions.cs` — bank 20 pytań MultipleChoice, źródło: kurs EPAM moduły 015–021 (Introduction, Middleware, Minimal API, Fundamentals/DI/Routing, Web API, Authentication & Authorization). Zakres: modele aplikacji (MVC/Razor Pages/Blazor), DI jako first-class feature + lifetimes (AddScoped/Transient/Singleton), pipeline = middleware, Use/Map/MapWhen/Run, UseRouting, UseExceptionHandler vs UseDeveloperExceptionPage, builder.Services, GetServices vs GetService (count=3), opcjonalne parametry trasy, route constraints (length(6):alpha), minimal API MapGet, ControllerBase, [ApiController], [Route("api/[controller]")], cel authentication, UseAuthentication vs AddAuthentication, [Authorize] + cookie redirect na LoginPath.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Pytania "select ALL"/"pick TWO" przerobione na single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — czwarta `SeedCategoryIfMissingAsync` (name "ASP.NET Core", iconCode "ASP").
+- `DataSeederTests` — liczniki: 4 kategorie, 79 pytań (19+20+20+20), 316 opcji (79×4), nazwy `["Unit Testing","SQL","EF Core","ASP.NET Core"]`.
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów (naprawiony literówkowy podpis Q14 z TS-style `(categoryId: Guid)` na `(Guid categoryId)`).
+- Invariant ręcznie: 6+9+5=20 trudności, 20× `isCorrect: true` (jedna na pytanie).
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
+
+**Punkt wznowienia:** PR ASP.NET Core → po zielonym CI merge (za potwierdzeniem). Ostatnia w batchu 1: C#/.NET (moduły 004–010).
