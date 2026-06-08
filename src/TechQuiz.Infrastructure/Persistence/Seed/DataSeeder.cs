@@ -75,6 +75,18 @@ public sealed class DataSeeder(
             buildQuestions: CSharpDotNetQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "ADO.NET",
+            description:
+                "ADO.NET data access fundamentals — the abstract provider model (DbConnection, " +
+                "DbCommand, DbDataReader, DbParameter), command execution methods, parameterized queries " +
+                "and SQL-injection defence, the connected vs disconnected models (DataSet, DataAdapter), " +
+                "transactions, and connection pooling. Questions sourced from EPAM .NET Fundamentals " +
+                "course (module 012).",
+            iconCode: "ADO",
+            buildQuestions: AdoNetQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 

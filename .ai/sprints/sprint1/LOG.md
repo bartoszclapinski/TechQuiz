@@ -852,3 +852,23 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
 
 **Status batcha 1:** ZAMKNIĘTY — 4 nowe kategorie (SQL, EF Core, ASP.NET Core, C#/.NET) dodane, apka ma 5 kategorii / 99 pytań do nauki pod interview EPAM. Batch 2 (później, za potwierdzeniem): ADO.NET (012), Design Patterns (014), Front-End/Cloud/Engineering Practices (autorskie).
+
+---
+
+## 2026-06-08 — Content expansion batch 2: ADO.NET question bank (kategoria #6)
+
+**Kontekst:** Batch 1 zamknięty (5 kategorii / 99 pytań). Owner: "merguj i dawaj dalej" → start batcha 2. Pierwsza kategoria: ADO.NET (ma materiał kursowy, moduł 012).
+
+**Co zrobione (branch `feat/adonet-question-bank`, issue #140):**
+- `AdoNetQuestions.cs` — bank 20 pytań MultipleChoice, źródło: kurs EPAM moduł 012 (ADO.NET) graded + ungraded, rozszerzone o standardowy zakres interview (kurs sam w sobie cienki — pokrywa głównie metody execute + klasy abstrakcyjne). Zakres: Open(), ExecuteScalar/NonQuery/Reader, DbDataReader (forward-only/read-only), DbConnection, CreateParameter, parametry vs SQL injection, reader.Read() semantyka, DataSet (disconnected), DataAdapter.Fill, using/Dispose, connection pooling, CommandType.StoredProcedure, DbProviderFactory, transakcje (BeginTransaction → DbTransaction → Commit/Rollback), SqlCommand : DbCommand, ExecuteScalar zwraca object/null, Dispose zwraca połączenie do puli.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard (po korekcie Q19 Medium→Hard).
+- Single-correct zgodnie z invariantem `MultipleChoice`.
+- `DataSeeder` — szósta `SeedCategoryIfMissingAsync` (name "ADO.NET", iconCode "ADO").
+- `DataSeederTests` — liczniki: 6 kategorii, 119 pytań (19+20×5), 476 opcji (119×4), nazwy + "ADO.NET".
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie: 6+9+5=20, 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
+
+**Punkt wznowienia:** PR ADO.NET → po zielonym CI merge (za potwierdzeniem). Reszta batcha 2: Design Patterns (014), Front-End/Cloud/Engineering Practices (autorskie, bez źródła kursowego).
