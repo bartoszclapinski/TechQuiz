@@ -109,6 +109,18 @@ public sealed class DataSeeder(
             buildQuestions: FrontEndQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "Engineering Practices",
+            description:
+                "Software engineering practices and workflow — Git and version control (staging, branches, " +
+                "merge vs rebase, fast-forward, cherry-pick), continuous integration and delivery/deployment " +
+                "(pipelines, build-once-deploy-many, feature-branch flow, blue-green), and clean-code " +
+                "craftsmanship (meaningful names, DRY, YAGNI, code smells, code review, and the test pyramid). " +
+                "Git content draws on EPAM .NET Fundamentals course module 001; the rest is authored.",
+            iconCode: "ENG",
+            buildQuestions: EngineeringPracticesQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 

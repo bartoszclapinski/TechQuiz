@@ -913,3 +913,21 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
 
 **Punkt wznowienia:** PR Front-End → po zielonym CI merge (za potwierdzeniem). Następna i ostatnia w batchu 2: Engineering Practices (Git/CI-CD/clean code, bez SOLID).
+
+---
+
+## 2026-06-08 — Content expansion batch 2: Engineering Practices question bank (kategoria #9, finał batcha 2)
+
+**Co zrobione (branch `feat/engineering-practices-question-bank`, issue #146):**
+- `EngineeringPracticesQuestions.cs` — bank 20 pytań MultipleChoice. Git oparty na module 001 kursu; CI/CD i clean code autorskie. SOLID celowo pominięty (jest w Design Patterns Q15–Q19). Zakres Git: `git commit`, staging area, merge vs rebase, `pull` = fetch+merge, branch jako wskaźnik, cherry-pick, `.gitignore`, fast-forward. CI/CD: czym jest CI, Continuous Delivery vs Deployment, sens pipeline (czyste środowisko), build-once-deploy-many, feature-branch flow + protected main, blue-green. Clean code: nazewnictwo, DRY, YAGNI, code smell, code review, test pyramid.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — dziewiąta `SeedCategoryIfMissingAsync` (name "Engineering Practices", iconCode "ENG").
+- `DataSeederTests` — liczniki: 9 kategorii, 179 pytań (139+20+20), 716 opcji (179×4), nazwy + "Engineering Practices".
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie: 6+9+5=20, 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
+
+**Status batcha 2:** ZAMKNIĘTY. Kategorie z kursu (ADO.NET, Design Patterns) + autorskie (Front-End, Engineering Practices) gotowe. Cloud Fundamentals świadomie pominięty (poza zakresem kursu EPAM). Łącznie aplikacja ma teraz 9 kategorii / 179 pytań.
