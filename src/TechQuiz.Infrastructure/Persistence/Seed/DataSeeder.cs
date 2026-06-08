@@ -87,6 +87,17 @@ public sealed class DataSeeder(
             buildQuestions: AdoNetQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "Design Patterns",
+            description:
+                "Software design patterns and principles — the GoF creational, structural, and behavioral " +
+                "patterns (Singleton, Factory Method, Builder, Adapter, Decorator, Composite, Strategy, " +
+                "Observer, Visitor, and more), the SOLID principles, and architectural styles such as " +
+                "Onion/Clean Architecture. Questions cover EPAM .NET Fundamentals course (module 014).",
+            iconCode: "GoF",
+            buildQuestions: DesignPatternsQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
