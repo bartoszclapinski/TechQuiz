@@ -53,6 +53,17 @@ public sealed class DataSeeder(
             buildQuestions: EfCoreQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "ASP.NET Core",
+            description:
+                "ASP.NET Core fundamentals — app models (MVC, Razor Pages, Blazor), the middleware " +
+                "pipeline, dependency injection, routing and route constraints, minimal APIs, Web API " +
+                "design, and authentication & authorization. Questions sourced from EPAM .NET " +
+                "Fundamentals course (modules 015–021).",
+            iconCode: "ASP",
+            buildQuestions: AspNetCoreQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
