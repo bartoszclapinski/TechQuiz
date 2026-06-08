@@ -21,10 +21,10 @@ public sealed class DataSeederTests(PostgresContainerFixture fixture) : Integrat
         var categoryNames = await db.Categories.Select(c => c.Name).ToListAsync();
         var demoUserExists = await db.Users.AnyAsync(u => u.Email == DataSeeder.DemoUserEmail);
 
-        categoryCount.Should().Be(7);
-        questionCount.Should().Be(139); // 19 Unit Testing + 20 SQL + 20 EF Core + 20 ASP.NET Core + 20 C#/.NET + 20 ADO.NET + 20 Design Patterns
-        optionCount.Should().Be(556); // 139 questions × 4 options each
-        categoryNames.Should().BeEquivalentTo(["Unit Testing", "SQL", "EF Core", "ASP.NET Core", "C#/.NET", "ADO.NET", "Design Patterns"]);
+        categoryCount.Should().Be(8);
+        questionCount.Should().Be(159); // 19 Unit Testing + 20 SQL + 20 EF Core + 20 ASP.NET Core + 20 C#/.NET + 20 ADO.NET + 20 Design Patterns + 20 Front-End
+        optionCount.Should().Be(636); // 159 questions × 4 options each
+        categoryNames.Should().BeEquivalentTo(["Unit Testing", "SQL", "EF Core", "ASP.NET Core", "C#/.NET", "ADO.NET", "Design Patterns", "Front-End"]);
         demoUserExists.Should().BeTrue();
     }
 
@@ -40,9 +40,9 @@ public sealed class DataSeederTests(PostgresContainerFixture fixture) : Integrat
         var optionCount = await db.Options.CountAsync();
         var demoUserCount = await db.Users.CountAsync(u => u.Email == DataSeeder.DemoUserEmail);
 
-        categoryCount.Should().Be(7);
-        questionCount.Should().Be(139);
-        optionCount.Should().Be(556);
+        categoryCount.Should().Be(8);
+        questionCount.Should().Be(159);
+        optionCount.Should().Be(636);
         demoUserCount.Should().Be(1);
     }
 
