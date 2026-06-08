@@ -872,3 +872,21 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
 
 **Punkt wznowienia:** PR ADO.NET → po zielonym CI merge (za potwierdzeniem). Reszta batcha 2: Design Patterns (014), Front-End/Cloud/Engineering Practices (autorskie, bez źródła kursowego).
+
+---
+
+## 2026-06-08 — Content expansion batch 2: Design Patterns question bank (kategoria #7)
+
+**Co zrobione (branch `feat/design-patterns-question-bank`, issue #142):**
+- `DesignPatternsQuestions.cs` — bank 20 pytań MultipleChoice. Moduł 014 nie ma quizów (tylko notatki tematyczne per wzorzec/zasada), więc pytania autorskie z kanonicznych definicji. Zakres: GoF — Singleton, Factory Method, Abstract Factory, Builder, Adapter, Decorator, Composite, Bridge, Strategy, Observer, Visitor, Template Method, Iterator, Command; SOLID — SRP, OCP, LSP, ISP, DIP; architektura — Onion/Clean (kierunek zależności do wewnątrz).
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard (po korekcie Q16 OCP Medium→Easy).
+- Single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — siódma `SeedCategoryIfMissingAsync` (name "Design Patterns", iconCode "GoF").
+- `DataSeederTests` — liczniki: 7 kategorii, 139 pytań (19+20×6), 556 opcji (139×4), nazwy + "Design Patterns".
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie: 6+9+5=20, 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
+
+**Punkt wznowienia:** PR Design Patterns → po zielonym CI merge (za potwierdzeniem). Pozostałe w batchu 2: Front-End, Cloud Fundamentals, Engineering Practices — autorskie, BEZ źródła kursowego; warto najpierw ustalić z ownerem zakres/poziom każdej.
