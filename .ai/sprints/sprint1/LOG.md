@@ -834,3 +834,21 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
 
 **Punkt wznowienia:** PR ASP.NET Core → po zielonym CI merge (za potwierdzeniem). Ostatnia w batchu 1: C#/.NET (moduły 004–010).
+
+---
+
+## 2026-06-08 — Content expansion batch 1: C#/.NET question bank (kategoria #5, domyka batch 1)
+
+**Co zrobione (branch `feat/csharp-dotnet-question-bank`, issue #138):**
+- `CSharpDotNetQuestions.cs` — bank 20 pytań MultipleChoice, źródło: kurs EPAM moduły 004–010 (Reflection, JSON Serialization, XML Serialization, Threads & Thread Pools, Synchronization, TPL, Task-based async). Zakres: cel reflection, typeof vs GetType, GetConstructors() default (public instance), MakeGenericType, JsonSerializer defaults (public properties, WriteIndented=false, [JsonInclude] dla pól), XmlSerializer wymaga public parameterless ctor, Join na niewystartowanym wątku → ThreadStateException, pooled threads = background, lock = Monitor, Semaphore (N permitów), deadlock, Interlocked (brak Swap), zalety TPL, new Task() nie startuje, łańcuch ContinueWith (=8), cooperative cancellation, await zawiesza bez blokowania, async nie zwraca gołego int.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Pytania "select TWO/THREE" przerobione na single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — piąta `SeedCategoryIfMissingAsync` (name "C#/.NET", iconCode "C#").
+- `DataSeederTests` — liczniki: 5 kategorii, 99 pytań (19+20+20+20+20), 396 opcji (99×4), nazwy + "C#/.NET".
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie: 6+9+5=20 trudności, 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie nadal ubity).
+
+**Status batcha 1:** ZAMKNIĘTY — 4 nowe kategorie (SQL, EF Core, ASP.NET Core, C#/.NET) dodane, apka ma 5 kategorii / 99 pytań do nauki pod interview EPAM. Batch 2 (później, za potwierdzeniem): ADO.NET (012), Design Patterns (014), Front-End/Cloud/Engineering Practices (autorskie).

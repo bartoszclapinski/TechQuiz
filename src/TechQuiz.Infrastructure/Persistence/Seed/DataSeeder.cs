@@ -64,6 +64,17 @@ public sealed class DataSeeder(
             buildQuestions: AspNetCoreQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "C#/.NET",
+            description:
+                "C# and .NET runtime fundamentals — reflection and runtime metadata, JSON and XML " +
+                "serialization, threads and thread pools, synchronization primitives, the Task Parallel " +
+                "Library, and task-based async/await. Questions sourced from EPAM .NET Fundamentals " +
+                "course (modules 004–010).",
+            iconCode: "C#",
+            buildQuestions: CSharpDotNetQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
