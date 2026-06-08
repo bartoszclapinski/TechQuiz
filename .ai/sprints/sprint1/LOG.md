@@ -775,3 +775,27 @@ PR sesji A (backend) → po zielonym CI merge. Następnie Sesja B (frontend): `u
 
 **Punkt wznowienia:**
 PR sesji B → po zielonym CI merge. Pozostałe DoD 1.7: polish pass, Lighthouse a11y ≥90, README (screeny + demo creds), nagranie 90s — po stronie ownera (wymagają przeglądarki/działającego stacku).
+
+---
+
+## 2026-06-08 — Content expansion batch 1: SQL question bank (kategoria #2)
+
+**Kontekst:** Apka po 1.7 jest funkcjonalnie kompletna (login → kategorie → quiz → wynik), ale ma tylko 1 zaseedowaną kategorię ("Unit Testing", 19 pytań). Owner przygotowuje się do interview EPAM (tematy: SQL, EF Core, ASP.NET, C#/.NET, …) i chce używać apki do nauki. Plan: dosypywać kategorie partiami, 1 kategoria = 1 PR, po 20 pytań. Batch 1 = SQL, EF Core, ASP.NET Core, C#/.NET. Start od SQL.
+
+**Co zrobione (branch `feat/sql-question-bank`, issue #132):**
+- `SqlQuestions.cs` — bank 20 pytań MultipleChoice, źródło: kurs EPAM moduł 011 (Relational Databases & SQL) graded quizy. Zakres: DBMS/klucze/constraints, relacje (1:N, M:N), normalizacja (1NF/2NF/3NF, OLTP vs OLAP), SELECT/GROUP BY/HAVING z semantyką NULL, INTERSECT, CTE (WITH), DML (INSERT/UPDATE/DELETE/TRUNCATE), TCL, DDL (ALTER TABLE, views).
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Pytania "select ALL"/"pick TWO" ze źródła przerobione na single-correct (NOT-question / "który prawdziwy/fałszywy") — wymóg invariantu Domain `MultipleChoice` (dokładnie jedna poprawna opcja).
+- `DataSeeder` — druga `SeedCategoryIfMissingAsync` (name "SQL", iconCode "SQL"). Bez zmian schematu, bez migracji; seeder idempotentny per-nazwa, więc kategoria dosypie się przy restarcie API bez dropowania bazy.
+- `DataSeederTests` — zaktualizowane liczniki: 2 kategorie, 39 pytań (19+20), 156 opcji (39×4); `SingleAsync()` na nazwie → `ToListAsync()` + `BeEquivalentTo(["Unit Testing","SQL"])`.
+
+**Decyzje:**
+- `iconCode = "SQL"` (3 znaki) — badge w gridzie renderuje `iconCode` jako tekst w boxie 32px; krótki kod pasuje (istniejące "test-tube" się nie mieści, ale to pre-existing, nie ruszam).
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure + testy — zielone.
+- Invariant ręcznie potwierdzony na pliku: 20× `Question.Create`, 20× `isCorrect: true` (jedna na pytanie), 80× `new Option` (4 na pytanie).
+- **Testy integracyjne (Testcontainers) NIE odpalone lokalnie** — Docker Desktop był ubity w trakcie sesji (named-pipe niedostępny). Bramką jest CI (ma Dockera). Wizualne potwierdzenie po stronie ownera po wstaniu stacku.
+
+**Punkt wznowienia:**
+PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1: EF Core, ASP.NET Core, C#/.NET.
