@@ -33,6 +33,16 @@ public sealed class DataSeeder(
             buildQuestions: UnitTestingQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "SQL",
+            description:
+                "Relational database and SQL fundamentals — DBMS concepts, keys, constraints, " +
+                "relationships, normalization, the SELECT statement, DML/TCL, and DDL. Questions " +
+                "sourced from EPAM .NET Fundamentals course (module 011).",
+            iconCode: "SQL",
+            buildQuestions: SqlQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
