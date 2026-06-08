@@ -890,3 +890,26 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
 
 **Punkt wznowienia:** PR Design Patterns → po zielonym CI merge (za potwierdzeniem). Pozostałe w batchu 2: Front-End, Cloud Fundamentals, Engineering Practices — autorskie, BEZ źródła kursowego; warto najpierw ustalić z ownerem zakres/poziom każdej.
+
+---
+
+## 2026-06-08 — Content expansion batch 2: Front-End question bank (kategoria #8)
+
+**Ustalenia z ownerem (zakres batcha 2):**
+- Front-End: głównie JS/TS + HTML/CSS — robione tu.
+- Cloud Fundamentals: **pominięte** — w kursie EPAM (moduły 001–021) nie ma cloud/Azure, więc poza zakresem rozmowy; ewentualnie osobno później.
+- Engineering Practices: następna kategoria — Git (kurs 001), CI/CD, clean code; SOLID pominięty (już w Design Patterns Q15–Q19).
+
+**Co zrobione (branch `feat/frontend-question-bank`, issue #144):**
+- `FrontEndQuestions.cs` — bank 20 pytań MultipleChoice, autorskie (Front-End poza ścieżką .NET Fundamentals). Zakres JS/TS: `==` vs `===`, `typeof null`, var/let/const + hoisting, closures, event loop (microtask vs macrotask), stany Promise, `async` zwraca Promise, `this` w arrow vs regular, kompilacja TS→JS (erasure typów), generics, type narrowing (type guard), map vs forEach. HTML/CSS: semantyczny HTML, box model, specificity, flex main/cross axis, position absolute vs fixed, Grid vs Flex (2D vs 1D), display:none vs visibility:hidden.
+- Rozkład trudności: 6 Easy / 9 Medium / 5 Hard.
+- Single-correct (invariant `MultipleChoice`).
+- `DataSeeder` — ósma `SeedCategoryIfMissingAsync` (name "Front-End", iconCode "FE").
+- `DataSeederTests` — liczniki: 8 kategorii, 159 pytań (139+20), 636 opcji (159×4), nazwy + "Front-End".
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie: 6+9+5=20, 20× `Question.Create`, 20× `isCorrect: true`, 80× `new Option`.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
+
+**Punkt wznowienia:** PR Front-End → po zielonym CI merge (za potwierdzeniem). Następna i ostatnia w batchu 2: Engineering Practices (Git/CI-CD/clean code, bez SOLID).

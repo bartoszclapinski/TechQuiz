@@ -98,6 +98,17 @@ public sealed class DataSeeder(
             buildQuestions: DesignPatternsQuestions.CreateAll,
             cancellationToken);
 
+        await SeedCategoryIfMissingAsync(
+            name: "Front-End",
+            description:
+                "Front-end web fundamentals — JavaScript and TypeScript (equality and type coercion, scope " +
+                "and hoisting, closures, the event loop, promises and async/await, this binding, and the " +
+                "TypeScript type system) plus core HTML and CSS (semantic markup, the box model, specificity, " +
+                "positioning, flexbox, and grid). Authored content; outside the EPAM .NET Fundamentals track.",
+            iconCode: "FE",
+            buildQuestions: FrontEndQuestions.CreateAll,
+            cancellationToken);
+
         await SeedDemoUserAsync(cancellationToken);
     }
 
