@@ -37,6 +37,16 @@ public static class SqlQuestions
         Q18_Truncate(categoryId),
         Q19_AlterTable(categoryId),
         Q20_View(categoryId),
+        Q21_ForeignKey(categoryId),
+        Q22_InnerVsLeftJoin(categoryId),
+        Q23_GroupBy(categoryId),
+        Q24_WhereVsHaving(categoryId),
+        Q25_AggregateCount(categoryId),
+        Q26_Distinct(categoryId),
+        Q27_IndexPurpose(categoryId),
+        Q28_ThirdNormalForm(categoryId),
+        Q29_UnionVsUnionAll(categoryId),
+        Q30_AcidProperties(categoryId),
     ];
 
     private static Question Q01_WhatIsDbms(Guid categoryId)
@@ -477,6 +487,228 @@ public static class SqlQuestions
                 new Option(Guid.NewGuid(), qid, "A physical copy of a table stored on disk",                                          isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "A backup snapshot of a table's data",                                                isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "An index that speeds up queries",                                                    isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_ForeignKey(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does a FOREIGN KEY constraint enforce?",
+            explanation:
+                "A foreign key enforces referential integrity: each value in the referencing column must match " +
+                "an existing value in the referenced table's primary/unique key (or be NULL). It prevents " +
+                "'orphan' rows that point to records which don't exist.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "That a column's values must reference existing rows in another table", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "That every value in the column must be unique",                        isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "That the column can never contain NULL",                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "That the table can have only one such column",                         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_InnerVsLeftJoin(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How does a LEFT JOIN differ from an INNER JOIN?",
+            explanation:
+                "An INNER JOIN returns only rows that have a match in both tables. A LEFT JOIN returns all rows " +
+                "from the left table, plus matching rows from the right; where there is no match, the right " +
+                "side's columns are NULL. LEFT JOIN is how you keep unmatched left-table rows.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "LEFT JOIN keeps all left-table rows (NULLs where no right match); INNER JOIN keeps only matched rows", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "LEFT JOIN keeps only matched rows; INNER JOIN keeps all rows from both tables",                         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They produce identical results but LEFT JOIN is faster",                                                 isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "LEFT JOIN removes duplicate rows; INNER JOIN keeps them",                                                isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_GroupBy(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does the GROUP BY clause do in a SELECT statement?",
+            explanation:
+                "GROUP BY collapses rows that share the same values in the grouping columns into a single " +
+                "summary row, so aggregate functions (COUNT, SUM, AVG, …) can be computed per group. Columns " +
+                "in the SELECT list must either appear in GROUP BY or be inside an aggregate.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Groups rows with equal values so aggregates can be computed per group", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Sorts the result set by the named columns",                             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Removes duplicate rows from the result",                                isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Filters rows before they are selected",                                 isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_WhereVsHaving(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the difference between WHERE and HAVING?",
+            explanation:
+                "WHERE filters individual rows before grouping and cannot reference aggregate functions. HAVING " +
+                "filters groups after GROUP BY and aggregation, so it can use aggregates like COUNT(*) > 5. In " +
+                "short: WHERE is pre-aggregation, HAVING is post-aggregation.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "WHERE filters rows before grouping; HAVING filters groups after aggregation", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "WHERE filters after grouping; HAVING filters before grouping",               isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They are interchangeable in every query",                                    isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "WHERE works only with JOINs; HAVING works only with subqueries",            isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_AggregateCount(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How does `COUNT(column)` differ from `COUNT(*)`?",
+            explanation:
+                "`COUNT(*)` counts all rows, including those with NULLs. `COUNT(column)` counts only rows where " +
+                "that column is non-NULL. So if a column has NULLs, `COUNT(column)` returns fewer than " +
+                "`COUNT(*)`. `COUNT(DISTINCT column)` counts distinct non-NULL values.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`COUNT(*)` counts all rows; `COUNT(column)` counts only rows where that column is non-NULL", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "They always return the same number",                                                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "`COUNT(column)` counts all rows; `COUNT(*)` ignores NULLs",                                   isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "`COUNT(*)` counts distinct values only",                                                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_Distinct(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the DISTINCT keyword do in `SELECT DISTINCT ...`?",
+            explanation:
+                "DISTINCT removes duplicate rows from the result set, returning only unique combinations of the " +
+                "selected columns. It operates on the entire selected row, not a single column, so " +
+                "`SELECT DISTINCT a, b` returns unique (a, b) pairs.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Eliminates duplicate rows, returning unique combinations of the selected columns", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Sorts the result set in ascending order",                                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Counts the number of rows returned",                                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Selects only the first row of each group",                                         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_IndexPurpose(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the main purpose of a database index, and what is its main trade-off?",
+            explanation:
+                "An index speeds up read queries (lookups, joins, sorting on the indexed columns) by letting " +
+                "the engine avoid full table scans. The trade-off is that indexes consume extra storage and " +
+                "slow down writes (INSERT/UPDATE/DELETE), since the index must be maintained on every change.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It speeds up reads on indexed columns, at the cost of extra storage and slower writes", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It speeds up writes, at the cost of slower reads",                                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It guarantees uniqueness of every column in the table",                                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It compresses the table to save disk space with no downside",                           isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_ThirdNormalForm(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "A table is in 2NF. What additional condition must it meet to be in Third Normal Form (3NF)?",
+            explanation:
+                "3NF requires that no non-key column depends on another non-key column — i.e. there are no " +
+                "transitive dependencies on the primary key. Every non-key attribute must depend on the key, " +
+                "the whole key, and nothing but the key. Moving the transitively dependent columns into their " +
+                "own table restores 3NF.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "No non-key column may depend on another non-key column (no transitive dependencies)", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Every column must contain only a single atomic value",                                isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The table must have no foreign keys",                                                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Every column must be indexed",                                                         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_UnionVsUnionAll(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the difference between UNION and UNION ALL?",
+            explanation:
+                "Both combine the result sets of two queries with compatible columns. UNION removes duplicate " +
+                "rows (which requires an extra sort/dedup step), while UNION ALL returns every row including " +
+                "duplicates and is therefore faster. Use UNION ALL when you know there are no duplicates or " +
+                "want to keep them.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "UNION removes duplicate rows; UNION ALL keeps all rows including duplicates", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "UNION ALL removes duplicates; UNION keeps them",                             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "UNION joins tables horizontally; UNION ALL joins them vertically",          isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "They are identical in every respect",                                       isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_AcidProperties(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "In the ACID properties of a transaction, what does 'Atomicity' guarantee?",
+            explanation:
+                "Atomicity guarantees that a transaction is all-or-nothing: either every statement in it " +
+                "commits, or — if any fails — the whole transaction rolls back, leaving the database as if it " +
+                "never ran. (The others: Consistency, Isolation, Durability.)",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "All statements in the transaction succeed together, or none take effect", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Committed data survives a subsequent system crash",                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Concurrent transactions do not interfere with each other",                isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The database moves from one valid state to another",                      isCorrect: false, orderIndex: 3),
             ]);
     }
 }

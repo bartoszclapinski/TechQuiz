@@ -35,6 +35,16 @@ public static class UnitTestingQuestions
         Q17_StubFunction(categoryId),
         Q18_MoqReturns(categoryId),
         Q19_MoqTimesOnce(categoryId),
+        Q20_MockVsStub(categoryId),
+        Q21_FakeInMemory(categoryId),
+        Q22_TddCycle(categoryId),
+        Q23_TestNaming(categoryId),
+        Q24_AssertThrows(categoryId),
+        Q25_XUnitTheory(categoryId),
+        Q26_XUnitConstructorSetup(categoryId),
+        Q27_MoqItIsAny(categoryId),
+        Q28_FirstPrinciples(categoryId),
+        Q29_MoqVerifyVsSetup(categoryId),
     ];
 
     private static Question Q01_MainPurpose(Guid categoryId)
@@ -466,6 +476,230 @@ public static class UnitTestingQuestions
                 new Option(Guid.NewGuid(), qid, "Called.Once()",   isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "Assert.Equal(1)", isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "OneTime()",       isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q20_MockVsStub(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the key difference between a mock and a stub?",
+            explanation:
+                "A stub provides canned answers to calls made during the test — it feeds data in. A mock goes " +
+                "further: it also has expectations about how it is called and is used to verify behaviour " +
+                "(that a method was invoked, with which arguments, how many times). Stubs support state " +
+                "verification; mocks support interaction/behaviour verification.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A stub supplies canned return values; a mock also verifies how it was called", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A mock supplies canned return values; a stub verifies interactions",           isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They are identical terms for the same test double",                            isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A stub can only be used with Moq; a mock works without any library",           isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_FakeInMemory(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What characterises a 'fake' as a test double?",
+            explanation:
+                "A fake is a working implementation that takes a shortcut making it unsuitable for production — " +
+                "the classic example is an in-memory repository or database that behaves correctly but holds " +
+                "data only in a collection. It has real logic, unlike a stub (canned values) or mock " +
+                "(expectations).",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A working implementation with a shortcut unsuitable for production, e.g. an in-memory repository", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "An object that records every call so the test can assert on it later",                             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A placeholder object that is passed but never actually used",                                      isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "An object that returns hard-coded values with no real logic",                                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_TddCycle(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What are the three steps of the Test-Driven Development (TDD) cycle, in order?",
+            explanation:
+                "TDD follows red-green-refactor: write a failing test (red), write the minimum code to make it " +
+                "pass (green), then improve the design while keeping tests passing (refactor). The discipline " +
+                "is that the test is written before the production code.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Red (failing test), green (make it pass), refactor", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Write code, write test, deploy",                     isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Refactor, red, green",                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Design, implement, document",                        isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_TestNaming(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "Which test method name best follows the common MethodUnderTest_Scenario_ExpectedResult convention?",
+            explanation:
+                "A descriptive name like `Withdraw_AmountExceedsBalance_ThrowsException` states the method " +
+                "under test, the scenario, and the expected outcome — so a failing test is self-documenting. " +
+                "Generic names like `Test1` or `WithdrawTest` force you to read the body to learn what broke.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Withdraw_AmountExceedsBalance_ThrowsException", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Test1",                                         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "WithdrawTest",                                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "CheckItWorks",                                  isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_AssertThrows(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In xUnit, how do you assert that a piece of code throws a specific exception?",
+            explanation:
+                "xUnit provides `Assert.Throws<TException>(() => ...)`, which runs the delegate, verifies the " +
+                "exact exception type was thrown, and returns the caught exception so you can assert on its " +
+                "message or properties. Wrapping code in try/catch with a manual flag is the brittle pattern " +
+                "this replaces.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Assert.Throws<TException>(() => code)",          isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Assert.Equal(typeof(TException), code)",         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Assert.True(code throws)",                       isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "[ExpectedException] on the assertion line",      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_XUnitTheory(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In xUnit, what is the purpose of a `[Theory]` (paired with `[InlineData]`)?",
+            explanation:
+                "A `[Theory]` is a parameterised test: the same test logic runs once per data set supplied by " +
+                "`[InlineData]` (or `[MemberData]`/`[ClassData]`). Each data row is reported as a separate test " +
+                "case. A `[Fact]`, by contrast, is a single test with no parameters.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It runs the same test once for each supplied data set",         isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It marks a test that must always pass and cannot fail",          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It groups tests that should run in a guaranteed order",          isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It declares a test that is skipped until data is available",     isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_XUnitConstructorSetup(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In xUnit, how is per-test setup code (run before each test) typically expressed?",
+            explanation:
+                "xUnit creates a new instance of the test class for every test method, so the class constructor " +
+                "acts as the per-test setup, and `IDisposable.Dispose` acts as teardown. xUnit deliberately " +
+                "omits `[SetUp]`/`[TearDown]` attributes (used by NUnit) in favour of plain constructor/Dispose.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "In the test class constructor, since xUnit creates a fresh instance per test", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "In a method marked with `[SetUp]`",                                            isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "In a static method marked with `[TestInitialize]`",                            isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "In a method marked with `[BeforeEach]`",                                       isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_MoqItIsAny(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "In Moq, what does `It.IsAny<string>()` express when setting up a method?",
+            explanation:
+                "`It.IsAny<T>()` is an argument matcher meaning 'match any value of type T'. It lets a setup or " +
+                "verification apply regardless of the specific argument passed — useful when the exact value " +
+                "isn't relevant to the test. Moq also offers `It.Is<T>(predicate)` for conditional matching.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "An argument matcher that matches any string value passed to the method", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A directive that forces the argument to be null",                        isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A check that the method is never called",                                isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A way to return any random string from the method",                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_FirstPrinciples(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "The FIRST principles describe qualities of good unit tests. What does the 'I' stand for?",
+            explanation:
+                "FIRST = Fast, Independent (Isolated), Repeatable, Self-validating, Timely. The 'I' is " +
+                "Independent: tests must not depend on each other or on execution order, and each should set up " +
+                "its own state. Independence is what lets tests run in any order or in parallel reliably.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Independent — tests don't rely on each other or on run order", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Integrated — tests exercise multiple components together",     isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Iterative — tests are re-run until they pass",                 isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Indexed — tests are numbered for ordering",                    isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_MoqVerifyVsSetup(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "In Moq, what is the difference between `Setup` and `Verify`?",
+            explanation:
+                "`Setup` configures behaviour before the act — what a method should return or do when called. " +
+                "`Verify` is called after the act to assert that an expected interaction actually happened (the " +
+                "method was invoked, with given arguments, a given number of times). Setup arranges; Verify " +
+                "checks interactions.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`Setup` configures behaviour before the act; `Verify` asserts a call happened afterwards", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "`Setup` asserts the result; `Verify` configures the return value",                         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They are aliases and can be used interchangeably",                                         isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "`Setup` runs the test; `Verify` compiles the mock",                                        isCorrect: false, orderIndex: 3),
             ]);
     }
 }

@@ -39,6 +39,16 @@ public static class CSharpDotNetQuestions
         Q18_CancelTask(categoryId),
         Q19_AwaitSuspends(categoryId),
         Q20_AsyncReturnType(categoryId),
+        Q21_ValueVsReference(categoryId),
+        Q22_BoxingUnboxing(categoryId),
+        Q23_IDisposableUsing(categoryId),
+        Q24_GarbageCollection(categoryId),
+        Q25_StringImmutability(categoryId),
+        Q26_TaskWhenAll(categoryId),
+        Q27_ConfigureAwait(categoryId),
+        Q28_DelegateVsEvent(categoryId),
+        Q29_LinqDeferred(categoryId),
+        Q30_StructVsClass(categoryId),
     ];
 
     private static Question Q01_ReflectionPurpose(Guid categoryId)
@@ -507,6 +517,235 @@ public static class CSharpDotNetQuestions
                 new Option(Guid.NewGuid(), qid, "Task",      isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "Task<int>", isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "void",      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_ValueVsReference(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the key difference between value types and reference types in C#?",
+            explanation:
+                "A value type (struct, enum, int, etc.) holds its data directly and is typically allocated on " +
+                "the stack or inline; assigning it copies the value. A reference type (class, string, array) " +
+                "holds a reference to data on the managed heap; assigning it copies the reference, so two " +
+                "variables can point to the same object.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Value types hold data directly and copy on assignment; reference types hold a reference to heap data", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Reference types are always faster than value types",                                                    isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Value types live on the heap; reference types live on the stack",                                       isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Only reference types can be passed to methods",                                                         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_BoxingUnboxing(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What is 'boxing' in C#?",
+            explanation:
+                "Boxing converts a value type to a reference type by wrapping it in an object on the heap (e.g. " +
+                "`object o = 42;`). Unboxing extracts the value back out with a cast. Boxing allocates and adds " +
+                "GC pressure, so it's a performance concern in hot paths — generics and `Span<T>` exist partly " +
+                "to avoid it.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Wrapping a value type in a heap-allocated object so it can be treated as a reference type", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Converting a reference type into a value type for speed",                                    isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Encapsulating fields inside a property",                                                     isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Compressing an object to reduce its memory footprint",                                       isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_IDisposableUsing(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does a `using` statement (or declaration) guarantee for an `IDisposable`?",
+            explanation:
+                "A `using` block guarantees that `Dispose()` is called when control leaves the block — even if " +
+                "an exception is thrown — by compiling to a try/finally. This deterministically releases " +
+                "unmanaged resources (file handles, DB connections, sockets) rather than waiting for the GC.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`Dispose()` is called when the block exits, even if an exception is thrown", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The object is immediately garbage collected",                               isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The object becomes immutable inside the block",                             isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The object is pinned in memory so the GC cannot move it",                   isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_GarbageCollection(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the role of the .NET garbage collector (GC)?",
+            explanation:
+                "The GC automatically reclaims managed heap memory that is no longer reachable by the " +
+                "application, freeing developers from manual deallocation. It is generational (Gen 0/1/2) for " +
+                "efficiency. Note it manages memory, not unmanaged resources like file handles — those still " +
+                "need Dispose.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It automatically reclaims managed heap memory that is no longer reachable", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It closes open file and network handles deterministically",                 isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It compiles IL to native code at runtime",                                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It allocates all objects on the stack to avoid leaks",                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_StringImmutability(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "C# strings are immutable. What is the practical consequence when concatenating many strings in a loop?",
+            explanation:
+                "Because a string can't be changed in place, every concatenation allocates a new string and " +
+                "copies the characters — O(n²) work and lots of garbage in a loop. `StringBuilder` uses a " +
+                "mutable internal buffer to build the result efficiently, which is why it's preferred for heavy " +
+                "concatenation.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Each concatenation allocates a new string; use StringBuilder to avoid the overhead", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The original string is modified in place, which is thread-unsafe",                   isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Concatenation is impossible and must use char arrays",                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Strings are cached so repeated concatenation is free",                               isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_TaskWhenAll(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does `await Task.WhenAll(t1, t2, t3)` do?",
+            explanation:
+                "`Task.WhenAll` returns a task that completes when all the supplied tasks have completed, " +
+                "letting them run concurrently and awaiting them together. This is more efficient than awaiting " +
+                "each in sequence when the operations are independent. If any task faults, the awaited WhenAll " +
+                "rethrows.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Awaits all the tasks concurrently, completing when the last one finishes", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Runs the tasks strictly one after another",                               isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Completes as soon as the first task finishes",                             isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Cancels all tasks except the fastest one",                                 isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_ConfigureAwait(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What does `ConfigureAwait(false)` do on an awaited task?",
+            explanation:
+                "`ConfigureAwait(false)` tells the await not to capture and resume on the original " +
+                "synchronization context, so the continuation runs on a thread-pool thread. In library code " +
+                "this avoids unnecessary context marshalling and helps prevent deadlocks when callers block on " +
+                "the task. (In ASP.NET Core there is no sync context, so it matters most in libraries/UI apps.)",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Resumes the continuation without capturing the original synchronization context", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Forces the awaited task to run synchronously",                                    isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Cancels the task if it takes too long",                                           isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Configures the task to ignore exceptions",                                        isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_DelegateVsEvent(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does the `event` keyword add on top of a plain delegate field?",
+            explanation:
+                "An `event` wraps a delegate to restrict how outside code can use it: subscribers may only `+=` " +
+                "and `-=`, but cannot reassign (`=`) the invocation list or raise the event themselves. Only " +
+                "the declaring type can invoke it. A public delegate field exposes all of that, breaking " +
+                "encapsulation.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It restricts external code to subscribing/unsubscribing (+=/-=); only the owner can raise it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It makes the delegate run asynchronously",                                                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It allows the delegate to return multiple values",                                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It is purely syntactic and adds no behaviour",                                                   isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_LinqDeferred(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What is 'deferred execution' in LINQ?",
+            explanation:
+                "Most LINQ query operators (Where, Select, etc.) don't run when defined — they build a query " +
+                "that executes only when enumerated (foreach, ToList, Count, etc.). This means the query sees " +
+                "the data as it is at enumeration time, and re-enumerating runs it again. Calling ToList/ToArray " +
+                "forces immediate execution and caches the result.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "The query is not executed until its results are enumerated", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The query runs immediately and caches its result",           isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The query executes on a background thread automatically",     isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The query is compiled to SQL even for in-memory collections", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_StructVsClass(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "Which statement about choosing a `struct` over a `class` is correct?",
+            explanation:
+                "A struct is a value type with copy-on-assignment semantics; it's appropriate for small, " +
+                "short-lived, immutable data that behaves like a single value (e.g. a coordinate). Large or " +
+                "frequently-passed structs incur copying costs, and mutable structs are bug-prone — so classes " +
+                "are the default for most entities.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Structs suit small, immutable, value-like data; classes are the default for most types", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Structs support inheritance, so prefer them for class hierarchies",                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Structs are always faster regardless of size",                                            isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Structs are reference types and share instances on assignment",                           isCorrect: false, orderIndex: 3),
             ]);
     }
 }

@@ -37,6 +37,16 @@ public static class EfCoreQuestions
         Q18_AsNoTracking(categoryId),
         Q19_OptimisticConcurrency(categoryId),
         Q20_DatabaseUpdateCommand(categoryId),
+        Q21_ExplicitLoading(categoryId),
+        Q22_EntityStates(categoryId),
+        Q23_FindVsSingle(categoryId),
+        Q24_KeyAnnotation(categoryId),
+        Q25_OnModelCreating(categoryId),
+        Q26_HasManyWithOne(categoryId),
+        Q27_FromSqlRaw(categoryId),
+        Q28_HasDataSeeding(categoryId),
+        Q29_NPlusOne(categoryId),
+        Q30_IQueryableDeferred(categoryId),
     ];
 
     private static Question Q01_WhatIsEfCore(Guid categoryId)
@@ -483,6 +493,231 @@ public static class EfCoreQuestions
                 new Option(Guid.NewGuid(), qid, "dotnet ef migrations add",        isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "dotnet ef database migrate",      isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "dotnet ef migrations apply",      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_ExplicitLoading(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is explicit loading in EF Core?",
+            explanation:
+                "Explicit loading fetches a related navigation on demand, after the parent is already loaded, " +
+                "via `context.Entry(entity).Reference(...).Load()` or `.Collection(...).Load()`. Unlike eager " +
+                "loading (`Include`) it is a separate query you trigger yourself, and unlike lazy loading it is " +
+                "explicit rather than automatic on property access.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Loading a related navigation on demand via the Entry API after the parent is loaded", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Automatically loading every navigation as soon as the entity is accessed",            isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Loading all related data in the original query with Include",                          isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Loading data only when SaveChanges is called",                                        isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_EntityStates(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "Which set correctly lists the entity states tracked by EF Core's change tracker?",
+            explanation:
+                "EF Core tracks each entity in one of five states: Added, Modified, Deleted, Unchanged, and " +
+                "Detached. SaveChanges inspects these states to decide which INSERT/UPDATE/DELETE statements to " +
+                "generate; Detached means the entity is not being tracked at all.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Added, Modified, Deleted, Unchanged, Detached", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "New, Dirty, Clean, Removed",                    isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Open, Pending, Committed, Rolled-back",         isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Created, Updated, Saved, Cached",               isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_FindVsSingle(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What advantage does `DbSet.Find(id)` have over `Single(e => e.Id == id)`?",
+            explanation:
+                "`Find` first checks the change tracker: if an entity with that key is already being tracked, " +
+                "it is returned without hitting the database. Only on a miss does it query. `Single`/`First` " +
+                "always issue a database query. `Find` also accepts the key value directly rather than a " +
+                "predicate.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`Find` returns an already-tracked entity without querying the database if possible", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "`Find` always bypasses the change tracker for fresh data",                           isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "`Find` can filter on any column, not just the key",                                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "`Find` runs asynchronously while `Single` cannot",                                   isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_KeyAnnotation(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the `[Key]` data annotation declare on an entity property?",
+            explanation:
+                "`[Key]` marks the property as the entity's primary key. EF Core also applies convention — a " +
+                "property named `Id` or `<Type>Id` is treated as the key automatically — but `[Key]` is used " +
+                "when the key has a different name or you want it to be explicit.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "That the property is the entity's primary key", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "That the property must be unique but not the key", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "That the property is a foreign key to another table", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "That the property should be ignored by EF Core",  isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_OnModelCreating(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the purpose of overriding `OnModelCreating(ModelBuilder)` in a DbContext?",
+            explanation:
+                "`OnModelCreating` is where Fluent API configuration lives — defining keys, relationships, " +
+                "column types, indexes, constraints, and seed data via the ModelBuilder. It is the " +
+                "code-based alternative (and complement) to data annotations for shaping the EF Core model.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "To configure the model with the Fluent API — keys, relationships, constraints, etc.", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "To open the database connection when the context is created",                         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "To execute migrations automatically on startup",                                      isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "To register the DbContext in the DI container",                                        isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_HasManyWithOne(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In the Fluent API, what relationship does `HasMany(b => b.Posts).WithOne(p => p.Blog)` configure?",
+            explanation:
+                "This configures a one-to-many relationship: one Blog has many Posts, and each Post belongs to " +
+                "one Blog. `HasMany().WithOne()` is the standard pairing for one-to-many; the foreign key lives " +
+                "on the 'many' side (Post).",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A one-to-many: one Blog has many Posts, each Post has one Blog", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A many-to-many between Blogs and Posts",                         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A one-to-one between Blog and Post",                             isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "No relationship — it only configures column names",             isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_FromSqlRaw(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "When using `FromSqlRaw` with user input, how should parameters be passed to stay safe from SQL injection?",
+            explanation:
+                "Use parameter placeholders — either `FromSqlInterpolated($\"... {value}\")`, which turns " +
+                "interpolated values into DbParameters, or `FromSqlRaw(\"... {0}\", value)`. Both parameterise " +
+                "the input. Concatenating user input straight into the SQL string is the injection-vulnerable " +
+                "anti-pattern.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "As parameters (e.g. FromSqlInterpolated or {0} placeholders), never via string concatenation", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "By concatenating the value directly into the SQL string",                                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "EF Core escapes all raw SQL automatically, so it doesn't matter",                              isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "By disabling the change tracker before running the query",                                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_HasDataSeeding(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does `modelBuilder.Entity<T>().HasData(...)` do?",
+            explanation:
+                "`HasData` declares seed data as part of the model. EF Core includes it in migrations, so the " +
+                "rows are inserted (or updated/deleted) when the migration is applied. It requires explicit " +
+                "primary-key values and is intended for static reference data, not runtime-generated records.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Declares model seed data that migrations insert into the table",       isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Loads all rows of the table into memory eagerly",                      isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Marks the entity as read-only",                                        isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Caches query results for the entity across requests",                  isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_NPlusOne(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What is the 'N+1 query problem' in EF Core, and how is it typically fixed?",
+            explanation:
+                "N+1 happens when you load N parent rows, then trigger a separate query for each parent's " +
+                "related data — 1 query for the parents plus N for the children. It often comes from lazy " +
+                "loading inside a loop. The fix is eager loading with `Include`, which fetches the related data " +
+                "in one (or a few) queries.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "One query loads N parents, then N more load each parent's relations; fix with Include (eager loading)", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A query returns N+1 duplicate rows; fix with Distinct",                                                  isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "SaveChanges runs N+1 times; fix by batching",                                                           isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The context is created N+1 times; fix with a singleton context",                                        isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_IQueryableDeferred(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "Why does building a query as `IQueryable<T>` matter compared to `IEnumerable<T>` in EF Core?",
+            explanation:
+                "An `IQueryable<T>` builds an expression tree that EF Core translates into SQL, so filtering, " +
+                "sorting, and paging are executed in the database. If you switch to `IEnumerable<T>` (e.g. by " +
+                "calling `.AsEnumerable()` or `.ToList()` early), subsequent LINQ runs in memory on the client — " +
+                "potentially pulling the whole table down first.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`IQueryable` is translated to SQL and runs in the database; `IEnumerable` operations run in memory on the client", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "`IEnumerable` is translated to SQL; `IQueryable` always runs in memory",                                            isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They are identical; EF Core treats both the same way",                                                              isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "`IQueryable` disables change tracking automatically",                                                               isCorrect: false, orderIndex: 3),
             ]);
     }
 }

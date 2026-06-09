@@ -38,6 +38,16 @@ public static class AspNetCoreQuestions
         Q18_AuthenticationPurpose(categoryId),
         Q19_UseVsAddAuthentication(categoryId),
         Q20_AuthorizeAttribute(categoryId),
+        Q21_RunTerminal(categoryId),
+        Q22_ServiceLifetimes(categoryId),
+        Q23_FromBodyBinding(categoryId),
+        Q24_IActionResult(categoryId),
+        Q25_ConfigurationSystem(categoryId),
+        Q26_IOptionsPattern(categoryId),
+        Q27_Cors(categoryId),
+        Q28_ModelValidation(categoryId),
+        Q29_AllowAnonymous(categoryId),
+        Q30_MiddlewareOrder(categoryId),
     ];
 
     private static Question Q01_DependencyInjectionFeature(Guid categoryId)
@@ -497,6 +507,231 @@ public static class AspNetCoreQuestions
                 new Option(Guid.NewGuid(), qid, "The response from the /hello endpoint", isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "The home page at /",                    isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "An immediate 401 Unauthorized",         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_RunTerminal(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the difference between `app.Use(...)` and `app.Run(...)` in the middleware pipeline?",
+            explanation:
+                "`Use` adds middleware that can call `next()` to pass the request further down the pipeline. " +
+                "`Run` adds terminal middleware that does not call the next delegate — it ends the pipeline and " +
+                "produces a response. `Run` is typically the last middleware registered.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "`Use` can call the next middleware; `Run` is terminal and ends the pipeline", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "`Run` can call the next middleware; `Use` is always terminal",               isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They are identical; `Run` is a deprecated alias for `Use`",                  isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "`Use` registers services; `Run` registers middleware",                      isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_ServiceLifetimes(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How does a Singleton service lifetime differ from Scoped and Transient in ASP.NET Core DI?",
+            explanation:
+                "Singleton: one instance for the whole application lifetime. Scoped: one instance per request " +
+                "(scope). Transient: a new instance every time it is resolved. A common pitfall is injecting a " +
+                "Scoped service into a Singleton — the Scoped instance would be captured for the app's lifetime.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Singleton: one per app; Scoped: one per request; Transient: a new one each resolution", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Singleton: one per request; Scoped: one per app; Transient: never created",             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "All three create a new instance on every request",                                       isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "They differ only in performance, not in instance count",                                  isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_FromBodyBinding(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In a Web API controller, what does the `[FromBody]` attribute tell model binding?",
+            explanation:
+                "`[FromBody]` instructs the binder to read the parameter's value from the HTTP request body " +
+                "(typically deserialized from JSON). Other sources have their own attributes: `[FromQuery]`, " +
+                "`[FromRoute]`, `[FromHeader]`, `[FromForm]`. With `[ApiController]`, complex types are bound " +
+                "from the body by convention.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Bind the parameter from the request body (e.g. deserialized JSON)", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Bind the parameter from the query string",                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Bind the parameter from a route segment",                           isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Bind the parameter from an HTTP header",                            isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_IActionResult(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "Why might a controller action return `IActionResult` rather than a concrete model type?",
+            explanation:
+                "Returning `IActionResult` lets one action return different HTTP responses depending on the " +
+                "outcome — `Ok(data)` (200), `NotFound()` (404), `BadRequest()` (400), `CreatedAtAction(...)` " +
+                "(201), etc. A concrete return type can only express the success payload, not varying status " +
+                "codes.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "So the action can return different HTTP results/status codes (Ok, NotFound, BadRequest, …)", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Because EF Core requires it for database access",                                            isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Because concrete types cannot be serialized to JSON",                                        isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It is required for an action to be asynchronous",                                            isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_ConfigurationSystem(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In ASP.NET Core, if the same configuration key is defined in both appsettings.json and an environment variable, which wins by default?",
+            explanation:
+                "Configuration providers are layered and later providers override earlier ones. The default " +
+                "host adds appsettings.json, then appsettings.{Environment}.json, then user secrets (Dev), then " +
+                "environment variables, then command-line args. So an environment variable overrides the same " +
+                "key from appsettings.json.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "The environment variable, because it is added by a later provider", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "appsettings.json always takes precedence over everything",          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It throws an error because of the duplicate key",                   isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The values are concatenated together",                              isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_IOptionsPattern(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does the Options pattern (`IOptions<T>`) provide in ASP.NET Core?",
+            explanation:
+                "The Options pattern binds a section of configuration to a strongly-typed POCO and exposes it " +
+                "through DI as `IOptions<T>` (or `IOptionsSnapshot<T>`/`IOptionsMonitor<T>` for reloadable " +
+                "values). It gives type-safe, injectable access to settings instead of reading raw string keys " +
+                "everywhere.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Strongly-typed, injectable access to a bound section of configuration", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A way to make controller actions optional",                            isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A caching layer for database queries",                                 isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A mechanism for handling HTTP OPTIONS requests",                       isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_Cors(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What problem does CORS (Cross-Origin Resource Sharing) configuration address?",
+            explanation:
+                "Browsers enforce the same-origin policy, blocking JavaScript from calling an API on a " +
+                "different origin (scheme/host/port) unless the server opts in. CORS configuration on the API " +
+                "sends the headers that tell the browser which origins, methods, and headers are allowed — " +
+                "letting a front-end on another origin call it.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It lets a browser front-end on a different origin call the API, relaxing the same-origin policy", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It encrypts the request body in transit",                                                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It authenticates users with JWT tokens",                                                           isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It compresses HTTP responses to reduce bandwidth",                                                 isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_ModelValidation(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In a controller marked with `[ApiController]`, what happens when a request fails model validation (e.g. a `[Required]` field is missing)?",
+            explanation:
+                "`[ApiController]` enables automatic model validation: if `ModelState` is invalid, the framework " +
+                "short-circuits and returns a 400 Bad Request with a validation problem-details body before the " +
+                "action runs. Without `[ApiController]` you would check `ModelState.IsValid` manually.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "The framework automatically returns 400 Bad Request before the action executes", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The action runs anyway and must check ModelState itself",                        isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The request is silently accepted with default values",                           isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The server returns 500 Internal Server Error",                                    isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_AllowAnonymous(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the `[AllowAnonymous]` attribute do?",
+            explanation:
+                "`[AllowAnonymous]` exempts an action or controller from authorization, allowing unauthenticated " +
+                "access even when a global or controller-level `[Authorize]` policy is in effect. It's used for " +
+                "endpoints like login or public health checks.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Allows unauthenticated access, overriding an applicable [Authorize] requirement", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Hides the endpoint from API documentation",                                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Disables HTTPS for that endpoint",                                                 isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Grants the user administrator privileges",                                         isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_MiddlewareOrder(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "Why must `UseAuthentication` be registered before `UseAuthorization` in the pipeline?",
+            explanation:
+                "Middleware runs in registration order. Authentication establishes who the user is (populates " +
+                "`HttpContext.User`); authorization then decides whether that user may proceed. If authorization " +
+                "ran first, there would be no authenticated identity to evaluate, so the order is mandatory.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Authentication must establish the user's identity before authorization can evaluate it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Authorization is slower, so it should run last for performance",                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The order does not matter; ASP.NET Core reorders them automatically",                    isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Authentication depends on the response produced by authorization",                        isCorrect: false, orderIndex: 3),
             ]);
     }
 }

@@ -38,6 +38,16 @@ public static class AdoNetQuestions
         Q18_ExecuteScalarReturn(categoryId),
         Q19_DisposeReturnsToPool(categoryId),
         Q20_BeginTransactionReturn(categoryId),
+        Q21_ReaderForwardOnly(categoryId),
+        Q22_OutputParameter(categoryId),
+        Q23_AsyncExecution(categoryId),
+        Q24_DataTable(categoryId),
+        Q25_IsolationLevel(categoryId),
+        Q26_CommandTimeout(categoryId),
+        Q27_ConnectionStringBuilder(categoryId),
+        Q28_DbNullValue(categoryId),
+        Q29_CommandBehaviorCloseConnection(categoryId),
+        Q30_MultipleResultSets(categoryId),
     ];
 
     private static Question Q01_OpenConnection(Guid categoryId)
@@ -491,6 +501,232 @@ public static class AdoNetQuestions
                 new Option(Guid.NewGuid(), qid, "A DbCommand",     isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "A DbDataReader",  isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "A bool indicating success", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_ReaderForwardOnly(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How does a DbDataReader traverse a result set?",
+            explanation:
+                "A DbDataReader is a forward-only, read-only cursor: it streams rows one at a time from the " +
+                "server and cannot go back or update data. This makes it fast and memory-light for large " +
+                "result sets, but you can only move forward with Read(). For random access or editing, load " +
+                "into a DataTable/DataSet instead.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Forward-only and read-only, streaming one row at a time", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Bidirectional, allowing movement back and forth",         isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Random access by row index",                              isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It loads the entire result set into memory up front",     isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_OutputParameter(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How do you read a value returned via a stored procedure's OUTPUT parameter in ADO.NET?",
+            explanation:
+                "Add a DbParameter, set its `Direction` to `ParameterDirection.Output` (or InputOutput), and " +
+                "after `ExecuteNonQuery` returns, read the parameter's `.Value`. Output parameter values are " +
+                "only populated once command execution completes.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Set the parameter's Direction to Output, then read its Value after executing", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Read it from the return value of ExecuteNonQuery",                             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Output parameters can only be read through a DbDataReader",                    isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Call CreateParameter with Direction Input and read Value",                     isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_AsyncExecution(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the benefit of the async ADO.NET methods such as `ExecuteReaderAsync` and `OpenAsync`?",
+            explanation:
+                "Async methods free the calling thread while waiting on I/O (network round-trips to the " +
+                "database) instead of blocking it. This improves scalability on servers — the thread can serve " +
+                "other requests during the wait. They don't make a single query run faster; they improve " +
+                "throughput under load.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "They release the thread during I/O waits, improving server scalability", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "They make each individual query execute faster on the server",          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "They automatically retry failed queries",                               isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "They encrypt the connection by default",                                isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_DataTable(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In the disconnected model, what is a DataTable?",
+            explanation:
+                "A DataTable is an in-memory representation of a table — rows and columns held in memory, " +
+                "disconnected from the database. It can be filled by a DataAdapter, navigated and edited freely " +
+                "(random access, in contrast to a forward-only reader), and changes can later be pushed back " +
+                "via the adapter.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "An in-memory, disconnected representation of rows and columns", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A forward-only cursor over the live connection",               isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A physical table created on the database server",              isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A connection-pool data structure",                             isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_IsolationLevel(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What does a transaction's IsolationLevel control?",
+            explanation:
+                "Isolation level governs how/when one transaction sees changes made by others — trading " +
+                "consistency against concurrency. Higher levels (e.g. Serializable) prevent phenomena like " +
+                "dirty reads, non-repeatable reads, and phantom reads, but reduce concurrency; lower levels " +
+                "(e.g. ReadCommitted, ReadUncommitted) allow more concurrency with weaker guarantees.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "How much one transaction is affected by concurrent transactions' uncommitted/committed changes", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The maximum number of rows a transaction may modify",                                             isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Whether the transaction uses a pooled connection",                                                isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The timeout before the transaction is rolled back",                                               isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_CommandTimeout(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the `CommandTimeout` property on a DbCommand specify?",
+            explanation:
+                "CommandTimeout is the number of seconds the command waits for execution to complete before " +
+                "throwing a timeout exception. It is distinct from the connection timeout (time to establish " +
+                "the connection). Setting it to 0 means wait indefinitely.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "How long to wait for the command to execute before timing out", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "How long to wait to open the connection",                       isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "How long a pooled connection stays alive when idle",            isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The maximum number of rows the command may return",             isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_ConnectionStringBuilder(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "Why use a `DbConnectionStringBuilder` (e.g. `SqlConnectionStringBuilder`) instead of concatenating a connection string?",
+            explanation:
+                "The builder produces a correctly formatted connection string and properly escapes values, " +
+                "guarding against connection-string injection when parts come from user input. It also gives " +
+                "strongly-typed, named access to keywords instead of error-prone manual string concatenation.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It safely formats and escapes values, preventing connection-string injection", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It encrypts the password inside the connection string",                        isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It opens the connection automatically when built",                             isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It is required for connection pooling to work",                                isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_DbNullValue(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "When reading a column that may be SQL NULL from a DbDataReader, why check `reader.IsDBNull(i)` rather than comparing to `null`?",
+            explanation:
+                "A database NULL is represented by the sentinel `DBNull.Value`, not by a CLR `null`. Reading the " +
+                "column with a typed getter like `GetInt32` when the value is DBNull throws. So you test " +
+                "`IsDBNull(ordinal)` first (or compare the boxed value to `DBNull.Value`) and substitute a " +
+                "default. Comparing the boxed object to `null` would be false.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A SQL NULL is DBNull.Value, not CLR null, and typed getters throw on it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "IsDBNull is just faster than a null comparison",                          isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Comparing to null closes the reader",                                     isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "There is no difference; both work identically",                           isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_CommandBehaviorCloseConnection(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does `ExecuteReader(CommandBehavior.CloseConnection)` arrange?",
+            explanation:
+                "With CommandBehavior.CloseConnection, the associated connection is closed automatically when " +
+                "the DbDataReader is closed/disposed. This is handy when a method returns a reader to a caller " +
+                "that can't see the connection — disposing the reader also releases the connection back to the " +
+                "pool.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Closing the reader also closes the underlying connection", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The connection is kept open permanently for reuse",        isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The reader returns only a single row",                     isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The command runs inside an implicit transaction",          isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_MultipleResultSets(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "When a command returns multiple result sets, how do you advance a DbDataReader to the next one?",
+            explanation:
+                "`NextResult()` moves the reader to the next result set (e.g. when a batch or stored procedure " +
+                "returns several SELECTs). You loop `Read()` within a result set and call `NextResult()` to step " +
+                "to the following one. `Read()` only moves between rows of the current result set.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Call NextResult() to move to the next result set", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Call Read() again, which rolls over automatically", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Re-execute the command for each result set",        isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Open a second reader on the same command",          isCorrect: false, orderIndex: 3),
             ]);
     }
 }

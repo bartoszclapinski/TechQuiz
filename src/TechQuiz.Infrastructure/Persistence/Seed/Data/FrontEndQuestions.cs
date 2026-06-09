@@ -38,6 +38,16 @@ public static class FrontEndQuestions
         Q18_Positioning(categoryId),
         Q19_GridVsFlex(categoryId),
         Q20_DisplayNoneVsVisibility(categoryId),
+        Q21_Destructuring(categoryId),
+        Q22_SpreadRest(categoryId),
+        Q23_Reduce(categoryId),
+        Q24_NullVsUndefined(categoryId),
+        Q25_EventBubbling(categoryId),
+        Q26_PromiseAll(categoryId),
+        Q27_CssUnitsRem(categoryId),
+        Q28_MediaQueries(categoryId),
+        Q29_OptionalChaining(categoryId),
+        Q30_PseudoClassVsElement(categoryId),
     ];
 
     private static Question Q01_StrictEquality(Guid categoryId)
@@ -490,6 +500,196 @@ public static class FrontEndQuestions
                 new Option(Guid.NewGuid(), qid, "`visibility: hidden` removes the element from layout; `display: none` keeps its space reserved",        isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "Both remove the element from the layout flow entirely",                                                 isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "Both keep the element's space but only `display: none` makes it invisible",                             isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_Destructuring(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the expression `const { a, b } = obj;` do?",
+            explanation: "Object destructuring extracts the `a` and `b` properties from `obj` and binds them to same-named local constants in a single statement.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Extracts properties a and b from obj into local variables", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Creates a new object with only a and b", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Deletes a and b from obj", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Renames obj to a and b", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_SpreadRest(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In `function f(...args) {}`, what does the `...args` syntax do?",
+            explanation: "Used in a parameter list, `...` is the rest parameter: it gathers all remaining arguments into a single real array named `args`.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Collects all remaining arguments into an array", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Spreads an array into separate arguments", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Marks the parameter as optional", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Declares a variadic generic type", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_Reduce(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does `Array.prototype.reduce` return?",
+            explanation: "`reduce` runs a reducer function over each element, carrying an accumulator, and returns a single accumulated value (a number, object, array, etc.).",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A single accumulated value", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A new array of the same length", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A boolean indicating success", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The original array, mutated in place", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_NullVsUndefined(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the difference between `null` and `undefined` in JavaScript?",
+            explanation: "`undefined` means a variable was declared but never assigned a value; `null` is an explicit assignment representing the intentional absence of any object value.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "undefined is an unassigned value; null is an explicit 'no value'", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "They are identical and fully interchangeable", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "null is for numbers, undefined is for strings", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "undefined throws an error when read, null does not", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_EventBubbling(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is event bubbling in the DOM?",
+            explanation: "After an event fires on an element, it bubbles up — it is dispatched again on each ancestor in turn, from the target toward the document root, triggering their listeners.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "An event propagates from the target up through its ancestors", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "An event propagates from the root down to the target", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Multiple events are merged into one", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "An event is delayed until the next animation frame", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_PromiseAll(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "How does `Promise.all` behave when one of its promises rejects?",
+            explanation: "`Promise.all` rejects immediately as soon as any input promise rejects, with that rejection reason; it does not wait for the remaining promises to settle.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It rejects immediately with the first rejection reason", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It resolves with the values that succeeded", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It waits for all promises and then rejects", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It retries the rejected promise automatically", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_CssUnitsRem(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the CSS `rem` unit relative to?",
+            explanation: "`rem` (root em) is relative to the font-size of the root `<html>` element, unlike `em` which is relative to the font-size of the current element.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "The font-size of the root html element", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "The font-size of the parent element", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The width of the viewport", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A fixed value of 16 physical pixels", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_MediaQueries(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What is the main purpose of CSS media queries?",
+            explanation: "Media queries apply CSS conditionally based on characteristics like viewport width, enabling responsive layouts that adapt to different screen sizes and devices.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Apply styles conditionally based on device or viewport characteristics", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Load external media files like video and audio", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Query the DOM for matching elements", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Compress images for faster delivery", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_OptionalChaining(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does the optional chaining operator `?.` return when an intermediate value is null or undefined?",
+            explanation: "Optional chaining short-circuits: if the value before `?.` is null or undefined, the whole expression evaluates to `undefined` instead of throwing a TypeError.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "undefined, without throwing", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "null, without throwing", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It throws a TypeError", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "An empty object", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_PseudoClassVsElement(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What distinguishes a CSS pseudo-class from a pseudo-element?",
+            explanation: "A pseudo-class (e.g. :hover) targets a state of an existing element, while a pseudo-element (e.g. ::before) styles a generated or specific sub-part of an element; pseudo-elements use double colons.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A pseudo-class targets a state; a pseudo-element styles a sub-part of an element", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "They are the same and both use a single colon", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A pseudo-class creates new DOM nodes", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A pseudo-element can only select by id", isCorrect: false, orderIndex: 3),
             ]);
     }
 }
