@@ -37,6 +37,16 @@ public static class DesignPatternsQuestions
         Q18_Isp(categoryId),
         Q19_Dip(categoryId),
         Q20_OnionArchitecture(categoryId),
+        Q21_Prototype(categoryId),
+        Q22_Facade(categoryId),
+        Q23_Proxy(categoryId),
+        Q24_Flyweight(categoryId),
+        Q25_ChainOfResponsibility(categoryId),
+        Q26_Mediator(categoryId),
+        Q27_State(categoryId),
+        Q28_Memento(categoryId),
+        Q29_RepositoryPattern(categoryId),
+        Q30_PatternCategories(categoryId),
     ];
 
     private static Question Q01_Singleton(Guid categoryId)
@@ -480,6 +490,196 @@ public static class DesignPatternsQuestions
                 new Option(Guid.NewGuid(), qid, "Outward, from the domain toward infrastructure",        isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "Both directions equally",                               isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "From the UI directly to the database layer",            isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_Prototype(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the intent of the Prototype pattern?",
+            explanation: "Prototype creates new objects by cloning an existing instance (the prototype) instead of instantiating a class directly, which is useful when object creation is expensive.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Create new objects by copying an existing instance", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Ensure a class has only one instance", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Build a complex object step by step", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Provide a simplified interface to a subsystem", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_Facade(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What problem does the Facade pattern solve?",
+            explanation: "Facade provides a single, simplified interface to a complex subsystem, hiding its internal classes and interactions from clients.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It exposes a unified, simple interface over a complex subsystem", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It lets incompatible interfaces work together", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It adds responsibilities to an object dynamically", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It controls access to another object", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_Proxy(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the role of the Proxy pattern?",
+            explanation: "A Proxy is a surrogate that controls access to another object, enabling lazy loading, access control, logging, or remote access while presenting the same interface.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Provide a surrogate that controls access to another object", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Compose objects into tree structures", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Decouple an abstraction from its implementation", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Define a family of interchangeable algorithms", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_Flyweight(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What does the Flyweight pattern optimize?",
+            explanation: "Flyweight minimizes memory use by sharing as much data as possible between many similar objects, separating intrinsic (shared) state from extrinsic (context-specific) state.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Memory usage by sharing common state across many objects", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Thread synchronization across a cluster", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Network latency between services", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Compilation speed of generic types", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_ChainOfResponsibility(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "How does the Chain of Responsibility pattern handle a request?",
+            explanation: "Chain of Responsibility passes a request along a chain of handlers; each handler decides either to process the request or to forward it to the next handler.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "It passes the request along a chain until a handler processes it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "It broadcasts the request to all observers at once", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "It stores the request so it can be undone later", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "It encapsulates the request as a standalone object", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_Mediator(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is the purpose of the Mediator pattern?",
+            explanation: "Mediator centralizes communication between objects in a mediator object, so the objects no longer refer to each other directly, reducing coupling.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Centralize and decouple communication between objects", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Provide sequential access to elements of a collection", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Capture and restore an object's internal state", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Allow an object to alter its behavior when its state changes", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_State(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does the State pattern allow an object to do?",
+            explanation: "The State pattern lets an object change its behavior when its internal state changes, appearing as if the object changed its class by delegating to state-specific objects.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Alter its behavior when its internal state changes", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Clone itself to produce new instances", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Wrap another object to add behavior", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Define a skeleton of an algorithm in a base class", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_Memento(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "What is the Memento pattern used for?",
+            explanation: "Memento captures and externalizes an object's internal state without violating encapsulation, so the object can be restored to that state later — the basis of undo functionality.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Capture and later restore an object's state without breaking encapsulation", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Separate construction of an object from its representation", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Define a one-to-many dependency between objects", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Convert the interface of a class into another interface", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_RepositoryPattern(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the Repository pattern abstract?",
+            explanation: "The Repository pattern mediates between the domain and data-mapping layers, abstracting data access behind a collection-like interface so business code is decoupled from persistence details.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Data access behind a collection-like interface", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "UI rendering behind a view model", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Thread scheduling behind a task queue", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Network calls behind a circuit breaker", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_PatternCategories(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "Into which three categories does the Gang of Four classify design patterns?",
+            explanation: "The GoF catalog groups its 23 patterns into Creational (object creation), Structural (object composition), and Behavioral (object interaction and responsibility) categories.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Creational, Structural, Behavioral", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Functional, Imperative, Declarative", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Synchronous, Asynchronous, Reactive", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Frontend, Backend, Database", isCorrect: false, orderIndex: 3),
             ]);
     }
 }

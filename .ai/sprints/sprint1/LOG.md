@@ -931,3 +931,29 @@ PR SQL → po zielonym CI merge (za potwierdzeniem ownera). Następne w batchu 1
 - Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
 
 **Status batcha 2:** ZAMKNIĘTY. Kategorie z kursu (ADO.NET, Design Patterns) + autorskie (Front-End, Engineering Practices) gotowe. Cloud Fundamentals świadomie pominięty (poza zakresem kursu EPAM). Łącznie aplikacja ma teraz 9 kategorii / 179 pytań.
+
+---
+
+## 2026-06-09 — Content expansion batch 3: +10 pytań do każdego z 9 banków (banki → 30)
+
+**Co zrobione (branch `feat/expand-question-banks-batch3`, issue #148):**
+- Każdy z 9 banków rozszerzony o 10 nowych pytań MultipleChoice, bez dublowania istniejących tematów (mapa tematów zbudowana wcześniej przez grep nazw metod Q01–Q20).
+  - **Unit Testing** Q20–Q29: mock vs stub, fake in-memory, cykl TDD, nazewnictwo testów, Assert.Throws, xUnit Theory, konstruktor jako setup, Moq It.IsAny, FIRST, Moq Verify vs Setup. (bank → 29)
+  - **SQL** Q21–Q30: foreign key, inner vs left join, GROUP BY, WHERE vs HAVING, COUNT, DISTINCT, sens indeksu, 3NF, UNION vs UNION ALL, ACID.
+  - **EF Core** Q21–Q30: explicit loading, stany encji, Find vs Single, [Key], OnModelCreating, HasMany/WithOne, FromSqlRaw, HasData, N+1, IQueryable deferred.
+  - **ASP.NET Core** Q21–Q30: Run (terminal), service lifetimes, [FromBody], IActionResult, system konfiguracji, IOptions, CORS, walidacja modelu, [AllowAnonymous], kolejność middleware.
+  - **C#/.NET** Q21–Q30: value vs reference, boxing/unboxing, IDisposable/using, GC, niemutowalność string, Task.WhenAll, ConfigureAwait, delegate vs event, LINQ deferred, struct vs class.
+  - **ADO.NET** Q21–Q30: reader forward-only, output parameter, async execution, DataTable, isolation level, command timeout, connection string builder, DBNull, CommandBehavior.CloseConnection, multiple result sets.
+  - **Design Patterns** Q21–Q30: Prototype, Facade, Proxy, Flyweight, Chain of Responsibility, Mediator, State, Memento, Repository, kategorie wzorców GoF.
+  - **Front-End** Q21–Q30: destructuring, spread/rest, reduce, null vs undefined, event bubbling, Promise.all, jednostka rem, media queries, optional chaining, pseudo-class vs pseudo-element.
+  - **Engineering Practices** Q21–Q30: git stash, reset vs revert, Conventional Commits, SemVer, sens pull requesta, trunk-based development, dług techniczny, refactoring, Boy Scout Rule, analiza statyczna.
+- Mieszana trudność (~3 Easy / 5 Medium / 2 Hard na kategorię).
+- Wszystkie single-correct (invariant `MultipleChoice`).
+- `DataSeederTests` — liczniki zaktualizowane: 9 kategorii (bez zmian), 269 pytań, 1076 opcji.
+
+**Weryfikacja:**
+- `dotnet build` Infrastructure — zielone, 0 ostrzeżeń, 0 błędów.
+- Invariant ręcznie per plik: 8 banków po 30 (Q=30, correct=30, opt=120), Unit Testing 29 (Q=29, correct=29, opt=116). Suma: 269 pytań, 1076 opcji — zgodne z testem.
+- Testy integracyjne (Testcontainers) — bramką CI (Docker lokalnie ubity).
+
+**Status:** 9 kategorii / 269 pytań / 1076 opcji. PR → po zielonym CI merge za potwierdzeniem.

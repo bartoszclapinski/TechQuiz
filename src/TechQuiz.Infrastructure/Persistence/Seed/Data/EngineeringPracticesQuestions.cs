@@ -38,6 +38,16 @@ public static class EngineeringPracticesQuestions
         Q18_CodeSmell(categoryId),
         Q19_CodeReview(categoryId),
         Q20_TestPyramid(categoryId),
+        Q21_GitStash(categoryId),
+        Q22_ResetVsRevert(categoryId),
+        Q23_ConventionalCommits(categoryId),
+        Q24_SemanticVersioning(categoryId),
+        Q25_PullRequestPurpose(categoryId),
+        Q26_TrunkBasedDevelopment(categoryId),
+        Q27_TechnicalDebt(categoryId),
+        Q28_Refactoring(categoryId),
+        Q29_BoyScoutRule(categoryId),
+        Q30_StaticAnalysis(categoryId),
     ];
 
     private static Question Q01_GitCommit(Guid categoryId)
@@ -490,6 +500,196 @@ public static class EngineeringPracticesQuestions
                 new Option(Guid.NewGuid(), qid, "Mostly end-to-end UI tests, with very few unit tests",                                                 isCorrect: false, orderIndex: 1),
                 new Option(Guid.NewGuid(), qid, "An equal number of unit, integration, and end-to-end tests",                                           isCorrect: false, orderIndex: 2),
                 new Option(Guid.NewGuid(), qid, "Only integration tests, since they exercise the most code",                                             isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q21_GitStash(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What does `git stash` do?",
+            explanation: "`git stash` saves uncommitted changes (staged and unstaged) onto a stack and reverts the working directory to a clean state, so you can switch contexts and reapply the changes later.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Temporarily shelves uncommitted changes and cleans the working directory", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Permanently deletes uncommitted changes", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Creates a new commit on the current branch", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Pushes local changes to the remote", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q22_ResetVsRevert(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Hard,
+            text: "How does `git revert` differ from `git reset`?",
+            explanation: "`git revert` creates a new commit that undoes a previous one, preserving history — safe for shared branches. `git reset` moves the branch pointer and can rewrite history, which is dangerous once pushed.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "revert adds a new commit that undoes changes; reset moves the branch pointer", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "They are aliases for the same operation", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "revert deletes commits permanently; reset keeps history", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "revert only works on remote branches", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q23_ConventionalCommits(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What is the purpose of the Conventional Commits specification?",
+            explanation: "Conventional Commits define a structured commit message format (e.g. `feat:`, `fix:`) that machines can parse to automate versioning and changelog generation, and that humans can read consistently.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A standard commit message format that enables automation like semantic versioning", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "A rule that every commit must contain tests", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A limit on how many files a commit may touch", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A Git hook that signs commits with GPG", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q24_SemanticVersioning(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "In semantic versioning (MAJOR.MINOR.PATCH), what triggers a MAJOR version bump?",
+            explanation: "Under SemVer, MAJOR increments for incompatible (breaking) API changes, MINOR for backward-compatible new features, and PATCH for backward-compatible bug fixes.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "A backward-incompatible (breaking) change", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Any new backward-compatible feature", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "A bug fix that keeps the API stable", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "A documentation-only update", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q25_PullRequestPurpose(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What is the primary purpose of a pull request?",
+            explanation: "A pull request proposes merging changes from one branch into another and provides a place for code review, automated checks, and discussion before the code is integrated.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "To propose changes for review and discussion before merging", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "To download the latest changes from the remote", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "To create a backup of the repository", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "To deploy the application to production", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q26_TrunkBasedDevelopment(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What characterizes trunk-based development?",
+            explanation: "In trunk-based development, developers integrate small changes frequently into a single shared branch (the trunk), keeping branches short-lived to minimize merge conflicts and enable continuous integration.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Frequent small merges into one shared branch with short-lived branches", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Long-lived feature branches merged only at release time", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "One permanent branch per developer", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "No branching; everyone edits files directly on the server", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q27_TechnicalDebt(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the term 'technical debt' describe?",
+            explanation: "Technical debt is the implied future cost of choosing an easy or quick solution now over a better approach that would take longer — like financial debt, it accrues 'interest' as it slows future work.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "The future cost of taking shortcuts instead of better solutions", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Money owed to software vendors for licenses", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "The number of open bugs in a tracker", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "The time a build takes to complete", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q28_Refactoring(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is refactoring?",
+            explanation: "Refactoring is improving the internal structure of code without changing its external behavior, making it easier to understand and cheaper to modify while keeping all tests green.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Improving code's internal structure without changing its behavior", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Adding new features to existing code", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Fixing a bug that changes program output", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Rewriting the application in a new language", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q29_BoyScoutRule(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Easy,
+            text: "What does the 'Boy Scout Rule' advise in software craftsmanship?",
+            explanation: "The Boy Scout Rule, popularized by Robert C. Martin, says to always leave the code a little cleaner than you found it — small continuous improvements prevent gradual decay.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Always leave the code cleaner than you found it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Never modify code you did not write", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Always write code in pairs", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Commit only at the end of the day", isCorrect: false, orderIndex: 3),
+            ]);
+    }
+
+    private static Question Q30_StaticAnalysis(Guid categoryId)
+    {
+        var qid = Guid.NewGuid();
+        return Question.Create(
+            id: qid,
+            categoryId: categoryId,
+            type: QuestionType.MultipleChoice,
+            difficulty: Difficulty.Medium,
+            text: "What is static code analysis?",
+            explanation: "Static analysis inspects source code without executing it, automatically detecting potential bugs, style violations, security issues, and code smells early in the development cycle.",
+            options:
+            [
+                new Option(Guid.NewGuid(), qid, "Examining source code for issues without running it", isCorrect: true,  orderIndex: 0),
+                new Option(Guid.NewGuid(), qid, "Measuring performance while the program runs", isCorrect: false, orderIndex: 1),
+                new Option(Guid.NewGuid(), qid, "Running the full test suite on every commit", isCorrect: false, orderIndex: 2),
+                new Option(Guid.NewGuid(), qid, "Monitoring memory usage in production", isCorrect: false, orderIndex: 3),
             ]);
     }
 }
