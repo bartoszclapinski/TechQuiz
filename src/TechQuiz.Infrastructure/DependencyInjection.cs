@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Infrastructure.Auth;
+using TechQuiz.Infrastructure.CodeExecution;
 using TechQuiz.Infrastructure.Identity;
 using TechQuiz.Infrastructure.Persistence;
 using TechQuiz.Infrastructure.Persistence.Identity;
@@ -89,6 +91,22 @@ public static class DependencyInjection
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IRefreshTokenIssuer, RandomRefreshTokenIssuer>();
         services.AddScoped<IUserAccountService, IdentityUserAccountService>();
+
+        // Code execution via self-hosted Judge0 (ADR-018). BaseUrl must be set so the
+        // typed client has a target; ValidateOnStart fails fast on a missing endpoint.
+        services
+            .AddOptions<Judge0Options>()
+            .Bind(configuration.GetSection(Judge0Options.SectionName))
+            .Validate(
+                o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                "Judge0:BaseUrl must be an absolute URL.")
+            .ValidateOnStart();
+
+        services.AddHttpClient<ICodeExecutor, Judge0CodeExecutor>((provider, client) =>
+        {
+            var judge0 = provider.GetRequiredService<IOptions<Judge0Options>>().Value;
+            client.BaseAddress = new Uri(judge0.BaseUrl.TrimEnd('/') + "/");
+        });
 
         return services;
     }
