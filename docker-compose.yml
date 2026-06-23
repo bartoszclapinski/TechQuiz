@@ -59,6 +59,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=techquiz;Username=techquiz;Password=techquiz_dev"
       Serilog__WriteTo__1__Args__serverUrl: "http://seq:5341"
+      # Judge0 runner on the techquiz network (only reachable when the codeexec profile is up).
+      Judge0__BaseUrl: "http://judge0-server:2358"
       # Dev-only JWT signing key. NEVER copy this anywhere; production must override.
       Jwt__SigningKey: "Yk2N+9P3uVw/AaQXkF1ZJzr8jbE6S0LpD4hCnTgRqIyMxv7K0BtUaH3WeOoiPlmd"
     ports:
@@ -78,9 +80,75 @@ services:
     networks:
       - techquiz
 
+  # --- Code-execution stack (Judge0) — ADR-018 -------------------------------
+  # Heavyweight and host-sensitive, so gated behind the "codeexec" profile.
+  #   Plain dev (no code exec):  docker compose up -d
+  #   With Judge0:               docker compose --profile codeexec up -d
+  # The API reaches the runner at http://judge0-server:2358 on the techquiz network.
+  #
+  # KNOWN GOTCHA: Judge0's isolate sandbox needs cgroup v1. Docker Desktop /
+  # WSL2 default to cgroup v2, where judge0-workers can fail to run submissions.
+  # If results hang or error, the host must enable cgroup v1 (e.g. kernel flag
+  # systemd.unified_cgroup_hierarchy=0). Tracked as a spike risk, not yet solved.
+  judge0-server:
+    image: judge0/judge0:1.13.1
+    container_name: techquiz-judge0-server
+    profiles: ["codeexec"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "127.0.0.1:2358:2358"
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: unless-stopped
+    networks:
+      - techquiz
+
+  judge0-workers:
+    image: judge0/judge0:1.13.1
+    container_name: techquiz-judge0-workers
+    profiles: ["codeexec"]
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: unless-stopped
+    networks:
+      - techquiz
+
+  judge0-db:
+    image: postgres:16-alpine
+    container_name: techquiz-judge0-db
+    profiles: ["codeexec"]
+    env_file: judge0.conf
+    volumes:
+      - judge0-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - techquiz
+
+  judge0-redis:
+    image: redis:7-alpine
+    container_name: techquiz-judge0-redis
+    profiles: ["codeexec"]
+    env_file: judge0.conf
+    command: ["sh", "-c", "redis-server --appendonly no --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - judge0-redis-data:/data
+    restart: unless-stopped
+    networks:
+      - techquiz
+
 volumes:
   postgres-data:
   seq-data:
+  judge0-db-data:
+  judge0-redis-data:
 
 networks:
   techquiz:
