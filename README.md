@@ -63,7 +63,7 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 - Multi-user authentication with JWT
 - Quiz flow: select category → answer questions → see results (test mode)
 - Backend domain logic developed with TDD
-- 10–20 seed questions across C# Basics and ASP.NET Core categories
+- 269 seed questions across 9 categories (C#/.NET, ASP.NET Core, EF Core, ADO.NET, SQL, Unit Testing, Design Patterns, Front-End, Engineering Practices)
 - Demo user with historical quiz attempts for development
 
 ### Coming in Phase 2
@@ -148,7 +148,14 @@ pnpm dev    # http://localhost:5173 with HMR
 
 ### Demo credentials
 
-> Demo user + seed questions land in **Phase 1** (iteration 1.3 — persistence). Until then `/health` is the only meaningful endpoint.
+A demo user is seeded automatically on first run (when the categories table is empty), along with all 269 questions:
+
+```
+Email:    demo@techquiz.local
+Password: Demo123!
+```
+
+Sign in with these to skip registration and explore the full quiz flow. Re-seeding is a no-op on a non-empty database — to start fresh, run `docker compose down -v`.
 
 ---
 
