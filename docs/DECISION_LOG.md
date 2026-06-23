@@ -427,3 +427,43 @@ The project needs continuous integration on PRs and continuous deployment to a p
 - **Required code review** — typical in commercial teams but adds friction with no benefit in a solo project. CI is the gatekeeper instead.
 - **Deferring semantic-release** — would have meant manual version bumps and CHANGELOG edits later. Setup cost upfront is small (~10 min); benefit (clean release history visible to recruiters) is large.
 - **Skipping staging in MVP** — would have meant the portfolio piece is "code-only" until Phase 4. Live URL is a major credibility signal; worth the dedicated iteration.
+
+---
+
+## ADR-018: Online Code Execution for Coding Questions
+
+**Status:** Accepted
+**Date:** 2026-06-23
+
+### Context
+The roadmap (Phase 3, see ADR-013 and `sprint3/README.md`) originally scoped "code questions" as three non-executing variants — **CodeOutput** (predict the output), **CodeFix** (find the bug), and **FillIn** (complete the snippet) — graded either against a stored answer or by an AI evaluator. None of these run user code.
+
+We now want a stronger, more differentiated capability: **coding tasks of varying difficulty where the user writes C# and the platform actually compiles and runs it against hidden tests**, reporting pass/fail like Exercism or LeetCode. C# is the only target language initially; more languages are a later, deliberate extension.
+
+The hard problem is **executing untrusted code safely**. User submissions can attempt file/network access, infinite loops, fork bombs, and memory exhaustion. Running such code in the API process is not acceptable.
+
+### Decision
+
+**A new execution-backed question type is introduced** — `CodeChallenge` — alongside the previously planned non-executing variants. For `CodeChallenge`, the user writes a C# function/program; the platform compiles it, runs it against a hidden test harness in an isolated sandbox, and grades on observed behavior (stdout / exit code / test assertions), not on AI judgment.
+
+**Execution runs on a self-hosted Judge0 instance**, not in-process and not in the API container. The API submits `{ source, stdin, expected output / test harness, language=C# }` to Judge0 over its REST API; Judge0 compiles and runs the code under its `isolate`/cgroups sandbox (no network, CPU/memory/wall-time limits, read-only filesystem) and returns stdout, stderr, exit status, and timing. Judge0 ships as additional services in `docker-compose` (its own server, workers, PostgreSQL, and Redis), keeping it isolated from the application database and process.
+
+**Language scope.** C# only at launch. Judge0 supports ~60 languages out of the box, so adding languages later is configuration and content work, not an architectural change — this is the reason Judge0 is preferred over a bespoke .NET-only runner.
+
+**AI's role is reframed, not removed.** AI evaluation (ADR-013 / sprint3) remains valuable for *qualitative feedback* on a submission ("you missed the null case"), but it is no longer the grader for executable tasks — the test harness is. AI feedback becomes complementary to deterministic pass/fail, not a substitute for it.
+
+**This ADR supersedes the implicit Phase 3 decision** that all code questions are AI-evaluated and non-executing. The non-executing variants (CodeOutput, CodeFix, FillIn) still stand; `CodeChallenge` is additive and execution-backed.
+
+### Consequences
+- Coding tasks become genuinely interactive — write, run, see real test results — which is the most memorable differentiator in the portfolio.
+- Untrusted code never touches the API process or the application database; the blast radius of a malicious submission is confined to an ephemeral, network-less, resource-capped Judge0 sandbox.
+- The local stack grows by several containers (Judge0 server + workers + its own Postgres + Redis). `docker compose up` is heavier; the portable-deploy story (Docker on any host) still holds, just with a larger footprint.
+- Difficulty levels map naturally onto challenge design: from "return the sum of two ints" (Easy) to "implement an algorithm handling edge cases and performance" (Hard), graded by the hidden test set.
+- A dedicated iteration (and content authoring for test harnesses) is needed; this is net-new scope beyond the original Phase 3 outline and will get its own sprint detail.
+- Operational surface increases: Judge0 versions, sandbox config, and resource limits become things to maintain and tune.
+
+### Alternatives Rejected
+- **Roslyn scripting in-process (`Microsoft.CodeAnalysis.CSharp.Scripting`)** — fastest to prototype and pure .NET, but runs arbitrary user code inside the API process with full access to the host. Safe use would require building a sandbox ourselves; getting that wrong on a public portfolio that runs strangers' code is an unacceptable liability.
+- **Bespoke per-submission Docker containers** — strong isolation, but reimplements what Judge0 already provides (queueing, language toolchains, resource limits, result capture). Reinventing the sandbox is effort better spent on product.
+- **Piston (engineer-man)** — lighter (single container, no DB/Redis) and a viable fallback, but a smaller language/runtime ecosystem and a less feature-complete API (no built-in queue/limits semantics) than Judge0. Kept as a contingency if Judge0's footprint proves too heavy for the target host.
+- **Hosted Judge0 via RapidAPI** — removes self-hosting effort, but adds an external dependency, per-call rate limits, and cost, and sends user code off-box. Self-hosting keeps the system self-contained and free.
