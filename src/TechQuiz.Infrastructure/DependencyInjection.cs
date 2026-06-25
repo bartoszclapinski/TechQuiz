@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IPooledQuestionRepository, PooledQuestionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DataSeeder>();
 
