@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TechQuiz.Application;
+using TechQuiz.Application.Features.Ai;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Api.ErrorHandling;
@@ -62,6 +63,7 @@ public sealed class GlobalExceptionHandler(
         RegistrationFailedException => (StatusCodes.Status400BadRequest, "Registration failed"),
         ArgumentException => (StatusCodes.Status400BadRequest, "Invalid request"),
         KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+        MissingAiKeyException => (StatusCodes.Status409Conflict, "AI key not configured"),
         ForbiddenAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
         UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
         DomainException => (StatusCodes.Status409Conflict, "Conflict"),

@@ -40,7 +40,7 @@ public class AiProviderRegistrationTests
             .Resolve(AiProviderKind.Anthropic);
 
         var drafts = await stub.GenerateQuestionsAsync(
-            new GenerateQuestionsRequest("LINQ", Difficulty.Medium, 3));
+            new GenerateQuestionsRequest("LINQ", Difficulty.Medium, 3), "unused-key");
 
         drafts.Should().HaveCount(3);
         drafts.Should().OnlyContain(d => d.Options.Count == 4 && d.Difficulty == Difficulty.Medium);

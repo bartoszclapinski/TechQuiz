@@ -38,3 +38,78 @@
 **Weryfikacja:**
 - `dotnet build TechQuiz.sln` → 0 warnings / 0 errors.
 - `dotnet test TechQuiz.Application.Tests` → 99/99 green (18 new for AI: 16 Application + 2 Infrastructure DI smoke). Full Infrastructure suite (Testcontainers) deferred to CI — these AI tests need no Docker.
+
+---
+
+## 2026-06-25 — Iteration 3.2 start: BYO-key Application slice
+
+**Co zrobione:**
+- Closed iteration 3.1, added **ADR-019** (four-provider set: native OpenAI/Anthropic/Gemini + OpenRouter, amends ADR-006) and wrote the full `3.2-byok-and-anthropic.md` plan. Branched `feat/ai-key-storage`.
+- **Key management Application slice** (`#172`, 1 commit, TDD) — `IAiKeyStore` port; `SetAiKeyCommand` / `RemoveAiKeyCommand` / `GetConfiguredProvidersQuery` + handlers + validators, all scoped to the current user via `IUserContext`; extended `AiProviderKind` with `OpenAi`, `Gemini`; added `MissingAiKeyException`. 25 AI Application tests green.
+
+**Decyzje:**
+- **Four native/gateway providers, not a gateway-only shortcut.** BYO-key must honor the key a user already holds — forcing an OpenAI user onto OpenRouter (new account + separate funding) is bad UX. Enum carries all four now; only Anthropic is built/verified live in 3.2, the rest are deferred but the resolver's unknown-kind path stays real.
+- **List/Get expose kinds only, never key material** (ADR-006). Encryption at rest lands with the EF persistence commit next.
+
+**Weryfikacja:**
+- `dotnet test TechQuiz.Application.Tests --filter Features.Ai` → 25/25 green.
+
+---
+
+## 2026-06-25 — Iteration 3.2: encrypted persistence + live Anthropic provider
+
+**Co zrobione:**
+- **Encrypted key store** (`#173`) — `UserAiKey` row (composite PK (user, provider), provider as text, cascade FK), `EncryptedAiKeyStore` over ASP.NET Data Protection, `AddUserAiKeys` migration, `AddDataProtection()` + scoped registration. 6 Testcontainers tests, incl. one asserting the stored column is ciphertext, not plaintext.
+- **Anthropic provider + key-injection seam** — `IAiProvider.GenerateQuestionsAsync` now takes the per-user `apiKey` (provider stays a stateless singleton). `GenerateQuestionsCommandHandler` fetches the key from `IAiKeyStore` and throws `MissingAiKeyException` when none is configured. `AnthropicAiProvider` (typed HttpClient → Messages API, prompts for a strict JSON array, tolerates ``` fences, parses to drafts), `AnthropicOptions`, `AiResponseException`. DI swaps the stub for the real client; resolver moved to **scoped** so it never captures the typed HttpClient. 8 provider/registration tests (mocked `HttpMessageHandler`, no network) + handler missing-key test.
+
+**Decyzje:**
+- **Key flows as a method argument, not on the provider.** The handler (Application) owns the "user must have a key" policy via `MissingAiKeyException`; the provider (Infrastructure) is pure HTTP and attaches `x-api-key` per request. Keeps the provider a safe singleton and the policy testable without HTTP.
+- **Resolver is now scoped.** A singleton resolver capturing a typed-HttpClient provider would freeze handler rotation — scoping the resolver avoids the captive dependency.
+- **Default key ring is host-local (noted in DI).** Staging/prod must persist the Data Protection ring (Azure Blob + Key Vault) or rotated keys become undecryptable on restart — deploy-time follow-up, out of 3.2 scope.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0/0. Application Ai filter → 26/26; Infrastructure provider+registration → 8/8; encrypted-store Testcontainers → 6/6.
+
+---
+
+## 2026-06-25 — Iteration 3.2: key-management API endpoints
+
+**Co zrobione:**
+- `AiKeysController` at `api/ai/keys` — `PUT` (set/rotate), `DELETE /{provider}` (remove), `GET` (list configured). All `[Authorize]`. `MissingAiKeyException` mapped to 409 in `GlobalExceptionHandler` so generation without a key can never 500.
+- 4 E2E tests through `WebApplicationFactory` + Postgres: auth required, set→list→remove round-trip, unknown provider → 400, empty key → 400.
+
+**Decyzje:**
+- **Providers cross the wire as enum names ("Anthropic"), not ints.** The quiz/results endpoints rely on the API having *no* global string-enum converter (the React client hard-codes `Difficulty = {Easy:0,…}`), so flipping global serialization would break the frontend. The AI controller maps provider↔string itself to stay readable without that global change.
+- **Unknown provider handled at the controller (400), empty key by the existing validation pipeline (400).** Key material is only ever accepted, never returned by `GET`.
+
+**Weryfikacja:**
+- AiKeys API tests → 4/4 green (real encryption + Postgres round-trip).
+
+---
+
+## 2026-06-25 — Iteration 3.2: generate endpoint (closes the vertical)
+
+**Co zrobione:**
+- `AiQuestionsController` at `POST api/ai/questions` — `[Authorize]`, accepts `{topic, difficulty, count, provider}` with difficulty/provider as enum *names*, maps to `GenerateQuestionsCommand`, returns `{provider, questions[]}`. This is the HTTP surface the live smoke (DoD line 8) drives.
+- 4 E2E tests through `WebApplicationFactory` + Postgres: unauthenticated → 401; no configured key → 409 (deletes the Anthropic key first to guarantee the no-key state, so the test needs **no** real LLM call); unknown provider → 400; unknown difficulty → 400.
+
+**Decyzje:**
+- **Response omits `CorrectOptionIndex`.** Hard rule #4 + the `GenerateQuestionsResult` contract keep correct-answer indices server-side; the smoke only needs to prove Claude authored stems/options. Draft DTO carries stem, options, difficulty name, explanation — not the answer key.
+- **Difficulty + provider parsed as strings in the controller**, same rationale as `AiKeysController`: no global string-enum converter (the React quiz client hard-codes numeric `Difficulty`), so each AI action maps its own enums. Unknown values → 400 before reaching MediatR.
+- **Live smoke stays the owner's manual step.** It needs a funded Anthropic key, so it can't be automated; DoD line 8 documents the exact `PUT /api/ai/keys` → `POST /api/ai/questions` sequence. All other DoD boxes are checked.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0/0. AiQuestions API tests → 4/4. Full solution → 226/226 green (Domain 65, Application 109, Infrastructure 35, Api 17).
+
+---
+
+## 2026-06-25 — Iteration 3.2: live smoke PASSED (DoD closed, status → done)
+
+**Co zrobione:**
+- Ran the end-to-end BYO-key vertical against the **real Anthropic API** with the owner's key: login (demo user) → `PUT /api/ai/keys` (Anthropic) → `POST /api/ai/questions {topic:"C# records", difficulty:"Easy", count:3}`. Claude returned **3 well-formed drafts** (4 options each, correct difficulty). `GET /api/ai/keys` → `["Anthropic"]` only; **zero `sk-ant` occurrences in the API log** (key never logged). Iteration 3.2 status flipped to **done**.
+
+**Dwa gotchas środowiska dev (nie kod, ale warto zapamiętać):**
+- **Port:** compose publikuje Postgresa na **5433** (`127.0.0.1:5433->5432`, by nie kolidować z lokalnym 5432), a `appsettings.json` ma `Port=5432`. To działa container-to-container w compose; przy lokalnym `dotnet run` trzeba nadpisać connection string na 5433 (env `ConnectionStrings__DefaultConnection`). Design-time factory już domyślnie celuje w 5433.
+- **Migracje:** API **nie robi auto-migracji na starcie**. Trwała dev-baza (wolumen `postgres-data`) była migrowana przed dodaniem `AddUserAiKeys`, więc `PUT /api/ai/keys` dawało 500 `relation "user_ai_key" does not exist` do czasu ręcznego `dotnet ef database update`. Po aplikacji migracji smoke przeszedł.
+
+**Uwaga bezpieczeństwa:** klucz właściciela siedzi teraz zaszyfrowany w dev-bazie (per-user, BYO-key). Można go usunąć przez `DELETE /api/ai/keys/Anthropic`; przeżywa restarty dopóki nie zrobi się `docker compose down -v`.

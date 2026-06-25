@@ -15,6 +15,7 @@ public sealed class StubAiProvider : IAiProvider
 
     public Task<IReadOnlyList<GeneratedQuestionDraft>> GenerateQuestionsAsync(
         GenerateQuestionsRequest request,
+        string apiKey,
         CancellationToken cancellationToken = default)
     {
         var drafts = Enumerable.Range(1, request.Count)

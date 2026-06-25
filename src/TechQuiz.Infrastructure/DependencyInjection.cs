@@ -114,10 +114,31 @@ public static class DependencyInjection
         services.AddSingleton<ICodeChallengeCatalog, InMemoryCodeChallengeCatalog>();
 
         // AI question generation (ADR-006). The resolver picks a provider by Kind from
-        // the registered set; StubAiProvider is the iteration-3.1 placeholder for the
-        // Anthropic kind and is replaced by a real client in 3.2. Stateless → singleton.
-        services.AddSingleton<IAiProvider, StubAiProvider>();
-        services.AddSingleton<IAiProviderResolver, AiProviderResolver>();
+        // the registered set. Anthropic is the only live provider in iteration 3.2; the
+        // other kinds in AiProviderKind resolve to UnknownAiProviderException until built.
+        services
+            .AddOptions<AnthropicOptions>()
+            .Bind(configuration.GetSection(AnthropicOptions.SectionName))
+            .Validate(
+                o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                "Ai:Anthropic:BaseUrl must be an absolute URL.")
+            .ValidateOnStart();
+
+        // Typed HttpClient → transient. The resolver is scoped (not singleton) so it never
+        // captures the typed client, keeping HttpClient handler rotation intact.
+        services.AddHttpClient<IAiProvider, AnthropicAiProvider>((provider, client) =>
+        {
+            var anthropic = provider.GetRequiredService<IOptions<AnthropicOptions>>().Value;
+            client.BaseAddress = new Uri(anthropic.BaseUrl.TrimEnd('/') + "/");
+        });
+        services.AddScoped<IAiProviderResolver, AiProviderResolver>();
+
+        // Bring-your-own-key storage (ADR-006): user keys are encrypted at rest with
+        // ASP.NET Data Protection. Scoped because the store depends on AppDbContext.
+        // NOTE: the default key ring is host-local; staging/prod must persist it
+        // (Azure Blob + Key Vault) or rotated keys become undecryptable on restart.
+        services.AddDataProtection();
+        services.AddScoped<IAiKeyStore, EncryptedAiKeyStore>();
 
         return services;
     }

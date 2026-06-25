@@ -12,8 +12,15 @@ public interface IAiProvider
 {
     AiProviderKind Kind { get; }
 
+    /// <summary>
+    /// Generates drafts using the caller-supplied <paramref name="apiKey"/>. The key is
+    /// the current user's own credential (bring-your-own-key, ADR-006); it is passed per
+    /// call rather than held by the provider, which stays a stateless HTTP client and is
+    /// safe to register as a singleton.
+    /// </summary>
     Task<IReadOnlyList<GeneratedQuestionDraft>> GenerateQuestionsAsync(
         GenerateQuestionsRequest request,
+        string apiKey,
         CancellationToken cancellationToken = default);
 }
 
