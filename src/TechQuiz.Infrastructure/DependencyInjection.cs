@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TechQuiz.Application.Abstractions;
+using TechQuiz.Application.Features.Ai;
+using TechQuiz.Infrastructure.Ai;
 using TechQuiz.Infrastructure.Auth;
 using TechQuiz.Infrastructure.CodeExecution;
 using TechQuiz.Infrastructure.Identity;
@@ -110,6 +112,12 @@ public static class DependencyInjection
 
         // In-memory seed of coding challenges (ADR-018); singleton since the seed is immutable.
         services.AddSingleton<ICodeChallengeCatalog, InMemoryCodeChallengeCatalog>();
+
+        // AI question generation (ADR-006). The resolver picks a provider by Kind from
+        // the registered set; StubAiProvider is the iteration-3.1 placeholder for the
+        // Anthropic kind and is replaced by a real client in 3.2. Stateless → singleton.
+        services.AddSingleton<IAiProvider, StubAiProvider>();
+        services.AddSingleton<IAiProviderResolver, AiProviderResolver>();
 
         return services;
     }
