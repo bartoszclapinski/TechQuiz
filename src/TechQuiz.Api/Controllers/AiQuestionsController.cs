@@ -41,7 +41,7 @@ public sealed class AiQuestionsController(IMediator mediator) : ControllerBase
 
         var questions = result.Questions
             .Select(q => new GeneratedDraftDto(
-                q.Stem, q.Options, q.Difficulty.ToString(), q.Explanation))
+                q.Id, q.Stem, q.Options, q.Difficulty.ToString(), q.Explanation))
             .ToArray();
 
         return Ok(new GenerateQuestionsResponse(result.Provider.ToString(), questions));
@@ -60,5 +60,5 @@ public sealed class AiQuestionsController(IMediator mediator) : ControllerBase
         string Provider, IReadOnlyList<GeneratedDraftDto> Questions);
 
     public sealed record GeneratedDraftDto(
-        string Stem, IReadOnlyList<string> Options, string Difficulty, string? Explanation);
+        Guid Id, string Stem, IReadOnlyList<string> Options, string Difficulty, string? Explanation);
 }
