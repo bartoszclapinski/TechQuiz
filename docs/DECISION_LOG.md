@@ -110,7 +110,7 @@ Firebase's Firestore (NoSQL) would require manual denormalization and join logic
 
 ## ADR-006: Multi-Provider AI with User-Supplied Keys
 
-**Status:** Accepted
+**Status:** Accepted — **Amended by ADR-019** (provider set expanded to native OpenAI/Anthropic/Gemini + OpenRouter; voice funding model added)
 **Date:** 2026-05-11
 
 ### Context
@@ -467,3 +467,47 @@ The hard problem is **executing untrusted code safely**. User submissions can at
 - **Bespoke per-submission Docker containers** — strong isolation, but reimplements what Judge0 already provides (queueing, language toolchains, resource limits, result capture). Reinventing the sandbox is effort better spent on product.
 - **Piston (engineer-man)** — lighter (single container, no DB/Redis) and a viable fallback, but a smaller language/runtime ecosystem and a less feature-complete API (no built-in queue/limits semantics) than Judge0. Kept as a contingency if Judge0's footprint proves too heavy for the target host.
 - **Hosted Judge0 via RapidAPI** — removes self-hosting effort, but adds an external dependency, per-call rate limits, and cost, and sends user code off-box. Self-hosting keeps the system self-contained and free.
+
+---
+
+## ADR-019: AI Provider Set — Native OpenAI/Anthropic/Gemini plus OpenRouter
+
+**Status:** Accepted
+**Date:** 2026-06-25
+
+**Amends ADR-006** (Multi-Provider AI with User-Supplied Keys). The provider abstraction, bring-your-own-key model, and `IDataProtectionProvider` key encryption from ADR-006 all stand unchanged. This ADR only revises *which* providers ship and adds the voice funding model.
+
+### Context
+ADR-006 scoped concrete providers as **OpenAI + Anthropic** and treated Gemini / local models as "addable later via the interface." When planning Phase 3, two questions forced a revision:
+
+1. **How many native providers do we build, and do we even need them given OpenRouter?** OpenRouter is a single OpenAI-compatible endpoint that reaches Claude, GPT, Gemini, and open models on one key. The temptation was to ship only a native Anthropic client plus OpenRouter and call it "everything."
+2. **Who pays for voice** in the planned interview-simulation feature (separate idea; ElevenLabs for TTS)?
+
+The OpenRouter-only-plus-Anthropic line was rejected on **user-experience grounds**: bring-your-own-key exists to accept the key a user *already has*. Forcing someone who already funds an OpenAI (or Google) API key to create an OpenRouter account and load separate credit there is real friction that defeats the purpose. The provider abstraction makes each native client cheap, so minimizing integration count at the cost of UX is a bad trade.
+
+### Decision
+The AI layer ships **four `IAiProvider` implementations**:
+
+- **Anthropic** (native) — first to be built and the only provider verifiable end-to-end today (the only key the owner funds during development).
+- **OpenAI** (native) — so users already on OpenAI use their existing key.
+- **Gemini** (native) — so users in the Google ecosystem use their existing key.
+- **OpenRouter** — a single OpenAI-compatible client reaching many models on one key, offered as an *additional* convenience for users who deliberately want one key for everything. It does **not** replace the native providers.
+
+No standalone provider is built per model; "provider" = an integration (key + HTTP client + parsing), "model" = what you reach through it. Four integrations, many reachable models.
+
+**Build / verification order.** Anthropic is implemented and verified live first. OpenAI, Gemini, and OpenRouter are built behind the same seam and verified with mocked-HTTP integration tests; each is confirmed against the real API once a key for it is available. We do not claim a provider "works" before it has been run against its real endpoint.
+
+**Funding model.** LLM usage stays fully bring-your-own-key (users pay, per ADR-006). For the future interview-simulation feature, the **owner funds the ElevenLabs voice** (TTS/STT) himself, while users still supply their own LLM keys. The app will later include per-provider tutorials walking users through creating an API key.
+
+### Consequences
+- Users onboard with whatever provider they already use — no forced signup or fund-transfer to a gateway. Lower adoption friction, which is the whole point of BYO-key.
+- Four clients to maintain instead of two; mitigated by the shared `IAiProvider` seam, the resolver, and shared response-mapping. Adding a fifth provider stays cheap.
+- OpenRouter's presence means breadth (any model it routes) is available without a native client per vendor, for users who opt into it.
+- Verification is staggered: only Anthropic is provable live now; the others rely on mocked-HTTP tests until keys exist. This is an honest limitation, not a gap to paper over.
+- `AiProviderKind` grows from `{ Anthropic, OpenRouter }` (shipped in iteration 3.1) to `{ Anthropic, OpenAi, Gemini, OpenRouter }`.
+- Voice cost sits with the owner, bounded to the interview feature; LLM cost never does.
+
+### Alternatives Rejected
+- **Native Anthropic + OpenRouter only** — fewest integrations and OpenRouter technically reaches every model, but forces non-Anthropic users onto a new account with separately-funded credit. Rejected on UX: BYO-key must honor the key users already hold.
+- **OpenRouter only (zero native clients)** — maximal simplicity, single integration, but every user must use OpenRouter regardless of what they already pay for. Same friction, more acutely.
+- **Owner funds all LLM generation** — removes user-key friction entirely, but puts unbounded AI cost on a portfolio project and was already rejected in ADR-006. Voice is the one exception (bounded, owner-funded) because few users hold an ElevenLabs key.
