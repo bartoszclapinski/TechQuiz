@@ -167,3 +167,21 @@
 
 **Weryfikacja:**
 - Plan committed on the feature branch; implementacja (feature folder + strona + routing) idzie następnym commitem. Closes #183.
+
+---
+
+## 2026-06-25 — Iteration 3.4: generate screen built + verified (DoD closed, status → done)
+
+**Co zrobione:**
+- `web/src/features/generate/` — `api.ts` (`generateQuestions` + `GenerateRequest`/`GeneratedDraft`/`GenerateResult`, difficulty/provider jako nazwy, draft bez klucza odpowiedzi), `use-generate-questions.ts` (mutacja, brak cache — drafty efemeryczne do 3.5), `generate-page.tsx` (formularz RHF+zod, bramka providera, podgląd draftów). Routing `/generate` w `App.tsx`. „Generate" awansowane z `COMING_SOON` do głównej nawigacji. Closes #184.
+- Status 3.4 → done, DoD odhaczone. Closes #185.
+
+**Decyzje:**
+- **Brak `query-keys.ts` w generate** — generacja to mutacja bez własnego query; provider list reużywa `useConfiguredProviders`/`aiKeysKey` z 3.3. Pusty plik kluczy byłby martwy (pragmatyzm > sztywne trzymanie się listy plików z planu).
+- **`z.number({ error })` + `register('count', { valueAsNumber: true })`** zamiast `z.coerce.number()` — coerce rozjeżdża input/output typy schematu i wywala zodResolver. (Zod v4: `invalid_type_error` → `error`.)
+- **No-key path = osobny widok** („No provider configured" + link do Settings), nie submit w pewny 409. 409/400/network → toasty (`reportGenerateError`).
+
+**Weryfikacja:**
+- `pnpm build` (`tsc -b` strict + `vite build`) → czysto.
+- **Owner kliknął w przeglądarce (dev: vite 5173 → API 5032):** formularz + walidacja + **generacja na żywo przeciw realnemu Anthropic** zwróciła drafty end-to-end; „Save to my pool" disabled „soon"; dark/light OK. Potwierdzone: „wszystko działa poprawnie".
+- **No-key path zweryfikowany nieinwazyjnie:** świeży keyless user → `GET /api/ai/keys` → `[]` (200), czyli dokładnie te dane, na których UI renderuje notice + link do Settings. Klucza właściciela nie ruszano (ma tylko jeden i nie trzyma jego wartości pod ręką — usunięcie = utrata).
