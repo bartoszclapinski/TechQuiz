@@ -100,3 +100,16 @@
 
 **Weryfikacja:**
 - `dotnet build TechQuiz.sln` → 0/0. AiQuestions API tests → 4/4. Full solution → 226/226 green (Domain 65, Application 109, Infrastructure 35, Api 17).
+
+---
+
+## 2026-06-25 — Iteration 3.2: live smoke PASSED (DoD closed, status → done)
+
+**Co zrobione:**
+- Ran the end-to-end BYO-key vertical against the **real Anthropic API** with the owner's key: login (demo user) → `PUT /api/ai/keys` (Anthropic) → `POST /api/ai/questions {topic:"C# records", difficulty:"Easy", count:3}`. Claude returned **3 well-formed drafts** (4 options each, correct difficulty). `GET /api/ai/keys` → `["Anthropic"]` only; **zero `sk-ant` occurrences in the API log** (key never logged). Iteration 3.2 status flipped to **done**.
+
+**Dwa gotchas środowiska dev (nie kod, ale warto zapamiętać):**
+- **Port:** compose publikuje Postgresa na **5433** (`127.0.0.1:5433->5432`, by nie kolidować z lokalnym 5432), a `appsettings.json` ma `Port=5432`. To działa container-to-container w compose; przy lokalnym `dotnet run` trzeba nadpisać connection string na 5433 (env `ConnectionStrings__DefaultConnection`). Design-time factory już domyślnie celuje w 5433.
+- **Migracje:** API **nie robi auto-migracji na starcie**. Trwała dev-baza (wolumen `postgres-data`) była migrowana przed dodaniem `AddUserAiKeys`, więc `PUT /api/ai/keys` dawało 500 `relation "user_ai_key" does not exist` do czasu ręcznego `dotnet ef database update`. Po aplikacji migracji smoke przeszedł.
+
+**Uwaga bezpieczeństwa:** klucz właściciela siedzi teraz zaszyfrowany w dev-bazie (per-user, BYO-key). Można go usunąć przez `DELETE /api/ai/keys/Anthropic`; przeżywa restarty dopóki nie zrobi się `docker compose down -v`.
