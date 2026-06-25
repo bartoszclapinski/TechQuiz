@@ -209,3 +209,52 @@
 
 **Następny krok:**
 - Domain TDD: agregat `PooledQuestion` (factory + `Publish()`), red→green→refactor.
+
+---
+
+## 2026-06-25 — Iteration 3.5: full vertical built (Domain → frontend), 6 atomic commits
+
+**Co zrobione (6 atomic commits, 1 issue ↔ 1 commit):**
+- **Domain** (`#188`, TDD) — `PooledQuestion` aggregate + `PooledQuestionOption` + `PooledQuestionStatus`
+  (Draft/Published). Factory mirrors `Question` validation (≥2 options, exactly one correct for
+  MultipleChoice) plus attribution (user, provider name, `GeneratedAtUtc`); starts `Draft`; `Publish()`
+  Draft→Published, double-publish throws `PooledQuestionAlreadyPublishedException`. 16 tests.
+- **Application** (`#189`, TDD) — `GenerateQuestionsCommandHandler` now *persists* drafts as `Draft`
+  via `IPooledQuestionRepository` (+ `TimeProvider`, `IUserContext`), maps each draft → aggregate
+  (correct option from `CorrectOptionIndex`, provider = `AiProviderKind.ToString()`); returns
+  answer-key-free `GeneratedQuestionSummary` (now with draft `id`). `PublishPooledQuestionCommand`
+  (+validator): load by id → `KeyNotFoundException`; not owner → `ForbiddenAccessException`; `Publish()`;
+  save. `ListPooledQuestionsQuery` → `PooledQuestionDto` without correct option.
+- **Infrastructure** (`#190`) — EF config (string-converted enums, indexed Status + CreatedByUserId,
+  shadow-FK owned options via backing field), `PooledQuestionRepository`, DI registration,
+  `AddPooledQuestions` migration. 3 Testcontainers round-trips incl. Draft→Published transition.
+- **API** (`#191`) — `GET /api/pool/questions` + `POST /api/pool/questions/{id}/publish` (thin MediatR;
+  401/403/404/409 all map through the existing `GlobalExceptionHandler`); generate response carries
+  draft ids. 4 WebApplicationFactory smoke tests.
+- **API refactor** (`#192`) — pool browse projects Difficulty to its enum *name* so the wire matches
+  the generate preview (no global string-enum converter — the quiz client needs numeric Difficulty).
+- **Frontend** (`#193`) — `web/src/features/pool/` (api + `usePooledQuestions` query +
+  `usePublishQuestion` mutation + browse page), `/pool` route + nav entry. Generate preview now has a
+  per-draft **Publish to pool** button (mutation → toast → pool-query invalidation; flips to
+  "Published ✓", can't re-fire and 409).
+
+**Decyzje:**
+- **Provider trzymany jako *nazwa* (string) na agregacie, nie `AiProviderKind`** — `AiProviderKind`
+  żyje w Application.Abstractions, więc trzymanie enuma w Domain złamałoby hard rule #3. Domain
+  zapisuje proweniencję jako string; handler mapuje `.ToString()`.
+- **Publish per-draft, nie „publish all"** — każdy draft to osobno persystowane pytanie z własnym id;
+  przycisk per-karta wprost odzwierciedla model (i 409 przy ponownej publikacji jest naturalny).
+- **Difficulty jako nazwa też w puli** (`#192`) — spójność z preview generacji; front reużywa tę samą
+  mapę odznak (`Easy/Medium/Hard`).
+- **Answer-key boundary:** correct option trzymany serwerowo na agregacie od generacji; publish działa
+  po **id**, klient nigdy nie odsyła treści — hard rule #4 trzyma w obu stanach.
+
+**Weryfikacja:**
+- Domain 81/81, Application 118/118 green; `PooledQuestionRepositoryTests` 3/3 (Testcontainers);
+  `PoolEndpointsTests` 4/4 (WebApplicationFactory + Postgres). `dotnet build` 0/0.
+- Frontend: `pnpm lint` czysto, `tsc --noEmit` czysto, `pnpm build` (`tsc -b` + `vite build`) czysto.
+- **Pozostaje weryfikacja w przeglądarce (DoD line 9) — do właściciela:** golden path
+  generate → publish → pojawia się w „Pool" wymaga żywego BYO klucza AI (Anthropic), którego nie ma w
+  środowisku agenta. Pool browse renderuje empty-state bez klucza. Po stronie kodu wszystko gotowe;
+  sekwencja do klikniecia: login demo → `PUT /api/ai/keys` (Anthropic) → Generate → **Publish to pool**
+  → zakładka **Pool** pokazuje opublikowane pytanie; sprawdzić dark/light.
