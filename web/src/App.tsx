@@ -6,6 +6,7 @@ import { AppShell } from './components/app-shell'
 import { CategoriesPage } from './features/categories/categories-page'
 import { QuizPage } from './features/quiz/quiz-page'
 import { ResultPage } from './features/results/result-page'
+import { SettingsPage } from './features/settings/settings-page'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/quiz/:id" element={<QuizPage />} />
             <Route path="/result/:attemptId" element={<ResultPage />} />
           </Route>
