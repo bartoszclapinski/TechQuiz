@@ -53,3 +53,19 @@
 
 **Weryfikacja:**
 - `dotnet test TechQuiz.Application.Tests --filter Features.Ai` → 25/25 green.
+
+---
+
+## 2026-06-25 — Iteration 3.2: encrypted persistence + live Anthropic provider
+
+**Co zrobione:**
+- **Encrypted key store** (`#173`) — `UserAiKey` row (composite PK (user, provider), provider as text, cascade FK), `EncryptedAiKeyStore` over ASP.NET Data Protection, `AddUserAiKeys` migration, `AddDataProtection()` + scoped registration. 6 Testcontainers tests, incl. one asserting the stored column is ciphertext, not plaintext.
+- **Anthropic provider + key-injection seam** — `IAiProvider.GenerateQuestionsAsync` now takes the per-user `apiKey` (provider stays a stateless singleton). `GenerateQuestionsCommandHandler` fetches the key from `IAiKeyStore` and throws `MissingAiKeyException` when none is configured. `AnthropicAiProvider` (typed HttpClient → Messages API, prompts for a strict JSON array, tolerates ``` fences, parses to drafts), `AnthropicOptions`, `AiResponseException`. DI swaps the stub for the real client; resolver moved to **scoped** so it never captures the typed HttpClient. 8 provider/registration tests (mocked `HttpMessageHandler`, no network) + handler missing-key test.
+
+**Decyzje:**
+- **Key flows as a method argument, not on the provider.** The handler (Application) owns the "user must have a key" policy via `MissingAiKeyException`; the provider (Infrastructure) is pure HTTP and attaches `x-api-key` per request. Keeps the provider a safe singleton and the policy testable without HTTP.
+- **Resolver is now scoped.** A singleton resolver capturing a typed-HttpClient provider would freeze handler rotation — scoping the resolver avoids the captive dependency.
+- **Default key ring is host-local (noted in DI).** Staging/prod must persist the Data Protection ring (Azure Blob + Key Vault) or rotated keys become undecryptable on restart — deploy-time follow-up, out of 3.2 scope.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0/0. Application Ai filter → 26/26; Infrastructure provider+registration → 8/8; encrypted-store Testcontainers → 6/6.
