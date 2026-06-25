@@ -185,3 +185,27 @@
 - `pnpm build` (`tsc -b` strict + `vite build`) → czysto.
 - **Owner kliknął w przeglądarce (dev: vite 5173 → API 5032):** formularz + walidacja + **generacja na żywo przeciw realnemu Anthropic** zwróciła drafty end-to-end; „Save to my pool" disabled „soon"; dark/light OK. Potwierdzone: „wszystko działa poprawnie".
 - **No-key path zweryfikowany nieinwazyjnie:** świeży keyless user → `GET /api/ai/keys` → `[]` (200), czyli dokładnie te dane, na których UI renderuje notice + link do Settings. Klucza właściciela nie ruszano (ma tylko jeden i nie trzyma jego wartości pod ręką — usunięcie = utrata).
+
+---
+
+## 2026-06-25 — Iteration 3.5 start: scope, ADR-020, plan + branch
+
+**Co zrobione:**
+- Closed 3.4 (merged PR #186 to master). Branched `feat/public-pool-persistence` off master.
+- Expanded the Sprint 3 outline into the full `3.5-public-pool.md` plan (goal + DoD + ordered tasks).
+- Added **ADR-020** (refines ADR-007) recording the persistence mechanism + the contract change.
+
+**Decyzje (zakres uzgodniony z właścicielem — „zgodnie z rekomendacją"):**
+- **3.5 = persist + attribution + browse.** Voting, flagging, moderation queue oraz *grywalność*
+  pytań z puli (mapowanie topic→category, wpięcie w runner) — odłożone (ADR-007, Phase 3/4).
+- **Mechanizm zapisu = Draft → Published (Opcja B, ADR-020).** Generacja od razu persystuje drafty
+  jako `Draft` (właściciel = autor, serwer trzyma `CorrectOptionIndex`), „Save to my pool" = publish
+  → `Published` (widoczne dla wszystkich). Daje kuracyjną bramkę i naturalne miejsce na moderację.
+- **Dlaczego nie Opcja A (generacja = publish od razu):** prostsza, ale każdy śmieć ląduje w
+  wspólnej puli bez bramki, a moderacji jeszcze nie ma. Status to jedno pole — tani zysk.
+- **Zmiana kontraktu `POST /api/ai/questions`** (teraz *zapisuje*) zapisana w ADR-020, nie po cichu
+  (hard rule #5). Odpowiedź do klienta bez zmian co do klucza odpowiedzi (hard rule #4 trzyma w obu
+  stanach) — dochodzi tylko `id` draftu, żeby front mógł publikować po id, nie po treści.
+
+**Następny krok:**
+- Domain TDD: agregat `PooledQuestion` (factory + `Publish()`), red→green→refactor.
