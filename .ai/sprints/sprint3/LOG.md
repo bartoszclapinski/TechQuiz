@@ -253,8 +253,13 @@
 - Domain 81/81, Application 118/118 green; `PooledQuestionRepositoryTests` 3/3 (Testcontainers);
   `PoolEndpointsTests` 4/4 (WebApplicationFactory + Postgres). `dotnet build` 0/0.
 - Frontend: `pnpm lint` czysto, `tsc --noEmit` czysto, `pnpm build` (`tsc -b` + `vite build`) czysto.
-- **Pozostaje weryfikacja w przeglądarce (DoD line 9) — do właściciela:** golden path
-  generate → publish → pojawia się w „Pool" wymaga żywego BYO klucza AI (Anthropic), którego nie ma w
-  środowisku agenta. Pool browse renderuje empty-state bez klucza. Po stronie kodu wszystko gotowe;
-  sekwencja do klikniecia: login demo → `PUT /api/ai/keys` (Anthropic) → Generate → **Publish to pool**
-  → zakładka **Pool** pokazuje opublikowane pytanie; sprawdzić dark/light.
+- **Owner przeklikał golden path w przeglądarce (dev: vite 5173 → API 8080):** login demo →
+  Generate (klucz Anthropic „Configured") → **Publish to pool** (toast + „Published ✓") → zakładka
+  **Pool** pokazuje opublikowane pytanie bez klucza odpowiedzi; dark/light OK. Potwierdzone:
+  „działa wszystko jak należy". DoD zamknięte, status 3.5 → **done**.
+
+**Gotcha dev (nie kod):** trwała dev-baza (wolumen `postgres-data`) nie miała migracji
+`AddPooledQuestions` — API nie auto-migruje, więc trzeba było ręcznie `dotnet ef database update`
+przed klikaniem (inaczej `GET /api/pool/questions` → 500 `relation "pooled_questions" does not exist`,
+ten sam wzorzec co przy `AddUserAiKeys` w 3.2). Drugi drobiazg: zombie-vite z poprzedniej sesji
+trzymał 5173, więc świeży vite wpadał na 5174 (poza CORS allowlist API = 5173) — ubity, restart na 5173.
