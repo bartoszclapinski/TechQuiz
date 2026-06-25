@@ -108,6 +108,9 @@ public static class DependencyInjection
             client.BaseAddress = new Uri(judge0.BaseUrl.TrimEnd('/') + "/");
         });
 
+        // In-memory seed of coding challenges (ADR-018); singleton since the seed is immutable.
+        services.AddSingleton<ICodeChallengeCatalog, InMemoryCodeChallengeCatalog>();
+
         return services;
     }
 }

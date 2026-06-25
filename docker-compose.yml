@@ -94,8 +94,7 @@ services:
     image: judge0/judge0:1.13.1
     container_name: techquiz-judge0-server
     profiles: ["codeexec"]
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
+    env_file: judge0.conf
     ports:
       - "127.0.0.1:2358:2358"
     privileged: true
@@ -111,8 +110,7 @@ services:
     container_name: techquiz-judge0-workers
     profiles: ["codeexec"]
     command: ["./scripts/workers"]
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
+    env_file: judge0.conf
     privileged: true
     depends_on:
       - judge0-db
