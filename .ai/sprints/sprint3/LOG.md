@@ -69,3 +69,18 @@
 
 **Weryfikacja:**
 - `dotnet build TechQuiz.sln` → 0/0. Application Ai filter → 26/26; Infrastructure provider+registration → 8/8; encrypted-store Testcontainers → 6/6.
+
+---
+
+## 2026-06-25 — Iteration 3.2: key-management API endpoints
+
+**Co zrobione:**
+- `AiKeysController` at `api/ai/keys` — `PUT` (set/rotate), `DELETE /{provider}` (remove), `GET` (list configured). All `[Authorize]`. `MissingAiKeyException` mapped to 409 in `GlobalExceptionHandler` so generation without a key can never 500.
+- 4 E2E tests through `WebApplicationFactory` + Postgres: auth required, set→list→remove round-trip, unknown provider → 400, empty key → 400.
+
+**Decyzje:**
+- **Providers cross the wire as enum names ("Anthropic"), not ints.** The quiz/results endpoints rely on the API having *no* global string-enum converter (the React client hard-codes `Difficulty = {Easy:0,…}`), so flipping global serialization would break the frontend. The AI controller maps provider↔string itself to stay readable without that global change.
+- **Unknown provider handled at the controller (400), empty key by the existing validation pipeline (400).** Key material is only ever accepted, never returned by `GET`.
+
+**Weryfikacja:**
+- AiKeys API tests → 4/4 green (real encryption + Postgres round-trip).
