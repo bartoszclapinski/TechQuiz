@@ -18,11 +18,27 @@ public sealed class PoolController(IMediator mediator) : ControllerBase
 {
     /// <summary>Lists the published pool questions, newest first. No answer key.</summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PooledQuestionDto>>> GetAll(
+    public async Task<ActionResult<IReadOnlyList<PooledQuestionResponse>>> GetAll(
         CancellationToken cancellationToken)
     {
         var questions = await mediator.Send(new ListPooledQuestionsQuery(), cancellationToken);
-        return Ok(questions);
+
+        // Difficulty crosses the wire as its enum name, matching the generate preview; the quiz
+        // endpoints' numeric contract is why there's no global string-enum converter to lean on.
+        var response = questions
+            .Select(q => new PooledQuestionResponse(
+                q.Id,
+                q.Stem,
+                q.Options,
+                q.Difficulty.ToString(),
+                q.Explanation,
+                q.Provider,
+                q.Topic,
+                q.CreatedByUserId,
+                q.GeneratedAtUtc))
+            .ToArray();
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -35,4 +51,15 @@ public sealed class PoolController(IMediator mediator) : ControllerBase
         await mediator.Send(new PublishPooledQuestionCommand(id), cancellationToken);
         return NoContent();
     }
+
+    public sealed record PooledQuestionResponse(
+        Guid Id,
+        string Stem,
+        IReadOnlyList<string> Options,
+        string Difficulty,
+        string? Explanation,
+        string Provider,
+        string Topic,
+        Guid CreatedByUserId,
+        DateTime GeneratedAtUtc);
 }
