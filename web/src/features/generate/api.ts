@@ -10,9 +10,11 @@ export type GenerateRequest = {
   provider: string
 }
 
-// Mirrors the API's GeneratedDraftDto. No correct-answer key — the draft contract omits
+// Mirrors the API's GeneratedDraftDto. The draft is persisted server-side (3.5), so it carries an
+// id — the handle used to publish it. No correct-answer key: the draft contract omits
 // CorrectOptionIndex by design (hard rule #4), so the preview can't (and shouldn't) mark an option.
 export type GeneratedDraft = {
+  id: string
   stem: string
   options: string[]
   difficulty: string

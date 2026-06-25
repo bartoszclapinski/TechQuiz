@@ -54,6 +54,16 @@ export function AppShell() {
           >
             Generate
           </NavLink>
+          <NavLink
+            to="/pool"
+            className={({ isActive }) =>
+              `rounded-md px-2.5 py-1.5 text-[13px] font-medium ${
+                isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+              }`
+            }
+          >
+            Pool
+          </NavLink>
           {COMING_SOON.map((label) => (
             <span
               key={label}

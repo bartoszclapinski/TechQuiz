@@ -8,6 +8,7 @@ import { QuizPage } from './features/quiz/quiz-page'
 import { ResultPage } from './features/results/result-page'
 import { SettingsPage } from './features/settings/settings-page'
 import { GeneratePage } from './features/generate/generate-page'
+import { PoolPage } from './features/pool/pool-page'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route element={<AppShell />}>
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
+            <Route path="/pool" element={<PoolPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/quiz/:id" element={<QuizPage />} />
             <Route path="/result/:attemptId" element={<ResultPage />} />

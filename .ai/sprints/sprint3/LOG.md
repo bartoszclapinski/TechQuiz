@@ -185,3 +185,81 @@
 - `pnpm build` (`tsc -b` strict + `vite build`) → czysto.
 - **Owner kliknął w przeglądarce (dev: vite 5173 → API 5032):** formularz + walidacja + **generacja na żywo przeciw realnemu Anthropic** zwróciła drafty end-to-end; „Save to my pool" disabled „soon"; dark/light OK. Potwierdzone: „wszystko działa poprawnie".
 - **No-key path zweryfikowany nieinwazyjnie:** świeży keyless user → `GET /api/ai/keys` → `[]` (200), czyli dokładnie te dane, na których UI renderuje notice + link do Settings. Klucza właściciela nie ruszano (ma tylko jeden i nie trzyma jego wartości pod ręką — usunięcie = utrata).
+
+---
+
+## 2026-06-25 — Iteration 3.5 start: scope, ADR-020, plan + branch
+
+**Co zrobione:**
+- Closed 3.4 (merged PR #186 to master). Branched `feat/public-pool-persistence` off master.
+- Expanded the Sprint 3 outline into the full `3.5-public-pool.md` plan (goal + DoD + ordered tasks).
+- Added **ADR-020** (refines ADR-007) recording the persistence mechanism + the contract change.
+
+**Decyzje (zakres uzgodniony z właścicielem — „zgodnie z rekomendacją"):**
+- **3.5 = persist + attribution + browse.** Voting, flagging, moderation queue oraz *grywalność*
+  pytań z puli (mapowanie topic→category, wpięcie w runner) — odłożone (ADR-007, Phase 3/4).
+- **Mechanizm zapisu = Draft → Published (Opcja B, ADR-020).** Generacja od razu persystuje drafty
+  jako `Draft` (właściciel = autor, serwer trzyma `CorrectOptionIndex`), „Save to my pool" = publish
+  → `Published` (widoczne dla wszystkich). Daje kuracyjną bramkę i naturalne miejsce na moderację.
+- **Dlaczego nie Opcja A (generacja = publish od razu):** prostsza, ale każdy śmieć ląduje w
+  wspólnej puli bez bramki, a moderacji jeszcze nie ma. Status to jedno pole — tani zysk.
+- **Zmiana kontraktu `POST /api/ai/questions`** (teraz *zapisuje*) zapisana w ADR-020, nie po cichu
+  (hard rule #5). Odpowiedź do klienta bez zmian co do klucza odpowiedzi (hard rule #4 trzyma w obu
+  stanach) — dochodzi tylko `id` draftu, żeby front mógł publikować po id, nie po treści.
+
+**Następny krok:**
+- Domain TDD: agregat `PooledQuestion` (factory + `Publish()`), red→green→refactor.
+
+---
+
+## 2026-06-25 — Iteration 3.5: full vertical built (Domain → frontend), 6 atomic commits
+
+**Co zrobione (6 atomic commits, 1 issue ↔ 1 commit):**
+- **Domain** (`#188`, TDD) — `PooledQuestion` aggregate + `PooledQuestionOption` + `PooledQuestionStatus`
+  (Draft/Published). Factory mirrors `Question` validation (≥2 options, exactly one correct for
+  MultipleChoice) plus attribution (user, provider name, `GeneratedAtUtc`); starts `Draft`; `Publish()`
+  Draft→Published, double-publish throws `PooledQuestionAlreadyPublishedException`. 16 tests.
+- **Application** (`#189`, TDD) — `GenerateQuestionsCommandHandler` now *persists* drafts as `Draft`
+  via `IPooledQuestionRepository` (+ `TimeProvider`, `IUserContext`), maps each draft → aggregate
+  (correct option from `CorrectOptionIndex`, provider = `AiProviderKind.ToString()`); returns
+  answer-key-free `GeneratedQuestionSummary` (now with draft `id`). `PublishPooledQuestionCommand`
+  (+validator): load by id → `KeyNotFoundException`; not owner → `ForbiddenAccessException`; `Publish()`;
+  save. `ListPooledQuestionsQuery` → `PooledQuestionDto` without correct option.
+- **Infrastructure** (`#190`) — EF config (string-converted enums, indexed Status + CreatedByUserId,
+  shadow-FK owned options via backing field), `PooledQuestionRepository`, DI registration,
+  `AddPooledQuestions` migration. 3 Testcontainers round-trips incl. Draft→Published transition.
+- **API** (`#191`) — `GET /api/pool/questions` + `POST /api/pool/questions/{id}/publish` (thin MediatR;
+  401/403/404/409 all map through the existing `GlobalExceptionHandler`); generate response carries
+  draft ids. 4 WebApplicationFactory smoke tests.
+- **API refactor** (`#192`) — pool browse projects Difficulty to its enum *name* so the wire matches
+  the generate preview (no global string-enum converter — the quiz client needs numeric Difficulty).
+- **Frontend** (`#193`) — `web/src/features/pool/` (api + `usePooledQuestions` query +
+  `usePublishQuestion` mutation + browse page), `/pool` route + nav entry. Generate preview now has a
+  per-draft **Publish to pool** button (mutation → toast → pool-query invalidation; flips to
+  "Published ✓", can't re-fire and 409).
+
+**Decyzje:**
+- **Provider trzymany jako *nazwa* (string) na agregacie, nie `AiProviderKind`** — `AiProviderKind`
+  żyje w Application.Abstractions, więc trzymanie enuma w Domain złamałoby hard rule #3. Domain
+  zapisuje proweniencję jako string; handler mapuje `.ToString()`.
+- **Publish per-draft, nie „publish all"** — każdy draft to osobno persystowane pytanie z własnym id;
+  przycisk per-karta wprost odzwierciedla model (i 409 przy ponownej publikacji jest naturalny).
+- **Difficulty jako nazwa też w puli** (`#192`) — spójność z preview generacji; front reużywa tę samą
+  mapę odznak (`Easy/Medium/Hard`).
+- **Answer-key boundary:** correct option trzymany serwerowo na agregacie od generacji; publish działa
+  po **id**, klient nigdy nie odsyła treści — hard rule #4 trzyma w obu stanach.
+
+**Weryfikacja:**
+- Domain 81/81, Application 118/118 green; `PooledQuestionRepositoryTests` 3/3 (Testcontainers);
+  `PoolEndpointsTests` 4/4 (WebApplicationFactory + Postgres). `dotnet build` 0/0.
+- Frontend: `pnpm lint` czysto, `tsc --noEmit` czysto, `pnpm build` (`tsc -b` + `vite build`) czysto.
+- **Owner przeklikał golden path w przeglądarce (dev: vite 5173 → API 8080):** login demo →
+  Generate (klucz Anthropic „Configured") → **Publish to pool** (toast + „Published ✓") → zakładka
+  **Pool** pokazuje opublikowane pytanie bez klucza odpowiedzi; dark/light OK. Potwierdzone:
+  „działa wszystko jak należy". DoD zamknięte, status 3.5 → **done**.
+
+**Gotcha dev (nie kod):** trwała dev-baza (wolumen `postgres-data`) nie miała migracji
+`AddPooledQuestions` — API nie auto-migruje, więc trzeba było ręcznie `dotnet ef database update`
+przed klikaniem (inaczej `GET /api/pool/questions` → 500 `relation "pooled_questions" does not exist`,
+ten sam wzorzec co przy `AddUserAiKeys` w 3.2). Drugi drobiazg: zombie-vite z poprzedniej sesji
+trzymał 5173, więc świeży vite wpadał na 5174 (poza CORS allowlist API = 5173) — ubity, restart na 5173.

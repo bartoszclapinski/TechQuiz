@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AI_PROVIDERS } from '../settings/api'
 import { useConfiguredProviders } from '../settings/use-configured-providers'
+import { usePublishQuestion } from '../pool/use-publish-question'
 import { useGenerateQuestions } from './use-generate-questions'
 import type { GenerateResult } from './api'
 
@@ -79,8 +80,8 @@ export function GeneratePage() {
       <div className="mb-7">
         <h1 className="mb-1 text-2xl font-semibold tracking-tight">Generate questions</h1>
         <p className="text-[13px] text-secondary">
-          Draft new questions with your own AI provider. Review them below — saving to a shared pool
-          arrives in a later iteration.
+          Draft new questions with your own AI provider. Review them below and publish the good ones
+          to the shared pool.
         </p>
       </div>
 
@@ -177,6 +178,13 @@ export function GeneratePage() {
 }
 
 function DraftPreview({ result }: { result: GenerateResult }) {
+  // Publishing is per-draft: each draft is its own persisted question with its own id. We track
+  // which ids have been published so the button flips to "Published" and can't re-fire (a second
+  // publish would 409). The publish hook invalidates the pool query, so the new question shows up
+  // on the Pool screen automatically.
+  const publish = usePublishQuestion()
+  const [publishedIds, setPublishedIds] = useState<Set<string>>(new Set())
+
   if (result.questions.length === 0) {
     return (
       <p className="mt-6 text-sm text-secondary">
@@ -185,31 +193,30 @@ function DraftPreview({ result }: { result: GenerateResult }) {
     )
   }
 
+  function onPublish(id: string) {
+    publish.mutate(id, {
+      onSuccess: () => {
+        setPublishedIds((current) => new Set(current).add(id))
+        toast.success('Published to the pool.')
+      },
+      onError: () => toast.error('Couldn’t publish that question. Please try again.'),
+    })
+  }
+
   return (
     <section className="mt-7">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-primary">
-          {result.questions.length} draft{result.questions.length === 1 ? '' : 's'} from{' '}
-          {result.provider}
-        </h2>
-        <button
-          type="button"
-          disabled
-          title="Saving to a shared pool arrives in a later iteration"
-          className="flex cursor-default items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted opacity-60"
-        >
-          Save to my pool
-          <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[9px] text-secondary">
-            soon
-          </span>
-        </button>
-      </div>
+      <h2 className="mb-3 text-sm font-semibold text-primary">
+        {result.questions.length} draft{result.questions.length === 1 ? '' : 's'} from{' '}
+        {result.provider}
+      </h2>
 
       <div className="flex flex-col gap-2.5">
-        {result.questions.map((draft, index) => {
+        {result.questions.map((draft) => {
           const badge = DIFFICULTY_BADGE[draft.difficulty]
+          const isPublished = publishedIds.has(draft.id)
+          const isPublishing = publish.isPending && publish.variables === draft.id
           return (
-            <article key={index} className="rounded-[10px] border border-default bg-base p-3.5">
+            <article key={draft.id} className="rounded-[10px] border border-default bg-base p-3.5">
               <div className="mb-2 flex items-start justify-between gap-3">
                 <p className="text-[13px] font-semibold text-primary">{draft.stem}</p>
                 {badge ? (
@@ -232,8 +239,25 @@ function DraftPreview({ result }: { result: GenerateResult }) {
                 ))}
               </ul>
               {draft.explanation ? (
-                <p className="text-[11px] leading-snug text-muted">{draft.explanation}</p>
+                <p className="mb-2 text-[11px] leading-snug text-muted">{draft.explanation}</p>
               ) : null}
+              <div className="flex justify-end">
+                {isPublished ? (
+                  <span className="rounded-md px-2.5 py-1.5 text-xs font-medium text-success">
+                    Published ✓
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onPublish(draft.id)}
+                    disabled={isPublishing}
+                    aria-busy={isPublishing}
+                    className="rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                  >
+                    {isPublishing ? 'Publishing…' : 'Publish to pool'}
+                  </button>
+                )}
+              </div>
             </article>
           )
         })}

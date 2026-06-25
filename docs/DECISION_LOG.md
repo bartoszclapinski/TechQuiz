@@ -511,3 +511,33 @@ No standalone provider is built per model; "provider" = an integration (key + HT
 - **Native Anthropic + OpenRouter only** — fewest integrations and OpenRouter technically reaches every model, but forces non-Anthropic users onto a new account with separately-funded credit. Rejected on UX: BYO-key must honor the key users already hold.
 - **OpenRouter only (zero native clients)** — maximal simplicity, single integration, but every user must use OpenRouter regardless of what they already pay for. Same friction, more acutely.
 - **Owner funds all LLM generation** — removes user-key friction entirely, but puts unbounded AI cost on a portfolio project and was already rejected in ADR-006. Voice is the one exception (bounded, owner-funded) because few users hold an ElevenLabs key.
+
+---
+
+## ADR-020: Pool Persistence via Draft → Published Lifecycle
+
+**Status:** Accepted
+**Date:** 2026-06-25
+
+**Refines ADR-007** (Public AI-Generated Question Pool). ADR-007's policy — AI-generated questions live in a public pool with preserved attribution and community moderation — stands unchanged. This ADR records the *mechanism* by which a generated question reaches the pool, and the resulting change to the generation endpoint's behavior.
+
+### Context
+Iteration 3.4 returns generated drafts to the client **without** `CorrectOptionIndex` (hard rule #4 — the correct answer never leaves the server). For a pooled question to be playable later, the correct index must be persisted. Because the client never receives it, the client cannot send it back on a "save" action. This forces a decision about *when* and *how* a draft is persisted. Two shapes were considered:
+
+1. **Generation = publish (one step).** Clicking Generate writes straight to the public pool. Simplest, faithful to ADR-007's "first user pays for everyone," but every generation — including low-quality output — immediately pollutes the shared pool, with no author curation gate.
+2. **Draft → Published (two steps).** Generation persists drafts privately (owned by the author, server holds the correct index), and an explicit publish action promotes them to the public pool.
+
+### Decision
+Generation persists each draft as a `PooledQuestion` in **`Draft`** status, owned by the generating user, with attribution (user, provider, timestamp) and the server-side correct option. An explicit **publish** action transitions a question to **`Published`**, at which point it is visible in the public pool. The correct option is stored server-side and is **never** serialized to any client (hard rule #4 holds in both states).
+
+This **changes the behavior of `POST /api/ai/questions`**: it now writes (persists drafts) where in 3.4 it was side-effect-free. The response contract to the client is unchanged (still no answer key); only the server-side persistence is new. Recording this here satisfies hard rule #5 (no silent contract change).
+
+### Consequences
+- A `Status` field (`Draft`/`Published`) lives on the aggregate from day one; it is also the natural attachment point for the deferred moderation/flagging states (ADR-007) without a later reshape.
+- The author gets a curation gate: generated noise stays private until deliberately published, keeping the shared pool cleaner before automated/community moderation exists.
+- Generation now has a write side effect and a persistence dependency; the handler gains a repository and `IUserContext`.
+- Voting, flagging, and the moderation queue remain deferred (ADR-007, Phase 3/4). Playing pooled questions as quizzes is also deferred — 3.5 delivers persist + attribution + browse only.
+
+### Alternatives Rejected
+- **Generation = publish (one step)** — simplest and most faithful to ADR-007's cost framing, but removes the author curation gate and dumps every generation into the shared pool with no moderation yet in place. Rejected: a curation gate is cheap (one status field) and meaningfully protects pool quality in the interim.
+- **Hold drafts in a cache / temp store keyed by a generation id** — keeps generation side-effect-free and defers the write to an explicit save, but adds an ephemeral-state mechanism (expiry, eviction) that the `Draft` status models more durably for free. Rejected as redundant complexity.
