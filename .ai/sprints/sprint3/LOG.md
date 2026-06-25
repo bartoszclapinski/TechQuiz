@@ -150,3 +150,38 @@
 - **Owner kliknął round-trip w przeglądarce (dev: vite 5173 → API 5032):** Settings pokazuje Anthropic „Configured" + trzy „soon"; pusty klucz → inline „Enter a key."; rotate → toast + czyszczenie inputu; remove z potwierdzeniem → „Not configured"; dark/light OK. Potwierdzone: „wszystko zadziałało".
 
 **Gotcha dev (nie kod):** profil `http` z `launchSettings.json` (applicationUrl=5032) nadpisuje `ASPNETCORE_URLS`, więc `dotnet run --launch-profile http` ląduje na **5032**, nie 8080. Frontend domyślnie celuje w 8080 — przy lokalnym `dotnet run` trzeba albo `--urls http://localhost:8080`, albo wskazać front na 5032 przez `VITE_API_BASE_URL`. Port API nie wpływa na CORS (origin = 5173, już dopuszczony).
+
+---
+
+## 2026-06-25 — Iteration 3.4 start: plan + branch
+
+**Co zrobione:**
+- Closed 3.3 (merged PR #182 to master). Branched `feat/generate-quiz-ui` off master.
+- Expanded the Sprint 3 outline into the full `3.4-generate-quiz-ui.md` plan (goal + DoD + ordered tasks).
+
+**Decyzje (zakres uzgodniony z właścicielem — „zgodnie z rekomendacją, poprawimy później"):**
+- **3.4 = generate + preview (read-only).** `POST /api/ai/questions` już zwraca drafty bez zapisu; persystencja (public pool, atrybucja, voting) to 3.5. „Save to my pool" w podglądzie = disabled „soon", żeby działający efekt klucza był widać teraz, a zapis doszedł osobno.
+- **Difficulty + provider jako *nazwy*** ("Easy", "Anthropic") — endpoint AI nie ma globalnego string-enum convertera (quiz zależy od numerycznego Difficulty). Ten feature pracuje na nazwach, świadomie oddzielony od numerycznego quizu.
+- **Bez klucza odpowiedzi w podglądzie** — draft DTO celowo pomija correct option (hard rule #4). Pokazanie odpowiedzi autorowi to decyzja kontraktowa do rozważenia przy persystencji (3.5), nie cichy workaround front-endowy.
+- **„Generate" awansuje do głównej nawigacji** (destynacja feature), w odróżnieniu od Settings (utility, gear). No-key path kieruje do Settings zamiast pewnego 409.
+
+**Weryfikacja:**
+- Plan committed on the feature branch; implementacja (feature folder + strona + routing) idzie następnym commitem. Closes #183.
+
+---
+
+## 2026-06-25 — Iteration 3.4: generate screen built + verified (DoD closed, status → done)
+
+**Co zrobione:**
+- `web/src/features/generate/` — `api.ts` (`generateQuestions` + `GenerateRequest`/`GeneratedDraft`/`GenerateResult`, difficulty/provider jako nazwy, draft bez klucza odpowiedzi), `use-generate-questions.ts` (mutacja, brak cache — drafty efemeryczne do 3.5), `generate-page.tsx` (formularz RHF+zod, bramka providera, podgląd draftów). Routing `/generate` w `App.tsx`. „Generate" awansowane z `COMING_SOON` do głównej nawigacji. Closes #184.
+- Status 3.4 → done, DoD odhaczone. Closes #185.
+
+**Decyzje:**
+- **Brak `query-keys.ts` w generate** — generacja to mutacja bez własnego query; provider list reużywa `useConfiguredProviders`/`aiKeysKey` z 3.3. Pusty plik kluczy byłby martwy (pragmatyzm > sztywne trzymanie się listy plików z planu).
+- **`z.number({ error })` + `register('count', { valueAsNumber: true })`** zamiast `z.coerce.number()` — coerce rozjeżdża input/output typy schematu i wywala zodResolver. (Zod v4: `invalid_type_error` → `error`.)
+- **No-key path = osobny widok** („No provider configured" + link do Settings), nie submit w pewny 409. 409/400/network → toasty (`reportGenerateError`).
+
+**Weryfikacja:**
+- `pnpm build` (`tsc -b` strict + `vite build`) → czysto.
+- **Owner kliknął w przeglądarce (dev: vite 5173 → API 5032):** formularz + walidacja + **generacja na żywo przeciw realnemu Anthropic** zwróciła drafty end-to-end; „Save to my pool" disabled „soon"; dark/light OK. Potwierdzone: „wszystko działa poprawnie".
+- **No-key path zweryfikowany nieinwazyjnie:** świeży keyless user → `GET /api/ai/keys` → `[]` (200), czyli dokładnie te dane, na których UI renderuje notice + link do Settings. Klucza właściciela nie ruszano (ma tylko jeden i nie trzyma jego wartości pod ręką — usunięcie = utrata).
