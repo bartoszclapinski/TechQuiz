@@ -113,3 +113,19 @@
 - **Migracje:** API **nie robi auto-migracji na starcie**. Trwała dev-baza (wolumen `postgres-data`) była migrowana przed dodaniem `AddUserAiKeys`, więc `PUT /api/ai/keys` dawało 500 `relation "user_ai_key" does not exist` do czasu ręcznego `dotnet ef database update`. Po aplikacji migracji smoke przeszedł.
 
 **Uwaga bezpieczeństwa:** klucz właściciela siedzi teraz zaszyfrowany w dev-bazie (per-user, BYO-key). Można go usunąć przez `DELETE /api/ai/keys/Anthropic`; przeżywa restarty dopóki nie zrobi się `docker compose down -v`.
+
+---
+
+## 2026-06-25 — Iteration 3.3 start: plan + branch
+
+**Co zrobione:**
+- Closed 3.2 (merged PR #178 to master at `6b9ba65`). Branched `feat/settings-ai-keys` off clean master.
+- Expanded the Sprint 3 outline into the full `3.3-settings-ui.md` plan (goal + DoD + ordered task list).
+
+**Decyzje (zakres uzgodniony z właścicielem):**
+- **3.3 = UI only nad istniejącym kontraktem `/api/ai/keys`.** Cała ochrona klucza (szyfrowanie at-rest, per-user, never-logged/never-returned) już jest w 3.2 — frontend jest cienkim klientem. Klucz nigdy nie ląduje w cache/localStorage ani nie jest pokazywany po wpisaniu; UI renderuje tylko stan „Configured / Not configured" z `GET`.
+- **Tylko Anthropic konfigurowalny teraz.** OpenAI/Gemini/OpenRouter renderowane jako „soon" (disabled) — spójnie z patternem `COMING_SOON` w topbarze (ADR-014). Brak sensu pozwalać zapisać klucz pod providera, którego nie ma jak użyć.
+- **Świadomie odłożone:** wybór aktywnego providera → 3.4 (ekran Generate); statystyki użycia → brak backendu (żaden endpoint usage-tracking nie istnieje).
+
+**Weryfikacja:**
+- Plan committed on the feature branch; implementacja (feature folder + strona + routing) idzie następnym commitem. Closes #179.
