@@ -113,3 +113,40 @@
 - **Migracje:** API **nie robi auto-migracji na starcie**. Trwała dev-baza (wolumen `postgres-data`) była migrowana przed dodaniem `AddUserAiKeys`, więc `PUT /api/ai/keys` dawało 500 `relation "user_ai_key" does not exist` do czasu ręcznego `dotnet ef database update`. Po aplikacji migracji smoke przeszedł.
 
 **Uwaga bezpieczeństwa:** klucz właściciela siedzi teraz zaszyfrowany w dev-bazie (per-user, BYO-key). Można go usunąć przez `DELETE /api/ai/keys/Anthropic`; przeżywa restarty dopóki nie zrobi się `docker compose down -v`.
+
+---
+
+## 2026-06-25 — Iteration 3.3 start: plan + branch
+
+**Co zrobione:**
+- Closed 3.2 (merged PR #178 to master at `6b9ba65`). Branched `feat/settings-ai-keys` off clean master.
+- Expanded the Sprint 3 outline into the full `3.3-settings-ui.md` plan (goal + DoD + ordered task list).
+
+**Decyzje (zakres uzgodniony z właścicielem):**
+- **3.3 = UI only nad istniejącym kontraktem `/api/ai/keys`.** Cała ochrona klucza (szyfrowanie at-rest, per-user, never-logged/never-returned) już jest w 3.2 — frontend jest cienkim klientem. Klucz nigdy nie ląduje w cache/localStorage ani nie jest pokazywany po wpisaniu; UI renderuje tylko stan „Configured / Not configured" z `GET`.
+- **Tylko Anthropic konfigurowalny teraz.** OpenAI/Gemini/OpenRouter renderowane jako „soon" (disabled) — spójnie z patternem `COMING_SOON` w topbarze (ADR-014). Brak sensu pozwalać zapisać klucz pod providera, którego nie ma jak użyć.
+- **Świadomie odłożone:** wybór aktywnego providera → 3.4 (ekran Generate); statystyki użycia → brak backendu (żaden endpoint usage-tracking nie istnieje).
+
+**Weryfikacja:**
+- Plan committed on the feature branch; implementacja (feature folder + strona + routing) idzie następnym commitem. Closes #179.
+
+---
+
+## 2026-06-25 — Iteration 3.3: settings page built + verified (DoD closed, status → done)
+
+**Co zrobione:**
+- `web/src/features/settings/` — `api.ts` (`fetchConfiguredProviders`/`setAiKey`/`removeAiKey` + `AI_PROVIDERS` catalog), `query-keys.ts` (`aiKeysKey`), trzy hooki (`useConfiguredProviders` query, `useSetAiKey`/`useRemoveAiKey` mutacje z invalidacją), `settings-page.tsx`. Routing `/settings` w `App.tsx` (za `RequireAuth`+`AppShell`), gear `NavLink` w topbarze. Closes #180.
+- Status 3.3 → done, wszystkie DoD odhaczone. Closes #181.
+
+**Decyzje:**
+- **Gear w prawym klastrze, nie w głównej nawigacji.** Settings to utility, nie destynacja „feature" — siedzi obok theme toggle, a `COMING_SOON` (Generate/Dashboard/…) zostaje nietknięte.
+- **Klucz znika ze stanu komponentu w `onSuccess`** — API i tak go nie zwraca; input czyści się od razu, nic nie ląduje w cache/localStorage. UI renderuje tylko `["Anthropic"]` z `GET`.
+- **Empty key łapany client-side (inline), API 400 też inline** (`messageFromSetError`), nie tylko toast — zgodnie z DoD.
+- **Remove = inline two-step confirm** zamiast osobnego dialogu (mniej ceremoniału, soft pref #5).
+
+**Weryfikacja:**
+- `pnpm build` (`tsc -b` strict + `vite build`) → czysto, 0 błędów.
+- Kontrakt API zsmoke'owany bezpośrednio: login demo → `GET /api/ai/keys` → `["Anthropic"]` (200).
+- **Owner kliknął round-trip w przeglądarce (dev: vite 5173 → API 5032):** Settings pokazuje Anthropic „Configured" + trzy „soon"; pusty klucz → inline „Enter a key."; rotate → toast + czyszczenie inputu; remove z potwierdzeniem → „Not configured"; dark/light OK. Potwierdzone: „wszystko zadziałało".
+
+**Gotcha dev (nie kod):** profil `http` z `launchSettings.json` (applicationUrl=5032) nadpisuje `ASPNETCORE_URLS`, więc `dotnet run --launch-profile http` ląduje na **5032**, nie 8080. Frontend domyślnie celuje w 8080 — przy lokalnym `dotnet run` trzeba albo `--urls http://localhost:8080`, albo wskazać front na 5032 przez `VITE_API_BASE_URL`. Port API nie wpływa na CORS (origin = 5173, już dopuszczony).
