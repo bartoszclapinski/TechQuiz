@@ -119,6 +119,13 @@ public static class DependencyInjection
         services.AddSingleton<IAiProvider, StubAiProvider>();
         services.AddSingleton<IAiProviderResolver, AiProviderResolver>();
 
+        // Bring-your-own-key storage (ADR-006): user keys are encrypted at rest with
+        // ASP.NET Data Protection. Scoped because the store depends on AppDbContext.
+        // NOTE: the default key ring is host-local; staging/prod must persist it
+        // (Azure Blob + Key Vault) or rotated keys become undecryptable on restart.
+        services.AddDataProtection();
+        services.AddScoped<IAiKeyStore, EncryptedAiKeyStore>();
+
         return services;
     }
 }

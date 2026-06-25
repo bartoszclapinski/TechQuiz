@@ -38,3 +38,18 @@
 **Weryfikacja:**
 - `dotnet build TechQuiz.sln` → 0 warnings / 0 errors.
 - `dotnet test TechQuiz.Application.Tests` → 99/99 green (18 new for AI: 16 Application + 2 Infrastructure DI smoke). Full Infrastructure suite (Testcontainers) deferred to CI — these AI tests need no Docker.
+
+---
+
+## 2026-06-25 — Iteration 3.2 start: BYO-key Application slice
+
+**Co zrobione:**
+- Closed iteration 3.1, added **ADR-019** (four-provider set: native OpenAI/Anthropic/Gemini + OpenRouter, amends ADR-006) and wrote the full `3.2-byok-and-anthropic.md` plan. Branched `feat/ai-key-storage`.
+- **Key management Application slice** (`#172`, 1 commit, TDD) — `IAiKeyStore` port; `SetAiKeyCommand` / `RemoveAiKeyCommand` / `GetConfiguredProvidersQuery` + handlers + validators, all scoped to the current user via `IUserContext`; extended `AiProviderKind` with `OpenAi`, `Gemini`; added `MissingAiKeyException`. 25 AI Application tests green.
+
+**Decyzje:**
+- **Four native/gateway providers, not a gateway-only shortcut.** BYO-key must honor the key a user already holds — forcing an OpenAI user onto OpenRouter (new account + separate funding) is bad UX. Enum carries all four now; only Anthropic is built/verified live in 3.2, the rest are deferred but the resolver's unknown-kind path stays real.
+- **List/Get expose kinds only, never key material** (ADR-006). Encryption at rest lands with the EF persistence commit next.
+
+**Weryfikacja:**
+- `dotnet test TechQuiz.Application.Tests --filter Features.Ai` → 25/25 green.
