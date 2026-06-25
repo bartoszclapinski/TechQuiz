@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using TechQuiz.Application.Abstractions;
@@ -26,8 +28,13 @@ public sealed class Judge0CodeExecutor(HttpClient httpClient, IOptions<Judge0Opt
             LanguageId: _options.CSharpLanguageId,
             Stdin: request.Stdin);
 
-        using var response = await httpClient.PostAsJsonAsync(
-            "submissions?base64_encoded=false&wait=true", payload, cancellationToken);
+        // Serialize to a buffered StringContent so the request carries a Content-Length.
+        // PostAsJsonAsync streams the body with Transfer-Encoding: chunked, which Judge0's
+        // Rack parser does not read — the submission arrives empty and grading fails.
+        var json = JsonSerializer.Serialize(payload);
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var response = await httpClient.PostAsync(
+            "submissions?base64_encoded=false&wait=true", content, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<SubmissionResponse>(cancellationToken)
