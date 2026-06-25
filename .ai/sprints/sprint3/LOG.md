@@ -84,3 +84,19 @@
 
 **Weryfikacja:**
 - AiKeys API tests → 4/4 green (real encryption + Postgres round-trip).
+
+---
+
+## 2026-06-25 — Iteration 3.2: generate endpoint (closes the vertical)
+
+**Co zrobione:**
+- `AiQuestionsController` at `POST api/ai/questions` — `[Authorize]`, accepts `{topic, difficulty, count, provider}` with difficulty/provider as enum *names*, maps to `GenerateQuestionsCommand`, returns `{provider, questions[]}`. This is the HTTP surface the live smoke (DoD line 8) drives.
+- 4 E2E tests through `WebApplicationFactory` + Postgres: unauthenticated → 401; no configured key → 409 (deletes the Anthropic key first to guarantee the no-key state, so the test needs **no** real LLM call); unknown provider → 400; unknown difficulty → 400.
+
+**Decyzje:**
+- **Response omits `CorrectOptionIndex`.** Hard rule #4 + the `GenerateQuestionsResult` contract keep correct-answer indices server-side; the smoke only needs to prove Claude authored stems/options. Draft DTO carries stem, options, difficulty name, explanation — not the answer key.
+- **Difficulty + provider parsed as strings in the controller**, same rationale as `AiKeysController`: no global string-enum converter (the React quiz client hard-codes numeric `Difficulty`), so each AI action maps its own enums. Unknown values → 400 before reaching MediatR.
+- **Live smoke stays the owner's manual step.** It needs a funded Anthropic key, so it can't be automated; DoD line 8 documents the exact `PUT /api/ai/keys` → `POST /api/ai/questions` sequence. All other DoD boxes are checked.
+
+**Weryfikacja:**
+- `dotnet build TechQuiz.sln` → 0/0. AiQuestions API tests → 4/4. Full solution → 226/226 green (Domain 65, Application 109, Infrastructure 35, Api 17).
