@@ -9,6 +9,8 @@ import { ResultPage } from './features/results/result-page'
 import { SettingsPage } from './features/settings/settings-page'
 import { GeneratePage } from './features/generate/generate-page'
 import { PoolPage } from './features/pool/pool-page'
+import { CodeChallengesPage } from './features/code-challenges/code-challenges-page'
+import { CodeChallengePage } from './features/code-challenges/code-challenge-page'
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
             <Route path="/pool" element={<PoolPage />} />
+            <Route path="/challenges" element={<CodeChallengesPage />} />
+            <Route path="/challenges/:id" element={<CodeChallengePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/quiz/:id" element={<QuizPage />} />
             <Route path="/result/:attemptId" element={<ResultPage />} />
