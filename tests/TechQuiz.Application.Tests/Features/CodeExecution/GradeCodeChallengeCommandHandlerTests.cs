@@ -48,6 +48,7 @@ public class GradeCodeChallengeCommandHandlerTests
         var result = await CreateSut().Handle(
             new GradeCodeChallengeCommand(challenge.Id, "// source"), CancellationToken.None);
 
+        result.Compiled.Should().BeTrue();
         result.Passed.Should().BeTrue();
         result.PassedCount.Should().Be(2);
         result.TotalCount.Should().Be(2);
@@ -89,7 +90,7 @@ public class GradeCodeChallengeCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_CompilationFails_AllCasesFail_AndSurfacesCompileOutput()
+    public async Task Handle_CompilationFails_ShortCircuits_WithoutEvaluatingCases()
     {
         var challenge = SeedChallengeWithTwoCases();
         _codeExecutor
@@ -105,10 +106,16 @@ public class GradeCodeChallengeCommandHandlerTests
         var result = await CreateSut().Handle(
             new GradeCodeChallengeCommand(challenge.Id, "broken"), CancellationToken.None);
 
+        result.Compiled.Should().BeFalse();
+        result.CompileOutput.Should().Be("error CS1002: ; expected");
         result.Passed.Should().BeFalse();
         result.PassedCount.Should().Be(0);
-        result.Cases.Should().OnlyContain(c =>
-            !c.Passed && c.CompileOutput == "error CS1002: ; expected");
+        result.TotalCount.Should().Be(2);
+        result.Cases.Should().BeEmpty();
+
+        // The compile gate runs once; a non-compiling submission is not replayed per case.
+        await _codeExecutor.Received(1).ExecuteCSharpAsync(
+            Arg.Any<CodeExecutionRequest>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
