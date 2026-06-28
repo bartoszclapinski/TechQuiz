@@ -12,7 +12,7 @@ Enable AI-generated questions via user-supplied API keys, support multiple provi
 - **3.3 — Settings screen UI**: User-facing settings page for managing AI keys, selecting active provider, viewing usage stats. Per ADR design tokens.
 - **3.4 — Generate quiz screen UI**: Form for topic + difficulty + question count + provider. Triggers async generation, shows progress, displays generated questions for user review before persisting.
 - **3.5 — Public pool**: AI-generated questions added to a public pool shared across users. Voting/flagging mechanism for quality control. Owner of question retains attribution.
-- **3.6 — Code questions**: New `QuestionType` variants — CodeOutput, CodeFix, FillIn. Monaco Editor for question display + answer input. AI evaluates code answers using rubric.
+- **3.6 — Code challenge UI**: Frontend for the execution-backed `CodeChallenge` introduced by ADR-018 — Monaco editor, run + grade against hidden tests with a compile gate (compile first, then evaluate success). See `3.6-code-challenge-ui.md`. The non-executing variants (CodeOutput, CodeFix, FillIn) and AI rubric feedback are deferred to later work (AI feedback → 3.7).
 - **3.7 — AI-evaluated feedback**: For code answers, AI provides per-answer feedback in Result screen — "Your approach was close, but you missed handling null cases".
 
 ## Mockups available
