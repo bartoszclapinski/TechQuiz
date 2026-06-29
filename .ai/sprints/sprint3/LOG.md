@@ -303,3 +303,47 @@ przechodził. Przyczyną był **nieaktualny obraz kontenera `techquiz-api`** spr
 zwracał stary kształt `{passed,…}` bez `compiled`, więc front czytał `compiled=undefined` (falsy) →
 „nie kompiluje się". `docker compose build api && up -d api` naprawiło. Wniosek: `api`/`web` to buildy,
 nie hot-reload — po mergu trzeba przebudować obrazy przed klikaniem.
+
+---
+
+## 2026-06-29 — Iteration 3.7: AI feedback on code submissions
+
+**Co zrobione (4 atomic commits + plan):**
+- **Port + Anthropic** (`#205`) — `IAiProvider.GenerateCodeFeedbackAsync` (additive, ADR-006/018 — bez
+  nowego ADR) + `CodeFeedbackRequest`/`CodeFeedbackTestCase`. Anthropic wyciągnięty do wspólnego
+  `RequestTextAsync` (oba wywołania POST-ują `v1/messages`). Stub rzuca `NotSupportedException`. 5 testów
+  integracyjnych (fake handler), w tym anti-leak: prompt zawiera „NOT quote or restate".
+- **Use case** (`#206`) — `GetCodeFeedbackCommand` (+validator) TDD: load challenge (404) → resolve
+  provider → load caller key (brak → `MissingAiKeyException`) → prompt z prompt+submission+ukryte casy.
+  8 testów (5 handler + 3 validator).
+- **API** (`#207`) — `POST /api/code-challenges/{id}/feedback`, enum-name na drucie (mapowanie na
+  granicy jak generate), mapping przez `GlobalExceptionHandler`.
+- **Frontend** (`#208`) — `useCodeFeedback` mutacja + przycisk „Get AI feedback" na ekranie edytora;
+  provider = pierwszy dostępny+skonfigurowany (Anthropic); loading/error(409)/empty/result; proza z
+  `whitespace-pre-line`; podpowiedź do Settings gdy brak klucza.
+
+**Decyzje:**
+- **„Grade summary" = ukryte test-case'y dla modelu, bez drugiej rundy Judge0.** Kontrakt body to
+  `{ sourceCode, provider }` (bez gradu). Przekazujemy promptowi prompt+submission+casy (stdin+expected)
+  i model rozumuje sam — taniej niż ponowne uruchamianie sandboxa tylko dla feedbacku (koszt on-demand).
+- **Anti-leak (duch hard rule #4):** prompt instruuje model, by nie cytował dokładnych expected outputów
+  — tylko zachowanie. Potwierdzone w przeglądarce: feedback mówił o „malformed input"/„whitespace", nie
+  o konkretnych wartościach.
+- **Bez zależności markdown.** Proza renderowana z zachowaniem łamań linii; znaczniki `#`/`**` widoczne
+  dosłownie. Rich-markdown (`react-markdown`) odłożony — czytelne i bez nowego depa (soft rule #6).
+
+**Weryfikacja:**
+- Domain 81/81, Application 126/126, Anthropic provider 11/11 — zielone. `dotnet build` 0/0.
+  `pnpm build` + `pnpm lint` czyste.
+- Stack przebudowany z gałęzi (`docker compose build api web && up -d`). Ścieżki błędów sprawdzone
+  curl-em: **409** (brak klucza, czysty `MissingAiKey`), **404** (nieznany challenge), **400** (nieznany
+  provider / pusty kod), **401** (bez auth).
+- **Owner potwierdził golden path w przeglądarce:** Settings → klucz Anthropic → „Sum two integers" →
+  **Get AI feedback** → realna proza otagowana „Anthropic" + stopka „Complementary guidance…". DoD
+  zamknięte, status 3.7 → **done**. To ostatnia iteracja sprintu 3.
+
+**Gotcha dev (nie kod):** feedback najpierw zwracał **500**, nie 409 — `CryptographicException` w
+`EncryptedAiKeyStore.GetAsync`: user demo miał **zaszyfrowany** klucz, którego nie dało się odszyfrować,
+bo przebudowa obrazu API zresetowała data-protection key ring (`key {…} not found in the key ring`).
+Stary blob był martwy; `DELETE /api/ai/keys/Anthropic` + ponowne wpisanie klucza w Settings naprawiło
+(to samo dotknęłoby generate). Wniosek: po przebudowie obrazu API trzeba re-wpisać klucze BYOK.
