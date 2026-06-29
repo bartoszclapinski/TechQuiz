@@ -22,7 +22,36 @@ public interface IAiProvider
         GenerateQuestionsRequest request,
         string apiKey,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns qualitative prose feedback on a code-challenge submission (ADR-018) using the
+    /// caller-supplied <paramref name="apiKey"/> (bring-your-own-key, ADR-006). This is
+    /// explicitly <i>complementary</i> to the deterministic test verdict — it never decides
+    /// pass/fail. The provider runs server-side and may receive the hidden test cases to reason
+    /// about failures, but implementations must prompt the model to guide without quoting exact
+    /// expected outputs, preserving the spirit of the hidden harness. Providers that do not
+    /// support feedback may throw <see cref="NotSupportedException"/>.
+    /// </summary>
+    Task<string> GenerateCodeFeedbackAsync(
+        CodeFeedbackRequest request,
+        string apiKey,
+        CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Everything the model needs to critique a submission: the challenge's title and prompt, the
+/// user's C# <paramref name="SourceCode"/>, and the hidden <paramref name="TestCases"/> it must
+/// satisfy. The test cases are passed server-side for the model to reason about edge cases; the
+/// provider prompt must forbid quoting their exact expected outputs back to the user.
+/// </summary>
+public sealed record CodeFeedbackRequest(
+    string ChallengeTitle,
+    string Prompt,
+    string SourceCode,
+    IReadOnlyList<CodeFeedbackTestCase> TestCases);
+
+/// <summary>A hidden test case: the stdin fed to the program and the stdout it must produce.</summary>
+public sealed record CodeFeedbackTestCase(string Stdin, string ExpectedStdout);
 
 /// <summary>What to generate: a topic, a target difficulty, and how many questions.</summary>
 public sealed record GenerateQuestionsRequest(string Topic, Difficulty Difficulty, int Count);

@@ -13,7 +13,7 @@ Enable AI-generated questions via user-supplied API keys, support multiple provi
 - **3.4 — Generate quiz screen UI**: Form for topic + difficulty + question count + provider. Triggers async generation, shows progress, displays generated questions for user review before persisting.
 - **3.5 — Public pool**: AI-generated questions added to a public pool shared across users. Voting/flagging mechanism for quality control. Owner of question retains attribution.
 - **3.6 — Code challenge UI**: Frontend for the execution-backed `CodeChallenge` introduced by ADR-018 — Monaco editor, run + grade against hidden tests with a compile gate (compile first, then evaluate success). See `3.6-code-challenge-ui.md`. The non-executing variants (CodeOutput, CodeFix, FillIn) and AI rubric feedback are deferred to later work (AI feedback → 3.7).
-- **3.7 — AI-evaluated feedback**: For code answers, AI provides per-answer feedback in Result screen — "Your approach was close, but you missed handling null cases".
+- **3.7 — AI feedback on code submissions**: On-demand qualitative AI feedback on a code-challenge submission, on the **editor screen** next to the test verdict (code challenges don't use the quiz Result screen — ADR-018). Complementary to the deterministic grader, never the pass/fail authority; uses the caller's own provider key (BYOK). See `3.7-ai-code-feedback.md`. Feedback for the non-executing variants and option-based quiz questions stays deferred.
 
 ## Mockups available
 None for Phase 3 yet. Mockups deferred to early in Phase 3 work, after architecture is clearer. Code question forward-look exists in `mockups/quiz-code-output-*.html` from Phase 1 UI design session.

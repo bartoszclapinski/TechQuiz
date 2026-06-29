@@ -27,13 +27,31 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
         string apiKey,
         CancellationToken cancellationToken = default)
     {
+        var text = await RequestTextAsync(BuildPrompt(request), apiKey, cancellationToken);
+        return ParseDrafts(text, request.Difficulty);
+    }
+
+    public Task<string> GenerateCodeFeedbackAsync(
+        CodeFeedbackRequest request,
+        string apiKey,
+        CancellationToken cancellationToken = default) =>
+        RequestTextAsync(BuildFeedbackPrompt(request), apiKey, cancellationToken);
+
+    /// <summary>
+    /// POSTs a single user message to the Messages API with the caller's key and returns the
+    /// model's text block. Shared by question generation and code feedback; callers parse or
+    /// display the returned text as needed.
+    /// </summary>
+    private async Task<string> RequestTextAsync(
+        string prompt, string apiKey, CancellationToken cancellationToken)
+    {
         var opts = options.Value;
 
         var payload = new
         {
             model = opts.Model,
             max_tokens = opts.MaxTokens,
-            messages = new[] { new { role = "user", content = BuildPrompt(request) } },
+            messages = new[] { new { role = "user", content = prompt } },
         };
 
         using var message = new HttpRequestMessage(HttpMethod.Post, "v1/messages")
@@ -56,7 +74,7 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
             throw new AiResponseException("Anthropic response contained no text content.");
         }
 
-        return ParseDrafts(text, request.Difficulty);
+        return text;
     }
 
     private static string BuildPrompt(GenerateQuestionsRequest request) =>
@@ -75,6 +93,42 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
         Exactly four options per question. correctOptionIndex is the 0-based index of the
         correct option.
         """;
+
+    private static string BuildFeedbackPrompt(CodeFeedbackRequest request)
+    {
+        // The hidden cases are given so the model can reason about edge cases the submission
+        // misses, but it must NOT quote the exact expected outputs back — that would leak the
+        // harness (spirit of hard rule #4). Guidance is qualitative: "you don't handle empty
+        // input", not "test 2 expects 30".
+        var cases = string.Join(
+            "\n",
+            request.TestCases.Select((c, i) =>
+                $"  Case {i + 1}: stdin={Quote(c.Stdin)} expectedStdout={Quote(c.ExpectedStdout)}"));
+
+        return $$"""
+        You are a senior C# reviewer giving feedback to a developer on a coding exercise.
+
+        Challenge: {{request.ChallengeTitle}}
+        Task: {{request.Prompt}}
+
+        The developer's submission:
+        ```csharp
+        {{request.SourceCode}}
+        ```
+
+        Hidden test cases (for your reasoning only):
+        {{cases}}
+
+        Write concise, constructive feedback in markdown prose: what the code does well, what is
+        risky or incorrect, and which edge cases it may miss. Be specific about the code, but do
+        NOT quote or restate the exact expected outputs above — describe the behaviour the code
+        should have ("handle empty input", "trim trailing whitespace") rather than the literal
+        expected values. Do not include a numeric score; the automated tests already decide pass
+        or fail. Keep it under ~200 words.
+        """;
+    }
+
+    private static string Quote(string value) => JsonSerializer.Serialize(value);
 
     private static IReadOnlyList<GeneratedQuestionDraft> ParseDrafts(string text, Difficulty difficulty)
     {

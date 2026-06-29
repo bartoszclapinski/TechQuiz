@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Editor from '@monaco-editor/react'
+import { isAxiosError } from 'axios'
 import { useCodeChallenges } from './use-code-challenges'
 import { useRunCode } from './use-run-code'
 import { useGradeChallenge } from './use-grade-challenge'
-import type { CodeChallengeGradeResult, CodeExecutionResult } from './api'
+import { useCodeFeedback } from './use-code-feedback'
+import { AI_PROVIDERS } from '../settings/api'
+import { useConfiguredProviders } from '../settings/use-configured-providers'
+import type { CodeChallengeGradeResult, CodeExecutionResult, CodeFeedbackResult } from './api'
 
 const DIFFICULTY_BADGE: Record<string, { text: string; bg: string }> = {
   Easy: { text: 'text-success', bg: 'rgba(16,185,129,0.1)' },
@@ -42,13 +46,22 @@ function ChallengeEditor({
 }) {
   const [source, setSource] = useState(challenge.starterCode ?? '')
   const [stdin, setStdin] = useState('')
-  // Which action produced the panel below, so Run output and the grade verdict don't fight
-  // for the same space — we show whichever the user triggered last.
-  const [lastAction, setLastAction] = useState<'run' | 'grade' | null>(null)
+  // Which action produced the panel below, so Run output, the grade verdict, and AI feedback
+  // don't fight for the same space — we show whichever the user triggered last.
+  const [lastAction, setLastAction] = useState<'run' | 'grade' | 'feedback' | null>(null)
 
   const run = useRunCode()
   const grade = useGradeChallenge(challenge.id)
+  const feedback = useCodeFeedback(challenge.id)
   const badge = DIFFICULTY_BADGE[challenge.difficulty]
+
+  // Feedback needs the user's own key, so it's only offered for a provider that has a live client
+  // AND a stored key. We default to the first such provider (Anthropic today); with none, the
+  // button is disabled and we point the user at Settings.
+  const { data: configured } = useConfiguredProviders()
+  const feedbackProvider = AI_PROVIDERS.find(
+    (provider) => provider.available && (configured?.includes(provider.id) ?? false),
+  )
 
   function handleRun() {
     setLastAction('run')
@@ -60,7 +73,13 @@ function ChallengeEditor({
     grade.mutate(source)
   }
 
-  const busy = run.isPending || grade.isPending
+  function handleFeedback() {
+    if (!feedbackProvider) return
+    setLastAction('feedback')
+    feedback.mutate({ sourceCode: source, provider: feedbackProvider.id })
+  }
+
+  const busy = run.isPending || grade.isPending || feedback.isPending
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8 sm:px-9">
@@ -127,8 +146,27 @@ function ChallengeEditor({
           >
             {grade.isPending ? 'Submitting…' : 'Submit'}
           </button>
+          <button
+            type="button"
+            onClick={handleFeedback}
+            disabled={busy || !feedbackProvider}
+            title={feedbackProvider ? undefined : 'Add an AI provider key in Settings first'}
+            className="rounded-[8px] border border-default bg-surface px-3.5 py-2 text-[13px] font-medium text-primary hover:border-accent disabled:opacity-50"
+          >
+            {feedback.isPending ? 'Asking AI…' : 'Get AI feedback'}
+          </button>
         </div>
       </div>
+
+      {!feedbackProvider ? (
+        <p className="mt-2 text-[11px] text-muted">
+          AI feedback needs your own provider key —{' '}
+          <Link to="/settings" className="text-accent hover:underline">
+            add one in Settings
+          </Link>
+          .
+        </p>
+      ) : null}
 
       <div className="mt-5">
         {lastAction === 'run' ? (
@@ -143,9 +181,46 @@ function ChallengeEditor({
           ) : grade.data ? (
             <Verdict result={grade.data} />
           ) : null
+        ) : lastAction === 'feedback' ? (
+          feedback.isPending ? (
+            <Panel>Asking the AI for feedback…</Panel>
+          ) : feedback.isError ? (
+            <Panel tone="danger">{feedbackErrorMessage(feedback.error)}</Panel>
+          ) : feedback.data ? (
+            <Feedback result={feedback.data} />
+          ) : null
         ) : null}
       </div>
     </main>
+  )
+}
+
+function feedbackErrorMessage(error: unknown): string {
+  if (isAxiosError(error) && error.response?.status === 409) {
+    return 'No key configured for that provider. Add one in Settings.'
+  }
+  return 'Couldn’t get feedback. Please try again.'
+}
+
+// AI feedback: qualitative prose, explicitly complementary to the test verdict (ADR-018) — never
+// a score. Rendered as plain prose with preserved line breaks; rich markdown is deferred (no
+// markdown dependency yet).
+function Feedback({ result }: { result: CodeFeedbackResult }) {
+  return (
+    <div className="rounded-[10px] border border-default bg-surface p-3.5">
+      <div className="mb-2 flex items-center gap-2 text-[12px]">
+        <span className="font-semibold text-primary">AI feedback</span>
+        <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[10px] text-secondary">
+          {result.provider}
+        </span>
+      </div>
+      <p className="whitespace-pre-line text-[13px] leading-relaxed text-secondary">
+        {result.feedback}
+      </p>
+      <p className="mt-2.5 text-[10px] text-muted">
+        Complementary guidance — the tests above decide pass or fail.
+      </p>
+    </div>
   )
 }
 
