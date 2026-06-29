@@ -64,6 +64,16 @@ export function AppShell() {
           >
             Pool
           </NavLink>
+          <NavLink
+            to="/challenges"
+            className={({ isActive }) =>
+              `rounded-md px-2.5 py-1.5 text-[13px] font-medium ${
+                isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+              }`
+            }
+          >
+            Challenges
+          </NavLink>
           {COMING_SOON.map((label) => (
             <span
               key={label}

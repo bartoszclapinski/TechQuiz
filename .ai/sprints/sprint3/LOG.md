@@ -263,3 +263,43 @@
 przed klikaniem (inaczej `GET /api/pool/questions` → 500 `relation "pooled_questions" does not exist`,
 ten sam wzorzec co przy `AddUserAiKeys` w 3.2). Drugi drobiazg: zombie-vite z poprzedniej sesji
 trzymał 5173, więc świeży vite wpadał na 5174 (poza CORS allowlist API = 5173) — ubity, restart na 5173.
+
+---
+
+## 2026-06-29 — Iteration 3.6: Code challenge UI (Monaco + run/grade verdict)
+
+Frontend slice nad istniejącym backendem code-challenge (ADR-018). Backend bez zmian — 3 commity,
+wszystkie czysto frontowe + plan.
+
+**Co zrobione (1 issue ↔ 1 commit):**
+- **Plan** (`#199`) — `3.6-code-challenge-ui.md` + nota w README sprintu (3.6 przeprofilowane na UI
+  uruchamianego `CodeChallenge`; warianty CodeOutput/CodeFix/FillIn i AI-feedback odroczone do 3.7).
+- **Data layer** (`#200`) — `web/src/features/code-challenges/` (api + typy + klucze + hooki:
+  `useCodeChallenges` query, `useRunCode`/`useGradeChallenge` mutacje). Dodany `@monaco-editor/react`.
+- **UI** (`#201`) — lista wyzwań (karty + odznaka trudności + podgląd promptu) i ekran edytora Monaco
+  (Run z własnym stdin, Submit = grade). Verdict dwustopniowy: `compiled=false` → „Doesn't compile" +
+  output kompilatora, bez wierszy testów; `compiled=true` → podsumowanie per-case `passedCount/total`.
+  Trasy `/challenges` i `/challenges/:id` + wpis w nawigacji.
+
+**Decyzje:**
+- **Monaco z CDN, nie w bundlu** — `@monaco-editor/react` ładuje edytor leniwie z CDN; bundle appki
+  zostaje mały (potrzebna sieć w runtime — OK dla demo). Edytor `theme="vs-dark"` także w light mode
+  (ADR-016: regiony kodu zostają ciemne).
+- **Brak single-challenge GET** — ekran edytora reużywa cache listy i wybiera po id; katalog to tani,
+  statyczny seed in-memory, więc nie dokładałem endpointu (gdyby zaszła potrzeba — flaga w planie).
+- **Verdict rozgałęzia się po `compiled`**, nie wnioskuje stanu kompilacji z niczego innego — to pole
+  z bramki (iteracja „compile-gate", #198) jest źródłem prawdy.
+
+**Weryfikacja:**
+- `pnpm lint` czysto, `tsc -b` czysto, `pnpm build` czysto (ostrzeżenie >500 kB to appka; Monaco z CDN).
+- Judge0 sprawdzony end-to-end przez API hosta: poprawny kod → `Accepted`, błędny → `Compilation
+  Error` z `compile_output` (gotcha cgroup v1 vs v2 nie wystąpiła na tym Docker Desktop).
+- **Owner przeklikał golden path w przeglądarce:** login demo → **Challenges** → „Sum two integers" →
+  poprawne rozwiązanie + **Submit** → „All tests passed — 3/3"; bramka kompilacji też zadziałała.
+  DoD zamknięte, status 3.6 → **done**.
+
+**Gotcha dev (nie kod):** pierwszy przeklik pokazywał „Doesn't compile / (no output)" mimo że Run
+przechodził. Przyczyną był **nieaktualny obraz kontenera `techquiz-api`** sprzed mergea bramki — grade
+zwracał stary kształt `{passed,…}` bez `compiled`, więc front czytał `compiled=undefined` (falsy) →
+„nie kompiluje się". `docker compose build api && up -d api` naprawiło. Wniosek: `api`/`web` to buildy,
+nie hot-reload — po mergu trzeba przebudować obrazy przed klikaniem.
