@@ -70,3 +70,22 @@ export async function gradeChallenge(
   )
   return data
 }
+
+// Mirrors the API's FeedbackResponse. Qualitative AI prose only — complementary to the grade,
+// never a score (ADR-018). `provider` is the enum name that produced it.
+export type CodeFeedbackResult = {
+  feedback: string
+  provider: string
+}
+
+export async function getCodeFeedback(
+  id: string,
+  sourceCode: string,
+  provider: string,
+): Promise<CodeFeedbackResult> {
+  const { data } = await apiClient.post<CodeFeedbackResult>(
+    `/api/code-challenges/${id}/feedback`,
+    { sourceCode, provider },
+  )
+  return data
+}
