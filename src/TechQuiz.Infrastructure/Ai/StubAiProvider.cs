@@ -29,4 +29,10 @@ public sealed class StubAiProvider : IAiProvider
 
         return Task.FromResult<IReadOnlyList<GeneratedQuestionDraft>>(drafts);
     }
+
+    public Task<string> GenerateCodeFeedbackAsync(
+        CodeFeedbackRequest request,
+        string apiKey,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("The stub provider does not generate code feedback.");
 }
