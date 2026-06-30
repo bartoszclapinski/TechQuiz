@@ -20,11 +20,20 @@ public sealed class GetDashboardSummaryQueryHandler(
         var rows = await quizRepository.GetCompletedAttemptsWithCategoryAsync(
             userContext.UserId, cancellationToken);
 
-        if (rows.Count == 0)
+        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+
+        // Streak and the sparkline are all-time "state as of now" — the range filter never touches them.
+        var streak = ComputeStreak(rows, today);
+        var sparkline = ComputeSparkline(rows, today);
+
+        // Every other tile is scoped to the selected range.
+        var scoped = FilterByRange(rows, request.Range, today);
+
+        if (scoped.Count == 0)
         {
             return new DashboardSummaryDto(
-                CurrentStreakDays: 0,
-                ActivitySparkline: new int[SparklineDays],
+                CurrentStreakDays: streak,
+                ActivitySparkline: sparkline,
                 ScoreOverTime: [],
                 CategoryStrength: [],
                 TotalQuestionsAnswered: 0,
@@ -32,19 +41,17 @@ public sealed class GetDashboardSummaryQueryHandler(
                 RecentActivity: []);
         }
 
-        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
-
-        var scoreOverTime = rows
+        var scoreOverTime = scoped
             .Select(r => new ScorePointDto(r.CompletedAt, r.ScorePercentage))
             .ToList();
 
-        var categoryStrength = rows
+        var categoryStrength = scoped
             .GroupBy(r => r.Category)
             .Select(g => new CategoryStrengthDto(g.Key, g.Average(r => r.ScorePercentage), g.Count()))
             .OrderByDescending(c => c.AverageScore)
             .ToList();
 
-        var recentActivity = rows
+        var recentActivity = scoped
             .OrderByDescending(r => r.CompletedAt)
             .Take(RecentActivityCount)
             .Select(r => new RecentActivityItemDto(
@@ -52,13 +59,30 @@ public sealed class GetDashboardSummaryQueryHandler(
             .ToList();
 
         return new DashboardSummaryDto(
-            CurrentStreakDays: ComputeStreak(rows, today),
-            ActivitySparkline: ComputeSparkline(rows, today),
+            CurrentStreakDays: streak,
+            ActivitySparkline: sparkline,
             ScoreOverTime: scoreOverTime,
             CategoryStrength: categoryStrength,
-            TotalQuestionsAnswered: rows.Sum(r => r.AnswerCount),
-            AverageScore: rows.Average(r => r.ScorePercentage),
+            TotalQuestionsAnswered: scoped.Sum(r => r.AnswerCount),
+            AverageScore: scoped.Average(r => r.ScorePercentage),
             RecentActivity: recentActivity);
+    }
+
+    // Date-based, UTC cutoff (consistent with streak/sparkline): an attempt is in range when its
+    // completed date is on or after the cutoff. Week is a 7-day window (today − 6), Month a 30-day
+    // window (today − 29); All applies no cutoff.
+    private static IReadOnlyList<CompletedAttemptRow> FilterByRange(
+        IReadOnlyList<CompletedAttemptRow> rows, DashboardRange range, DateOnly today)
+    {
+        if (range == DashboardRange.All)
+        {
+            return rows;
+        }
+
+        var cutoff = range == DashboardRange.Week ? today.AddDays(-6) : today.AddDays(-29);
+        return rows
+            .Where(r => DateOnly.FromDateTime(r.CompletedAt.UtcDateTime) >= cutoff)
+            .ToList();
     }
 
     // Consecutive days with at least one completed attempt, counting back from today. A one-day
