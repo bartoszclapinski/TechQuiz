@@ -165,4 +165,16 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
                     .Select(o => new OptionDto(o.Id, o.Text, o.OrderIndex))
                     .ToList()))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<QuestionGradingDto>> GetQuestionsForGradingByIdsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken = default) =>
+        await db.Questions
+            .AsNoTracking()
+            .Where(q => questionIds.Contains(q.Id))
+            .Select(q => new QuestionGradingDto(
+                q.Id,
+                q.Options.Where(o => o.IsCorrect).Select(o => o.Id).FirstOrDefault(),
+                q.Explanation))
+            .ToListAsync(cancellationToken);
 }

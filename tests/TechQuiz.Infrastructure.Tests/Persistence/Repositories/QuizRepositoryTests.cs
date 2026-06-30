@@ -467,6 +467,27 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         first.Options.Select(o => o.OrderIndex).Should().BeInAscendingOrder();
     }
 
+    [Fact]
+    public async Task GetQuestionsForGradingByIdsAsync_ReturnsCorrectOptionId_AndExplanation()
+    {
+        var (_, _, questions) = await SeedCategoryWithQuizAsync(questionCount: 2);
+        var wanted = new[] { questions[0].Id, questions[1].Id };
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var grading = await sut.GetQuestionsForGradingByIdsAsync(wanted);
+
+        grading.Should().HaveCount(2);
+        foreach (var question in questions)
+        {
+            var row = grading.Single(g => g.Id == question.Id);
+            // CreateQuestion seeds option[0] as the correct one, explanation "exp".
+            row.CorrectOptionId.Should().Be(question.Options[0].Id);
+            row.Explanation.Should().Be("exp");
+        }
+    }
+
     private async Task<Guid> SeedCompletedAttemptAsync(
         Guid userId, Guid quizId, DateTimeOffset startedAt, DateTimeOffset completedAt, double scorePercentage)
     {

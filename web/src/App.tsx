@@ -13,6 +13,7 @@ import { CodeChallengesPage } from './features/code-challenges/code-challenges-p
 import { CodeChallengePage } from './features/code-challenges/code-challenge-page'
 import { DashboardPage } from './features/dashboard/dashboard-page'
 import { HistoryPage } from './features/history/history-page'
+import { ReviewPage } from './features/review/review-page'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/review" element={<ReviewPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
             <Route path="/pool" element={<PoolPage />} />

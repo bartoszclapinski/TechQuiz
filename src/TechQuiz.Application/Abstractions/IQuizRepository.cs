@@ -76,4 +76,13 @@ public interface IQuizRepository
     Task<IReadOnlyList<ReviewQuestionDto>> GetReviewQuestionsByIdsAsync(
         IReadOnlyCollection<Guid> questionIds,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the grading projection (correct option id + explanation) for the given questions, used
+    /// to score a submitted daily-review session. Unlike <see cref="GetReviewQuestionsByIdsAsync"/>
+    /// this carries correctness, so it must never feed an active review — only the grade path.
+    /// </summary>
+    Task<IReadOnlyList<QuestionGradingDto>> GetQuestionsForGradingByIdsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken = default);
 }

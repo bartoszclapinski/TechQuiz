@@ -2,10 +2,6 @@ import { NavLink, Outlet, useMatch } from 'react-router-dom'
 import { useAuth } from '../features/auth/use-auth'
 import { ThemeToggle } from './ui/theme-toggle'
 
-// Phase 2/3 destinations live in the topbar as disabled "soon" items per ADR-014, so the nav
-// shape is final from day one and users see what's coming.
-const COMING_SOON = ['Daily review']
-
 function initialsFromEmail(email: string): string {
   const local = email.split('@')[0] ?? ''
   const parts = local.split(/[._-]+/).filter(Boolean)
@@ -13,13 +9,14 @@ function initialsFromEmail(email: string): string {
   return letters.toUpperCase()
 }
 
-// Route-aware shell. The quiz runner is a focused, distraction-free screen (ADR-014), so on
-// /quiz/:id we render only the Outlet and skip the topbar entirely.
+// Route-aware shell. The quiz runner and the daily review are focused, distraction-free screens
+// (ADR-014), so on /quiz/:id and /review we render only the Outlet and skip the topbar entirely.
 export function AppShell() {
   const { user, logout } = useAuth()
   const onQuizRoute = useMatch('/quiz/:id') !== null
+  const onReviewRoute = useMatch('/review') !== null
 
-  if (onQuizRoute) {
+  if (onQuizRoute || onReviewRoute) {
     return <Outlet />
   }
 
@@ -94,18 +91,16 @@ export function AppShell() {
           >
             History
           </NavLink>
-          {COMING_SOON.map((label) => (
-            <span
-              key={label}
-              aria-disabled="true"
-              className="flex cursor-default items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-muted opacity-60"
-            >
-              {label}
-              <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[9px] text-secondary">
-                soon
-              </span>
-            </span>
-          ))}
+          <NavLink
+            to="/review"
+            className={({ isActive }) =>
+              `rounded-md px-2.5 py-1.5 text-[13px] font-medium ${
+                isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+              }`
+            }
+          >
+            Daily review
+          </NavLink>
         </nav>
 
         <div className="flex items-center gap-2.5">
