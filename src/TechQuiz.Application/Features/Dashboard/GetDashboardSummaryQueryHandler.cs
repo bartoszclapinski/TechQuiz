@@ -1,6 +1,7 @@
 using MediatR;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Application.Common.Dtos;
+using TechQuiz.Domain;
 
 namespace TechQuiz.Application.Features.Dashboard;
 
@@ -85,24 +86,12 @@ public sealed class GetDashboardSummaryQueryHandler(
             .ToList();
     }
 
-    // Consecutive days with at least one completed attempt, counting back from today. A one-day
-    // grace keeps an unplayed *today* from breaking a run: if there's no activity today we start
-    // from yesterday, so the streak only resets once a full day has passed with no activity.
+    // Consecutive days with at least one completed attempt, counting back from today (with a one-day
+    // grace) — the shared StreakCalculator also backs the daily-review streak, keeping the two in parity.
     private static int ComputeStreak(IReadOnlyList<CompletedAttemptRow> rows, DateOnly today)
     {
-        var activeDays = rows
-            .Select(r => DateOnly.FromDateTime(r.CompletedAt.UtcDateTime))
-            .ToHashSet();
-
-        var day = activeDays.Contains(today) ? today : today.AddDays(-1);
-        var streak = 0;
-        while (activeDays.Contains(day))
-        {
-            streak++;
-            day = day.AddDays(-1);
-        }
-
-        return streak;
+        var activeDays = rows.Select(r => DateOnly.FromDateTime(r.CompletedAt.UtcDateTime));
+        return StreakCalculator.CurrentStreak(activeDays, today);
     }
 
     // Per-day completed-attempt counts for the last SparklineDays days, oldest→newest, index
