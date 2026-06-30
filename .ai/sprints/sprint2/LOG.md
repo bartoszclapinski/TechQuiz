@@ -5,6 +5,39 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.2: Dashboard UI
+
+**Cel:** Dashboard screen — 8-kaflowy bento grid z `mockups/dashboard-*.html`, zasilany jednym
+`GET /api/dashboard` (kontrakt z 2.1). W obu motywach. Promocja „Dashboard" z disabled „soon" do
+żywej trasy.
+
+**Co zrobione (plan + 3 atomic commits):**
+- **Plan** (`#217`) — pełny plik iteracji 2.2 (cel, scope, DoD, TDD task list).
+- **Data layer** (`#218`) — `features/dashboard/`: `api.ts` (typy lustrzane do `DashboardSummaryDto`
+  + `fetchDashboardSummary`), `query-keys.ts`, `use-dashboard.ts` (TanStack **query**, nie mutacja —
+  cached read keyed per sesja).
+- **Screen + route** (`#219`) — `dashboard-page.tsx`: 8 kafli z jednego `useDashboard()`, stany
+  loading/error/empty. **Recharts** AreaChart (score over time) + RadarChart (category strength);
+  sparkline jako inline SVG (bez dep). Best/Needs-practice liczone po stronie klienta (max/min z
+  `categoryStrength`). Empty-state gdy `averageScore === null`. `/dashboard` route + promocja nav
+  z `COMING_SOON` do aktywnego `NavLink`.
+
+**Decyzje:**
+- **Nowa zależność: Recharts** (hard rule #6) — line + radar uzasadniają chart lib już nazwaną w
+  stack table jako Phase-2 charting. Sparkline zostaje hand-rolled (pojedynczy sub-100px path tańszy
+  bez biblioteki).
+- **Jeden query, wszystkie kafle** — strona robi jeden `useDashboard()` i rozdaje payload do kafli;
+  bez per-tile fetchy. Dokładnie po to 2.1 zwraca jeden agregat.
+- **Bez fabrykowanych delt** („+34 w tym miesiącu", „▲ 4%") — wymagają danych time-range (2.3).
+  Zostaje prawdziwy trend score-over-time (pierwszy vs ostatni punkt).
+
+**Weryfikacja:**
+- `pnpm build` (tsc) + `pnpm lint` czyste.
+- Stack postawiony (rebuild api/web), demo login, oba motywy + empty/populated — owner potwierdza
+  w przeglądarce.
+
+---
+
 ## 2026-06-30 — Iteracja 2.1: Dashboard data layer
 
 **Cel:** read-side pod Dashboard — jeden endpoint `GET /api/dashboard` zasilający wszystkie 8 kafli
