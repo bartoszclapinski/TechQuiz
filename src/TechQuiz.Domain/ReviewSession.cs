@@ -11,17 +11,16 @@ public class ReviewSession
     public Guid UserId { get; }
     public DateTimeOffset CompletedAt { get; }
 
-    private readonly List<ReviewItem> _items;
+    private readonly List<ReviewItem> _items = [];
     public IReadOnlyList<ReviewItem> Items => _items;
 
     public int QuestionCount => _items.Count;
 
-    private ReviewSession(Guid id, Guid userId, DateTimeOffset completedAt, List<ReviewItem> items)
+    private ReviewSession(Guid id, Guid userId, DateTimeOffset completedAt)
     {
         Id = id;
         UserId = userId;
         CompletedAt = completedAt;
-        _items = items;
     }
 
     public static ReviewSession Create(
@@ -35,6 +34,8 @@ public class ReviewSession
                 "A review session must contain at least one answered question.");
         }
 
-        return new ReviewSession(id, userId, completedAt, list);
+        var session = new ReviewSession(id, userId, completedAt);
+        session._items.AddRange(list);
+        return session;
     }
 }

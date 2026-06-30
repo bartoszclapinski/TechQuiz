@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Answer> Answers => Set<Answer>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PooledQuestion> PooledQuestions => Set<PooledQuestion>();
+    public DbSet<ReviewSession> ReviewSessions => Set<ReviewSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

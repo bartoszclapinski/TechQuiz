@@ -488,6 +488,95 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         }
     }
 
+    [Fact]
+    public async Task AddReviewSessionAsync_PersistsSession_WithItems_AfterSaveChanges()
+    {
+        var user = await CreateUserAsync();
+        var (_, _, questions) = await SeedCategoryWithQuizAsync(questionCount: 2);
+        var t = new DateTimeOffset(2026, 6, 1, 8, 0, 0, TimeSpan.Zero);
+
+        var session = ReviewSession.Create(Guid.NewGuid(), user, t,
+        [
+            new ReviewItem(questions[0].Id, questions[0].Options[0].Id),
+            new ReviewItem(questions[1].Id, null),
+        ]);
+
+        await using (var writeCtx = CreateDbContext())
+        {
+            var sut = new QuizRepository(writeCtx);
+            await sut.AddReviewSessionAsync(session);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var summaries = await new QuizRepository(db).GetReviewSessionSummariesAsync(user);
+
+        var summary = summaries.Should().ContainSingle().Subject;
+        summary.CompletedAt.Should().Be(t);
+        summary.QuestionCount.Should().Be(2);
+        // option[0] is the correct one; the unanswered item is not correct.
+        summary.CorrectCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetReviewSessionSummariesAsync_ScopesToUser()
+    {
+        var user = await CreateUserAsync();
+        var other = await CreateUserAsync();
+        var (_, _, questions) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var t = new DateTimeOffset(2026, 6, 1, 8, 0, 0, TimeSpan.Zero);
+
+        await SeedReviewSessionAsync(user, t, (questions[0].Id, questions[0].Options[0].Id));
+        await SeedReviewSessionAsync(other, t.AddDays(1), (questions[0].Id, questions[0].Options[1].Id));
+
+        await using var db = CreateDbContext();
+        var summaries = await new QuizRepository(db).GetReviewSessionSummariesAsync(user);
+
+        summaries.Should().ContainSingle().Which.CompletedAt.Should().Be(t);
+    }
+
+    [Fact]
+    public async Task GetReviewCandidatesAsync_UnionsReviewAnswers_SoACorrectReviewBecomesTheLatest()
+    {
+        // Spaced-repetition feedback proof (ADR-021): a question answered WRONG in a quiz, then
+        // answered CORRECTLY in a later review, must surface a newer, correct candidate so the
+        // selector drops it from the queue.
+        var user = await CreateUserAsync();
+        var (_, quizId, questions) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var q = questions[0];
+        var t = new DateTimeOffset(2026, 6, 1, 8, 0, 0, TimeSpan.Zero);
+
+        var attempt = QuizAttempt.Start(Guid.NewGuid(), user, quizId, t);
+        attempt.SubmitAnswer(q.Id, q.Options[1].Id, t.AddMinutes(1)); // wrong
+        attempt.Complete(t.AddMinutes(2), scorePercentage: 0d);
+        await using (var writeCtx = CreateDbContext())
+        {
+            writeCtx.QuizAttempts.Add(attempt);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await SeedReviewSessionAsync(user, t.AddDays(1), (q.Id, q.Options[0].Id)); // correct, later
+
+        await using var db = CreateDbContext();
+        var candidates = await new QuizRepository(db).GetReviewCandidatesAsync(user);
+
+        candidates.Should().HaveCount(2);
+        var latest = candidates.OrderByDescending(c => c.LastAnsweredAt).First();
+        latest.LastAnsweredAt.Should().Be(t.AddDays(1));
+        latest.WasCorrect.Should().BeTrue();
+    }
+
+    private async Task SeedReviewSessionAsync(
+        Guid userId, DateTimeOffset completedAt, params (Guid QuestionId, Guid? SelectedOptionId)[] items)
+    {
+        var session = ReviewSession.Create(
+            Guid.NewGuid(), userId, completedAt,
+            items.Select(i => new ReviewItem(i.QuestionId, i.SelectedOptionId)));
+        await using var db = CreateDbContext();
+        db.ReviewSessions.Add(session);
+        await db.SaveChangesAsync();
+    }
+
     private async Task<Guid> SeedCompletedAttemptAsync(
         Guid userId, Guid quizId, DateTimeOffset startedAt, DateTimeOffset completedAt, double scorePercentage)
     {

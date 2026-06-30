@@ -133,8 +133,9 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
 
     public async Task<IReadOnlyList<ReviewCandidate>> GetReviewCandidatesAsync(
         Guid userId,
-        CancellationToken cancellationToken = default) =>
-        await (
+        CancellationToken cancellationToken = default)
+    {
+        var fromQuizzes = await (
             from a in db.QuizAttempts.AsNoTracking()
             where a.UserId == userId && a.CompletedAt != null && a.ScorePercentage != null
             from ans in a.Answers
@@ -146,6 +147,59 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
                 ans.SelectedOptionId != null
                     && q.Options.Any(o => o.Id == ans.SelectedOptionId && o.IsCorrect)))
             .ToListAsync(cancellationToken);
+
+        // Review answers feed the same queue (ADR-021): a correct review answer becomes the latest
+        // answer for its question, so the selector drops it; a wrong one keeps it. The session's
+        // completion time stands in for the per-answer timestamp.
+        var fromReviews = await (
+            from s in db.ReviewSessions.AsNoTracking()
+            where s.UserId == userId
+            from item in s.Items
+            join q in db.Questions on item.QuestionId equals q.Id
+            select new ReviewCandidate(
+                item.QuestionId,
+                q.Difficulty,
+                s.CompletedAt,
+                item.SelectedOptionId != null
+                    && q.Options.Any(o => o.Id == item.SelectedOptionId && o.IsCorrect)))
+            .ToListAsync(cancellationToken);
+
+        return [.. fromQuizzes, .. fromReviews];
+    }
+
+    /// <inheritdoc />
+    public Task AddReviewSessionAsync(ReviewSession session, CancellationToken cancellationToken = default)
+    {
+        db.ReviewSessions.Add(session);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ReviewSessionSummary>> GetReviewSessionSummariesAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var rows = await (
+            from s in db.ReviewSessions.AsNoTracking()
+            where s.UserId == userId
+            from item in s.Items
+            select new
+            {
+                s.Id,
+                s.CompletedAt,
+                IsCorrect = item.SelectedOptionId != null
+                    && db.Options.Any(o => o.Id == item.SelectedOptionId && o.IsCorrect),
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(r => new { r.Id, r.CompletedAt })
+            .Select(g => new ReviewSessionSummary(
+                g.Key.CompletedAt,
+                g.Count(),
+                g.Count(x => x.IsCorrect)))
+            .ToList();
+    }
 
     public async Task<IReadOnlyList<ReviewQuestionDto>> GetReviewQuestionsByIdsAsync(
         IReadOnlyCollection<Guid> questionIds,
