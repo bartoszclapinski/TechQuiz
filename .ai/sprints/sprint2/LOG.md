@@ -49,8 +49,8 @@ Categories).
   demo: `/api/history` zwraca ukończoną próbę (Unit Testing, 73.7%); filtr `category=SQL` → `[]`;
   bez tokenu → **401**; `pageSize=0` → **400**. Serwowany bundle webowy zawiera feature History
   (`/api/history`, „Load more", dropdown „All categories").
-- **Pending:** potwierdzenie ownera w przeglądarce (klik-through: login demo, filtr + sort + Load more,
-  wiersze otwierają wyniki, oba motywy). Status 2.4 zostaje `planned` do potwierdzenia.
+- Owner potwierdził w przeglądarce (login demo, nav History aktywny, filtr + sort, wiersze otwierają
+  wyniki, oba motywy): „Ok ładnie wszystko działa". Status 2.4 → **done**.
 
 ---
 
