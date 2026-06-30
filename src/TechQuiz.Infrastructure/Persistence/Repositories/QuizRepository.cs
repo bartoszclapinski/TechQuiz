@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TechQuiz.Application.Abstractions;
+using TechQuiz.Application.Common.Dtos;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Infrastructure.Persistence.Repositories;
@@ -79,4 +80,21 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
             .OrderByDescending(a => a.CompletedAt)
             .Select(a => a.ScorePercentage)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<CompletedAttemptRow>> GetCompletedAttemptsWithCategoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default) =>
+        await (
+            from a in db.QuizAttempts.AsNoTracking()
+            where a.UserId == userId && a.CompletedAt != null && a.ScorePercentage != null
+            join q in db.Quizzes on a.QuizId equals q.Id
+            join c in db.Categories on q.CategoryId equals c.Id
+            orderby a.CompletedAt
+            select new CompletedAttemptRow(
+                a.Id,
+                c.Name,
+                a.ScorePercentage!.Value,
+                a.CompletedAt!.Value,
+                a.Answers.Count))
+            .ToListAsync(cancellationToken);
 }

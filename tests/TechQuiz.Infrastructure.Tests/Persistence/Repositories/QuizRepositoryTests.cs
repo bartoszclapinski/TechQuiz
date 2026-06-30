@@ -211,6 +211,55 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         result.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GetCompletedAttemptsWithCategoryAsync_ReturnsScopedCompletedAttempts_WithCategoryName_OrderedByCompletedAt()
+    {
+        var userA = await CreateUserAsync();
+        var userB = await CreateUserAsync();
+        var (categoryId, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var expectedCategory = $"Test Category {categoryId}";
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await SeedCompletedAttemptAsync(userA, quizId, t.AddMinutes(10), t.AddMinutes(15), scorePercentage: 80d);
+        await SeedCompletedAttemptAsync(userA, quizId, t.AddMinutes(0), t.AddMinutes(5), scorePercentage: 40d);
+        await SeedInProgressAttemptAsync(userA, quizId, t.AddMinutes(30));
+        await SeedCompletedAttemptAsync(userB, quizId, t.AddMinutes(20), t.AddMinutes(25), scorePercentage: 99d);
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var rows = await sut.GetCompletedAttemptsWithCategoryAsync(userA);
+
+        rows.Should().HaveCount(2);
+        rows.Select(r => r.ScorePercentage).Should().Equal(40d, 80d);
+        rows.Select(r => r.CompletedAt).Should().BeInAscendingOrder();
+        rows.Should().OnlyContain(r => r.Category == expectedCategory);
+    }
+
+    [Fact]
+    public async Task GetCompletedAttemptsWithCategoryAsync_ProjectsAnswerCount()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizId, questions) = await SeedCategoryWithQuizAsync(questionCount: 2);
+
+        var attempt = QuizAttempt.Start(Guid.NewGuid(), user, quizId, DateTimeOffset.UtcNow.AddMinutes(-5));
+        attempt.SubmitAnswer(questions[0].Id, questions[0].Options[0].Id, DateTimeOffset.UtcNow.AddMinutes(-4));
+        attempt.SubmitAnswer(questions[1].Id, questions[1].Options[0].Id, DateTimeOffset.UtcNow.AddMinutes(-3));
+        attempt.Complete(DateTimeOffset.UtcNow, scorePercentage: 100d);
+        await using (var writeCtx = CreateDbContext())
+        {
+            writeCtx.QuizAttempts.Add(attempt);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var rows = await sut.GetCompletedAttemptsWithCategoryAsync(user);
+
+        rows.Should().ContainSingle().Which.AnswerCount.Should().Be(2);
+    }
+
     private async Task<Guid> SeedCompletedAttemptAsync(
         Guid userId, Guid quizId, DateTimeOffset startedAt, DateTimeOffset completedAt, double scorePercentage)
     {

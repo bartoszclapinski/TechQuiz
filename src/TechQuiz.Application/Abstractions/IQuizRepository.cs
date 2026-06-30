@@ -1,3 +1,4 @@
+using TechQuiz.Application.Common.Dtos;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Application.Abstractions;
@@ -27,5 +28,15 @@ public interface IQuizRepository
         Guid userId,
         Guid quizId,
         Guid excludeAttemptId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns every completed, scored attempt of the given user, flattened with its category
+    /// name and answer count, ordered oldest-to-newest by completion time. The dashboard
+    /// aggregate (streak, averages, category strength, score-over-time) is computed from this
+    /// in memory. In-progress attempts are excluded.
+    /// </summary>
+    Task<IReadOnlyList<CompletedAttemptRow>> GetCompletedAttemptsWithCategoryAsync(
+        Guid userId,
         CancellationToken cancellationToken = default);
 }
