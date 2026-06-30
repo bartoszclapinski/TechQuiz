@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Application.Common.Dtos;
+using TechQuiz.Application.Features.History;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Infrastructure.Persistence.Repositories;
@@ -97,4 +98,36 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
                 a.CompletedAt!.Value,
                 a.Answers.Count))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<HistoryItemDto>> GetCompletedHistoryPageAsync(
+        Guid userId,
+        string? category,
+        HistorySortField sortBy,
+        bool descending,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        var rows =
+            from a in db.QuizAttempts.AsNoTracking()
+            where a.UserId == userId && a.CompletedAt != null && a.ScorePercentage != null
+            join q in db.Quizzes on a.QuizId equals q.Id
+            join c in db.Categories on q.CategoryId equals c.Id
+            where category == null || c.Name == category
+            select new { a.Id, c.Name, Score = a.ScorePercentage!.Value, CompletedAt = a.CompletedAt!.Value };
+
+        rows = (sortBy, descending) switch
+        {
+            (HistorySortField.Score, true) => rows.OrderByDescending(r => r.Score).ThenByDescending(r => r.CompletedAt),
+            (HistorySortField.Score, false) => rows.OrderBy(r => r.Score).ThenBy(r => r.CompletedAt),
+            (HistorySortField.Date, false) => rows.OrderBy(r => r.CompletedAt),
+            _ => rows.OrderByDescending(r => r.CompletedAt),
+        };
+
+        return await rows
+            .Skip(skip)
+            .Take(take)
+            .Select(r => new HistoryItemDto(r.Id, r.Name, r.Score, r.CompletedAt))
+            .ToListAsync(cancellationToken);
+    }
 }

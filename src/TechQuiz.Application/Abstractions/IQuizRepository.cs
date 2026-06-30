@@ -1,4 +1,5 @@
 using TechQuiz.Application.Common.Dtos;
+using TechQuiz.Application.Features.History;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Application.Abstractions;
@@ -38,5 +39,21 @@ public interface IQuizRepository
     /// </summary>
     Task<IReadOnlyList<CompletedAttemptRow>> GetCompletedAttemptsWithCategoryAsync(
         Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns one page of the user's completed, scored attempts for the History screen,
+    /// each flattened with its category name. Optionally filtered to a single
+    /// <paramref name="category"/>, sorted server-side by date or score
+    /// (<paramref name="sortBy"/> / <paramref name="descending"/>), then paginated
+    /// (<paramref name="skip"/> / <paramref name="take"/>). In-progress attempts are excluded.
+    /// </summary>
+    Task<IReadOnlyList<HistoryItemDto>> GetCompletedHistoryPageAsync(
+        Guid userId,
+        string? category,
+        HistorySortField sortBy,
+        bool descending,
+        int skip,
+        int take,
         CancellationToken cancellationToken = default);
 }
