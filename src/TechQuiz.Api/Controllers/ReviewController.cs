@@ -28,4 +28,11 @@ public sealed class ReviewController(IMediator mediator) : ControllerBase
         var results = await mediator.Send(command, cancellationToken);
         return Ok(results);
     }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<ReviewStatsDto>> GetStats(CancellationToken cancellationToken = default)
+    {
+        var stats = await mediator.Send(new GetReviewStatsQuery(), cancellationToken);
+        return Ok(stats);
+    }
 }
