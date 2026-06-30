@@ -3,14 +3,26 @@ using NSubstitute;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Application.Common.Dtos;
 using TechQuiz.Application.Features.Review;
+using TechQuiz.Domain;
 
 namespace TechQuiz.Application.Tests.Features.Review;
 
 public class GradeReviewCommandHandlerTests
 {
-    private readonly IQuizRepository _quizRepository = Substitute.For<IQuizRepository>();
+    private static readonly Guid UserId = Guid.NewGuid();
+    private static readonly DateTimeOffset Now = new(2026, 6, 30, 9, 0, 0, TimeSpan.Zero);
 
-    private GradeReviewCommandHandler CreateSut() => new(_quizRepository);
+    private readonly IQuizRepository _quizRepository = Substitute.For<IQuizRepository>();
+    private readonly IUserContext _userContext = Substitute.For<IUserContext>();
+    private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
+
+    public GradeReviewCommandHandlerTests()
+    {
+        _userContext.UserId.Returns(UserId);
+        _timeProvider.GetUtcNow().Returns(Now);
+    }
+
+    private GradeReviewCommandHandler CreateSut() => new(_quizRepository, _userContext, _timeProvider);
 
     [Fact]
     public async Task Handle_GradesEachAnswer_DerivingCorrectnessAndCarryingExplanation()
@@ -101,5 +113,46 @@ public class GradeReviewCommandHandlerTests
         await _quizRepository.Received(1).GetQuestionsForGradingByIdsAsync(
             Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 2 && ids.Contains(q1) && ids.Contains(q2)),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_PersistsReviewSession_ForTheGradedAnswers()
+    {
+        var q1 = Guid.NewGuid();
+        var q2 = Guid.NewGuid();
+        var o1 = Guid.NewGuid();
+        _quizRepository.GetQuestionsForGradingByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns([
+                new QuestionGradingDto(q1, o1, "exp1"),
+                new QuestionGradingDto(q2, Guid.NewGuid(), "exp2"),
+            ]);
+
+        await CreateSut().Handle(
+            new GradeReviewCommand([new ReviewAnswerInput(q1, o1), new ReviewAnswerInput(q2, null)]),
+            CancellationToken.None);
+
+        await _quizRepository.Received(1).AddReviewSessionAsync(
+            Arg.Is<ReviewSession>(s =>
+                s.UserId == UserId
+                && s.CompletedAt == Now
+                && s.QuestionCount == 2
+                && s.Items.Any(i => i.QuestionId == q1 && i.SelectedOptionId == o1)
+                && s.Items.Any(i => i.QuestionId == q2 && i.SelectedOptionId == null)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_AllQuestionsMissing_DoesNotPersistSession()
+    {
+        _quizRepository.GetQuestionsForGradingByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        var results = await CreateSut().Handle(
+            new GradeReviewCommand([new ReviewAnswerInput(Guid.NewGuid(), null)]),
+            CancellationToken.None);
+
+        results.Should().BeEmpty();
+        await _quizRepository.DidNotReceive().AddReviewSessionAsync(
+            Arg.Any<ReviewSession>(), Arg.Any<CancellationToken>());
     }
 }

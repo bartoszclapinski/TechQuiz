@@ -58,13 +58,29 @@ public interface IQuizRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns one <see cref="ReviewCandidate"/> per answer the user gave in a completed, scored
-    /// attempt, carrying the question's difficulty, when it was answered, and whether it was correct
-    /// (derived by matching the selected option to a correct one; an unanswered question counts as
-    /// incorrect). A question answered across several attempts yields several candidates — the daily
-    /// review selector keeps the latest per question. Feeds <see cref="ReviewSelector"/>.
+    /// Returns one <see cref="ReviewCandidate"/> per answer the user gave — in a completed, scored quiz
+    /// attempt <em>or</em> in a persisted review session — carrying the question's difficulty, when it
+    /// was answered, and whether it was correct (derived by matching the selected option to a correct
+    /// one; an unanswered question counts as incorrect). A question answered several times yields several
+    /// candidates; the selector keeps the latest per question, so a correct review answer drops it from
+    /// the queue and a wrong one keeps it (ADR-021). Feeds <see cref="ReviewSelector"/>.
     /// </summary>
     Task<IReadOnlyList<ReviewCandidate>> GetReviewCandidatesAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Persists a completed daily-review session (ADR-021). Never written as a <see cref="QuizAttempt"/>,
+    /// so quiz History/Dashboard aggregates are unaffected.
+    /// </summary>
+    Task AddReviewSessionAsync(ReviewSession session, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns one <see cref="ReviewSessionSummary"/> per completed review session of the user — its
+    /// completion time and how many of its questions were answered (and answered correctly, derived by
+    /// matching the chosen option). Feeds the review stats (totals, accuracy, streaks).
+    /// </summary>
+    Task<IReadOnlyList<ReviewSessionSummary>> GetReviewSessionSummariesAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 
