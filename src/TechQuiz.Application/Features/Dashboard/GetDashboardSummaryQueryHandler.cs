@@ -1,0 +1,104 @@
+using MediatR;
+using TechQuiz.Application.Abstractions;
+using TechQuiz.Application.Common.Dtos;
+
+namespace TechQuiz.Application.Features.Dashboard;
+
+public sealed class GetDashboardSummaryQueryHandler(
+    IQuizRepository quizRepository,
+    IUserContext userContext,
+    TimeProvider timeProvider)
+    : IRequestHandler<GetDashboardSummaryQuery, DashboardSummaryDto>
+{
+    private const int SparklineDays = 14;
+    private const int RecentActivityCount = 5;
+
+    public async Task<DashboardSummaryDto> Handle(
+        GetDashboardSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        var rows = await quizRepository.GetCompletedAttemptsWithCategoryAsync(
+            userContext.UserId, cancellationToken);
+
+        if (rows.Count == 0)
+        {
+            return new DashboardSummaryDto(
+                CurrentStreakDays: 0,
+                ActivitySparkline: new int[SparklineDays],
+                ScoreOverTime: [],
+                CategoryStrength: [],
+                TotalQuestionsAnswered: 0,
+                AverageScore: null,
+                RecentActivity: []);
+        }
+
+        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+
+        var scoreOverTime = rows
+            .Select(r => new ScorePointDto(r.CompletedAt, r.ScorePercentage))
+            .ToList();
+
+        var categoryStrength = rows
+            .GroupBy(r => r.Category)
+            .Select(g => new CategoryStrengthDto(g.Key, g.Average(r => r.ScorePercentage), g.Count()))
+            .OrderByDescending(c => c.AverageScore)
+            .ToList();
+
+        var recentActivity = rows
+            .OrderByDescending(r => r.CompletedAt)
+            .Take(RecentActivityCount)
+            .Select(r => new RecentActivityItemDto(
+                r.AttemptId, r.Category, r.ScorePercentage, r.CompletedAt))
+            .ToList();
+
+        return new DashboardSummaryDto(
+            CurrentStreakDays: ComputeStreak(rows, today),
+            ActivitySparkline: ComputeSparkline(rows, today),
+            ScoreOverTime: scoreOverTime,
+            CategoryStrength: categoryStrength,
+            TotalQuestionsAnswered: rows.Sum(r => r.AnswerCount),
+            AverageScore: rows.Average(r => r.ScorePercentage),
+            RecentActivity: recentActivity);
+    }
+
+    // Consecutive days with at least one completed attempt, counting back from today. A one-day
+    // grace keeps an unplayed *today* from breaking a run: if there's no activity today we start
+    // from yesterday, so the streak only resets once a full day has passed with no activity.
+    private static int ComputeStreak(IReadOnlyList<CompletedAttemptRow> rows, DateOnly today)
+    {
+        var activeDays = rows
+            .Select(r => DateOnly.FromDateTime(r.CompletedAt.UtcDateTime))
+            .ToHashSet();
+
+        var day = activeDays.Contains(today) ? today : today.AddDays(-1);
+        var streak = 0;
+        while (activeDays.Contains(day))
+        {
+            streak++;
+            day = day.AddDays(-1);
+        }
+
+        return streak;
+    }
+
+    // Per-day completed-attempt counts for the last SparklineDays days, oldest→newest, index
+    // SparklineDays-1 being today. Days with no activity are zero, so the array is always full length.
+    private static int[] ComputeSparkline(IReadOnlyList<CompletedAttemptRow> rows, DateOnly today)
+    {
+        var counts = new int[SparklineDays];
+        var start = today.AddDays(-(SparklineDays - 1));
+
+        foreach (var row in rows)
+        {
+            var day = DateOnly.FromDateTime(row.CompletedAt.UtcDateTime);
+            if (day < start || day > today)
+            {
+                continue;
+            }
+
+            counts[day.DayNumber - start.DayNumber]++;
+        }
+
+        return counts;
+    }
+}
