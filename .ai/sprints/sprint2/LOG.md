@@ -5,6 +5,52 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.5: Spaced repetition engine (API-only)
+
+**Cel:** silnik **Daily review** — endpoint `GET /api/review/daily` zwracający ważony zestaw pytań,
+które user powinien powtórzyć: te, które **ostatnio** odpowiedział błędnie, ważone **trudnością** i
+**jak dawno** dał złą odpowiedź. Iteracja dowozi **tylko API** (UI to 2.6). Pytania w kształcie
+aktywnego quizu (`ReviewQuestionDto`) — bez wycieku poprawności (hard rule #4).
+
+**Co zrobione (plan + 4 atomic commits):**
+- **Plan** (`#233`) — plik iteracji 2.5: decyzje (a/ derive correctness zamiast kolumny `IsCorrect`,
+  b/ latest-per-question liczone w C#/Domain nie EF, c/ serwujemy kształt bez poprawności).
+- **Domain** (`#234`, TDD) — `ReviewCandidate { QuestionId, Difficulty, LastAnsweredAt, WasCorrect }`
+  + `ReviewSelector.SelectDailyReview(candidates, count, now)`: grupuje po pytaniu, bierze najnowszą
+  odpowiedź per pytanie, zostawia tylko te ostatnio błędne, waży `difficultyFactor (Easy 1/Medium 2/
+  Hard 3) + min(daysSinceWrong, 30)`, sortuje weight desc → recency desc → QuestionId (stabilnie),
+  cap do `count`. 11 czystych testów (filtr latest-wrong, formuła wagi, kolejność/ties, cap, empty).
+- **Application** (`#235`, TDD) — `ReviewQuestionDto { Id, Type, Difficulty, Text, Category, Options:
+  [{ Id, Text, OrderIndex }] }` (bez `IsCorrect`), `GetDailyReviewQuery(Count = 10)` + handler +
+  validator (count 1–50). Handler: fetch candidates → `ReviewSelector` → fetch content → przywróć
+  kolejność selektora. Rozszerzenie `IQuizRepository` o dwie metody. 6 testów (handler reorder/skip-
+  fetch/honor-count/scope, validator zakres).
+- **Repository** (`#236`, TDD) — `GetReviewCandidatesAsync`: jeden `ReviewCandidate` per odpowiedź z
+  completed+scored prób usera, `WasCorrect` wyliczone w SQL (match `SelectedOptionId` → `Option`
+  `IsCorrect`; null = błąd), niesie difficulty + `SubmittedAt`. `GetReviewQuestionsByIdsAsync`:
+  projekcja pytań do `ReviewQuestionDto` (nazwa kategorii, opcje posortowane, brak poprawności). 3
+  testy integracyjne (Testcontainers: derive WasCorrect + difficulty, scope user + exclude in-progress,
+  by-ids content shape).
+- **Api** (`#237`) — `ReviewController` `GET /api/review/daily?count=`, `[Authorize]`, scoped do
+  `IUserContext.UserId`. 3 smoke testy (401 bez tokenu, 200 z demo, 400 dla count poza zakresem).
+
+**Decyzje:**
+- **Derive correctness, nie persist.** Brak kolumny `IsCorrect` na `Answer` — poprawność liczona w SQL
+  z istniejącej historii odpowiedzi (spójne z agregacją in-memory z 2.1, ADR-013 pragmatism). Bez
+  migracji/backfillu.
+- **Pełna redukcja w `ReviewSelector` (Domain), handler cienki.** Latest-per-question + filtr + waga +
+  sort + cap żyją w czystej, testowalnej logice; handler tylko orkiestruje repo→selector→repo i
+  odtwarza kolejność.
+- **Brak encji harmonogramu (SM-2/Leitner).** „Schedule" wyłania się z ważenia historii przy każdym
+  żądaniu. Jeśli 2.6+ pokaże, że to za cienkie — osobny ADR.
+
+**Weryfikacja:** pełny suite .NET zielony (332 testy: 92 Domain / 161 Application / 53 Infrastructure /
+26 Api). Rebuild obrazu `api` (`--no-cache`), demo login, `curl /api/review/daily?count=3` → zwraca
+wcześniej-błędne pytania demo usera (Hard przed Medium przy równej świeżości — waga działa), kształt
+poprawny, **żadnego `isCorrect` w opcjach**. Brak migracji / zmiany schematu.
+
+---
+
 ## 2026-06-30 — Iteracja 2.4: History page
 
 **Cel:** pełna strona **History** — lista wszystkich ukończonych prób usera, filtrowalna po

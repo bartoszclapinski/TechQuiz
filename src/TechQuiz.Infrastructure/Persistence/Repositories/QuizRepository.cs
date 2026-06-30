@@ -130,4 +130,39 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
             .Select(r => new HistoryItemDto(r.Id, r.Name, r.Score, r.CompletedAt))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<ReviewCandidate>> GetReviewCandidatesAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default) =>
+        await (
+            from a in db.QuizAttempts.AsNoTracking()
+            where a.UserId == userId && a.CompletedAt != null && a.ScorePercentage != null
+            from ans in a.Answers
+            join q in db.Questions on ans.QuestionId equals q.Id
+            select new ReviewCandidate(
+                ans.QuestionId,
+                q.Difficulty,
+                ans.SubmittedAt,
+                ans.SelectedOptionId != null
+                    && q.Options.Any(o => o.Id == ans.SelectedOptionId && o.IsCorrect)))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<ReviewQuestionDto>> GetReviewQuestionsByIdsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken = default) =>
+        await (
+            from q in db.Questions.AsNoTracking()
+            where questionIds.Contains(q.Id)
+            join c in db.Categories on q.CategoryId equals c.Id
+            select new ReviewQuestionDto(
+                q.Id,
+                q.Type,
+                q.Difficulty,
+                q.Text,
+                c.Name,
+                q.Options
+                    .OrderBy(o => o.OrderIndex)
+                    .Select(o => new OptionDto(o.Id, o.Text, o.OrderIndex))
+                    .ToList()))
+            .ToListAsync(cancellationToken);
 }
