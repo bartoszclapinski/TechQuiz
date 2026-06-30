@@ -541,3 +541,40 @@ This **changes the behavior of `POST /api/ai/questions`**: it now writes (persis
 ### Alternatives Rejected
 - **Generation = publish (one step)** — simplest and most faithful to ADR-007's cost framing, but removes the author curation gate and dumps every generation into the shared pool with no moderation yet in place. Rejected: a curation gate is cheap (one status field) and meaningfully protects pool quality in the interim.
 - **Hold drafts in a cache / temp store keyed by a generation id** — keeps generation side-effect-free and defers the write to an explicit save, but adds an ephemeral-state mechanism (expiry, eviction) that the `Draft` status models more durably for free. Rejected as redundant complexity.
+
+---
+
+## ADR-021: Review Sessions Persist and Feed the Spaced-Repetition Queue
+
+**Status:** Accepted
+**Date:** 2026-06-30
+
+**Supersedes the stateless-grading decision of iteration 2.6** (decision (a) in `.ai/sprints/sprint2/2.6-daily-review-ui.md`). That decision is reversed here; the rest of 2.6 stands.
+
+### Context
+Iteration 2.6 shipped the daily-review UI with **stateless** grading: `POST /api/review/grade` was a pure function of (answers, questions) and persisted nothing. Two problems surfaced in use:
+
+1. **No trace.** A completed review left no record — no history, no way to know a review was done.
+2. **No feedback loop.** The queue is computed (since 2.5) from quiz-attempt history: "latest answer per question, keep only those last answered wrong." Because a review wrote nothing, completing it did **not** change the queue — the same questions resurfaced every day until the user happened to answer them correctly in a *real* quiz. There was also no "done today" signal, so the banner kept nagging after a finished review.
+
+The 2.6 decision deliberately avoided persistence to keep quiz History/Dashboard aggregates clean and to avoid modelling a review as a `QuizAttempt` (a review mixes questions from several quizzes and has no single `quizId`).
+
+### Decision
+Reviews are **persisted to their own aggregate**, `ReviewSession`, in a dedicated table — **never** as a `QuizAttempt`. `POST /api/review/grade` now **writes** a `ReviewSession` (with per-question items: `QuestionId`, `SelectedOptionId`, `AnsweredAt`) as a side effect before returning the same per-question results as before. The response contract is unchanged; only server-side persistence is new (recording this satisfies hard rule #5).
+
+Review outcomes **feed the spaced-repetition queue** by widening the candidate source: the queue's candidate read unions answers from quiz attempts **and** review sessions, then runs the unchanged 2.5 `ReviewSelector`. A question answered correctly in a review becomes its latest answer and drops out of the next queue; answered wrong, it returns. Correctness is **derived** at read time from `Option.IsCorrect` (consistent with 2.5), not stored.
+
+Keeping `ReviewSession` separate from `QuizAttempt` preserves the *intent* of the 2.6 decision — quiz History and Dashboard aggregates read only `QuizAttempts` and are unaffected — while restoring the persistence and feedback the feature needs.
+
+### Consequences
+- A new `ReviewSession` table and EF migration — the first schema change since the review feature began (2.5/2.6 added none).
+- Review gains its own surface: a `GET /api/review/stats` read (sessions, questions reviewed, accuracy, current + best **review streak**) and a Dashboard stats tile. The review streak reuses a shared `StreakCalculator` extracted from the Dashboard quiz-streak logic (UTC days, one-day grace) so the two streaks stay in parity.
+- "Done today" is derivable: a `ReviewSession` with `CompletedAt` on today's UTC date gates the daily banner.
+- Grading is now a write; the frontend treats it as a mutation and invalidates the daily-queue and stats queries on success.
+- Hard rule #4 is untouched: `GET /api/review/daily` still omits correctness; it is revealed only by `/grade` after submit.
+- Milestones / achievement badges for review streaks are deferred to iteration 2.8.
+
+### Alternatives Rejected
+- **Stay stateless (the 2.6 status quo).** Simplest, but leaves the queue with no feedback loop and no done-today signal — the same questions resurface indefinitely. Rejected: it makes the spaced-repetition engine cosmetic.
+- **Record review answers into the existing `Answer`/`QuizAttempt` history** so the selector picks them up for free. Achieves the feedback loop with no new table, but pollutes quiz History and Dashboard aggregates with non-quiz activity and forces a synthetic `quizId`. Rejected: violates the clean separation that motivated the 2.6 decision.
+- **Rewrite `ReviewSelector` to take review outcomes as a second input.** More explicit, but duplicates the latest-answer-per-question logic and changes proven 2.5 code. Rejected in favour of unioning the candidate source, which reuses the selector unchanged.
