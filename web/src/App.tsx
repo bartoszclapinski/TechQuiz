@@ -12,6 +12,7 @@ import { PoolPage } from './features/pool/pool-page'
 import { CodeChallengesPage } from './features/code-challenges/code-challenges-page'
 import { CodeChallengePage } from './features/code-challenges/code-challenge-page'
 import { DashboardPage } from './features/dashboard/dashboard-page'
+import { HistoryPage } from './features/history/history-page'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
             <Route path="/pool" element={<PoolPage />} />

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using TechQuiz.Application.Features.History;
 using TechQuiz.Domain;
 using TechQuiz.Infrastructure.Persistence.Repositories;
 using TechQuiz.Infrastructure.Tests.Support;
@@ -258,6 +259,127 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         var rows = await sut.GetCompletedAttemptsWithCategoryAsync(user);
 
         rows.Should().ContainSingle().Which.AnswerCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetCompletedHistoryPageAsync_ReturnsScopedCompletedScored_WithCategoryName()
+    {
+        var userA = await CreateUserAsync();
+        var userB = await CreateUserAsync();
+        var (categoryId, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var expectedCategory = $"Test Category {categoryId}";
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await SeedCompletedAttemptAsync(userA, quizId, t.AddMinutes(0), t.AddMinutes(5), scorePercentage: 40d);
+        await SeedCompletedAttemptAsync(userA, quizId, t.AddMinutes(10), t.AddMinutes(15), scorePercentage: 80d);
+        await SeedInProgressAttemptAsync(userA, quizId, t.AddMinutes(30));
+        await SeedCompletedAttemptAsync(userB, quizId, t.AddMinutes(20), t.AddMinutes(25), scorePercentage: 99d);
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var rows = await sut.GetCompletedHistoryPageAsync(
+            userA, category: null, HistorySortField.Date, descending: true, skip: 0, take: 20);
+
+        rows.Should().HaveCount(2);
+        rows.Should().OnlyContain(r => r.Category == expectedCategory);
+    }
+
+    [Fact]
+    public async Task GetCompletedHistoryPageAsync_SortByDate_HonorsDirection()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(0), t.AddMinutes(5), scorePercentage: 40d);
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(10), t.AddMinutes(15), scorePercentage: 60d);
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(20), t.AddMinutes(25), scorePercentage: 80d);
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var desc = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Date, descending: true, skip: 0, take: 20);
+        var asc = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Date, descending: false, skip: 0, take: 20);
+
+        desc.Select(r => r.CompletedAt).Should().BeInDescendingOrder();
+        asc.Select(r => r.CompletedAt).Should().BeInAscendingOrder();
+    }
+
+    [Fact]
+    public async Task GetCompletedHistoryPageAsync_SortByScore_HonorsDirection()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(0), t.AddMinutes(5), scorePercentage: 50d);
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(10), t.AddMinutes(15), scorePercentage: 90d);
+        await SeedCompletedAttemptAsync(user, quizId, t.AddMinutes(20), t.AddMinutes(25), scorePercentage: 20d);
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var desc = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Score, descending: true, skip: 0, take: 20);
+        var asc = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Score, descending: false, skip: 0, take: 20);
+
+        desc.Select(r => r.ScorePercentage).Should().Equal(90d, 50d, 20d);
+        asc.Select(r => r.ScorePercentage).Should().Equal(20d, 50d, 90d);
+    }
+
+    [Fact]
+    public async Task GetCompletedHistoryPageAsync_FiltersByCategory()
+    {
+        var user = await CreateUserAsync();
+        var (catA, quizA, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var (_, quizB, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var categoryA = $"Test Category {catA}";
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await SeedCompletedAttemptAsync(user, quizA, t.AddMinutes(0), t.AddMinutes(5), scorePercentage: 40d);
+        await SeedCompletedAttemptAsync(user, quizB, t.AddMinutes(10), t.AddMinutes(15), scorePercentage: 80d);
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var rows = await sut.GetCompletedHistoryPageAsync(
+            user, category: categoryA, HistorySortField.Date, descending: true, skip: 0, take: 20);
+
+        rows.Should().ContainSingle().Which.Category.Should().Be(categoryA);
+    }
+
+    [Fact]
+    public async Task GetCompletedHistoryPageAsync_Paginates_ViaSkipTake()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizId, _) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        for (var i = 0; i < 5; i++)
+        {
+            await SeedCompletedAttemptAsync(
+                user, quizId, t.AddMinutes(i * 10), t.AddMinutes(i * 10 + 5), scorePercentage: 10d * i);
+        }
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        // Date desc: newest first. Page 1 = newest 2, page 2 = next 2.
+        var firstPage = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Date, descending: true, skip: 0, take: 2);
+        var secondPage = await sut.GetCompletedHistoryPageAsync(
+            user, category: null, HistorySortField.Date, descending: true, skip: 2, take: 2);
+
+        firstPage.Should().HaveCount(2);
+        secondPage.Should().HaveCount(2);
+        firstPage[0].CompletedAt.Should().Be(t.AddMinutes(45));
+        firstPage.Select(r => r.CompletedAt).Should().BeInDescendingOrder();
+        secondPage.Select(r => r.CompletedAt).Should().BeInDescendingOrder();
+        firstPage.Select(r => r.AttemptId).Should().NotIntersectWith(secondPage.Select(r => r.AttemptId));
     }
 
     private async Task<Guid> SeedCompletedAttemptAsync(

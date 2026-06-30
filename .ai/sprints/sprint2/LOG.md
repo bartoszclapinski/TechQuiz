@@ -5,6 +5,55 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.4: History page
+
+**Cel:** pełna strona **History** — lista wszystkich ukończonych prób usera, filtrowalna po
+kategorii i sortowalna po dacie / wyniku, z przyrostowym pagingiem „Load more". Nowy dedykowany
+endpoint `GET /api/history`; nav „History" awansuje ze stanu „soon" na żywy `NavLink`. Brak
+mockupu — strona dziedziczy istniejący system (wiersze à la Recent-activity z Dashboardu, chrome jak
+Categories).
+
+**Co zrobione (plan + 2 atomic commits):**
+- **Plan** (`#227`) — pełny plik iteracji 2.4 (kontrakt DTO, query params, locked decisions: a/
+  completed-only, b/ „Load more" przez `useInfiniteQuery`, c/ dedykowany `/api/history` zamiast
+  rozszerzania `/api/attempts`).
+- **Backend** (`#228`, TDD) — `HistoryItemDto { AttemptId, Category, ScorePercentage, CompletedAt }`,
+  `HistorySortField { Date, Score }`, `GetHistoryQuery` + handler (skip = (page-1)*pageSize,
+  pass-through) + validator (page ≥ 1, pageSize 1–100). Repo `GetCompletedHistoryPageAsync`: join
+  kategorii, filtr completed+scored + opcjonalny filtr kategorii, sort server-side po dacie/wyniku
+  (z tie-breakiem po `CompletedAt`), paginacja. `HistoryController` `[Authorize]`, scoped do
+  `IUserContext.UserId`. 3 testy handlera + 4 validatora + 5 integracyjnych (Testcontainers: scoping/
+  completed-only, sort date, sort score, filtr kategorii, paginacja skip/take).
+- **Frontend** (`#229`) — `features/history/`: `api.ts`, `query-keys.ts`, `use-history.ts`
+  (`useInfiniteQuery`), `history-page.tsx`. Dropdown filtra kategorii (z `/api/categories`), kontrolka
+  sortowania Date/Score (klik aktywnego pola odwraca kierunek ↑/↓), wiersze prób linkujące do
+  `/result/:attemptId`, przycisk „Load more". `/history` route + awans nav. Stany loading / error /
+  empty (osobny komunikat gdy filtr nie ma wyników).
+
+**Decyzje:**
+- **Dedykowany `/api/history`, nie rozszerzanie `/api/attempts`.** Generyczny endpoint ma odrębną,
+  przetestowaną semantykę (wszystkie próby, desc po StartedAt, bez kategorii/wyniku); repurposing
+  przepisałby te testy bez zysku. Nowy endpoint czysto reużywa projekcję category-join z 2.1.
+- **„Load more" przez `useInfiniteQuery`.** Ostatnia strona wykrywana sentinel'em: strona krótsza niż
+  `pageSize` ⇒ koniec, bez round-tripu po total-count. Klucz cache trzyma filtr+sort, ale nie numer
+  strony — `useInfiniteQuery` zarządza stronami w jednym wpisie cache.
+- **Sort na kolumnach źródłowych, nie na projekcji.** EF Core nie tłumaczy `OrderBy` po właściwościach
+  skonstruowanego rekordu DTO; sortujemy po `a.CompletedAt` / `a.ScorePercentage` przed projekcją,
+  potem `Skip/Take`, potem `Select` na DTO. Tie-break po `CompletedAt` daje stabilną kolejność stron.
+
+**Weryfikacja:**
+- Pełny pakiet solucji zielony: Application **151/151** (w tym 3 handler + 4 validator history),
+  Infrastructure **50/50** (w tym 5 nowych repo), Api **23/23**, Domain bez zmian. 0 niepowodzeń.
+- `pnpm build` (tsc + vite) i `pnpm lint` (eslint) czyste.
+- Stack postawiony od zera (`docker compose build --no-cache api web`, recreate). Smoke API z tokenem
+  demo: `/api/history` zwraca ukończoną próbę (Unit Testing, 73.7%); filtr `category=SQL` → `[]`;
+  bez tokenu → **401**; `pageSize=0` → **400**. Serwowany bundle webowy zawiera feature History
+  (`/api/history`, „Load more", dropdown „All categories").
+- Owner potwierdził w przeglądarce (login demo, nav History aktywny, filtr + sort, wiersze otwierają
+  wyniki, oba motywy): „Ok ładnie wszystko działa". Status 2.4 → **done**.
+
+---
+
 ## 2026-06-30 — Iteracja 2.3: Time-range filter (Week / Month / All)
 
 **Cel:** segmented control Week / Month / All time na Dashboardzie. Zakres filtruje agregaty;
