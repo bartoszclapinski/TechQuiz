@@ -382,6 +382,91 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         firstPage.Select(r => r.AttemptId).Should().NotIntersectWith(secondPage.Select(r => r.AttemptId));
     }
 
+    [Fact]
+    public async Task GetReviewCandidatesAsync_DerivesWasCorrect_FromSelectedOption_AndCarriesDifficulty()
+    {
+        var user = await CreateUserAsync();
+        var (_, quizId, questions) = await SeedCategoryWithQuizAsync(questionCount: 3);
+        var correct = questions[0];
+        var wrong = questions[1];
+        var unanswered = questions[2];
+        // CreateQuestion seeds option[0] correct, option[1] wrong.
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var attempt = QuizAttempt.Start(Guid.NewGuid(), user, quizId, t);
+        attempt.SubmitAnswer(correct.Id, correct.Options[0].Id, t.AddMinutes(1));
+        attempt.SubmitAnswer(wrong.Id, wrong.Options[1].Id, t.AddMinutes(2));
+        attempt.SubmitAnswer(unanswered.Id, null, t.AddMinutes(3));
+        attempt.Complete(t.AddMinutes(4), scorePercentage: 33d);
+        await using (var writeCtx = CreateDbContext())
+        {
+            writeCtx.QuizAttempts.Add(attempt);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var candidates = await sut.GetReviewCandidatesAsync(user);
+
+        candidates.Should().HaveCount(3);
+        candidates.Single(c => c.QuestionId == correct.Id).WasCorrect.Should().BeTrue();
+        candidates.Single(c => c.QuestionId == wrong.Id).WasCorrect.Should().BeFalse();
+        candidates.Single(c => c.QuestionId == unanswered.Id).WasCorrect.Should().BeFalse();
+        candidates.Should().OnlyContain(c => c.Difficulty == Difficulty.Easy);
+        candidates.Single(c => c.QuestionId == wrong.Id).LastAnsweredAt.Should().Be(t.AddMinutes(2));
+    }
+
+    [Fact]
+    public async Task GetReviewCandidatesAsync_ScopesToUser_AndExcludesInProgressAttempts()
+    {
+        var user = await CreateUserAsync();
+        var other = await CreateUserAsync();
+        var (_, quizId, questions) = await SeedCategoryWithQuizAsync(questionCount: 1);
+        var q = questions[0];
+        var t = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var inProgress = QuizAttempt.Start(Guid.NewGuid(), user, quizId, t);
+        inProgress.SubmitAnswer(q.Id, q.Options[1].Id, t.AddMinutes(1));
+
+        var otherUserAttempt = QuizAttempt.Start(Guid.NewGuid(), other, quizId, t.AddMinutes(2));
+        otherUserAttempt.SubmitAnswer(q.Id, q.Options[1].Id, t.AddMinutes(3));
+        otherUserAttempt.Complete(t.AddMinutes(4), scorePercentage: 0d);
+
+        await using (var writeCtx = CreateDbContext())
+        {
+            writeCtx.QuizAttempts.AddRange(inProgress, otherUserAttempt);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var candidates = await sut.GetReviewCandidatesAsync(user);
+
+        candidates.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetReviewQuestionsByIdsAsync_ReturnsRequested_WithCategory_AndOrderedOptions()
+    {
+        var (categoryId, _, questions) = await SeedCategoryWithQuizAsync(questionCount: 3);
+        var expectedCategory = $"Test Category {categoryId}";
+        var wanted = new[] { questions[0].Id, questions[2].Id };
+
+        await using var db = CreateDbContext();
+        var sut = new QuizRepository(db);
+
+        var result = await sut.GetReviewQuestionsByIdsAsync(wanted);
+
+        result.Should().HaveCount(2);
+        result.Select(r => r.Id).Should().BeEquivalentTo(wanted);
+        result.Should().OnlyContain(r => r.Category == expectedCategory);
+        var first = result.Single(r => r.Id == questions[0].Id);
+        first.Options.Should().HaveCount(2);
+        first.Options.Select(o => o.OrderIndex).Should().BeInAscendingOrder();
+    }
+
     private async Task<Guid> SeedCompletedAttemptAsync(
         Guid userId, Guid quizId, DateTimeOffset startedAt, DateTimeOffset completedAt, double scorePercentage)
     {
