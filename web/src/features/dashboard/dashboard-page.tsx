@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import { useAuth } from '../auth/use-auth'
 import { useDailyReview } from '../review/use-daily-review'
+import { useReviewStats } from '../review/use-review-stats'
 import { useDashboard } from './use-dashboard'
 import type { CategoryStrength, DashboardRange, DashboardSummary, RecentActivityItem } from './api'
 
@@ -82,8 +83,71 @@ function PopulatedDashboard({
         <RecentActivityTile items={summary.recentActivity} />
         <CategoryExtremeTile label="Best category" category={best} tone="success" />
         <CategoryExtremeTile label="Needs practice" category={needsPractice} tone="warning" />
+        <ReviewStatsTile />
       </div>
     </main>
+  )
+}
+
+// Review-specific stats live in their own tile (kept apart from quiz aggregates, per the owner's
+// ask): the daily queue is small, so streak / accuracy / volume read differently here. Renders only
+// once the user has completed at least one review — otherwise the banner above is the nudge.
+function ReviewStatsTile() {
+  const { data: stats } = useReviewStats()
+
+  if (!stats || stats.totalSessions === 0) {
+    return null
+  }
+
+  const accuracy = stats.accuracyPercentage === null ? '—' : Math.round(stats.accuracyPercentage)
+
+  return (
+    <Tile className="p-[18px] sm:col-span-3">
+      <div className="mb-3.5 flex items-center gap-2">
+        <ReviewIcon />
+        <Label>Daily review</Label>
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <ReviewMetric value={stats.currentStreakDays} unit={stats.currentStreakDays === 1 ? 'day' : 'days'} label="Review streak" />
+        <ReviewMetric value={stats.bestStreakDays} unit={stats.bestStreakDays === 1 ? 'day' : 'days'} label="Best streak" />
+        <ReviewMetric value={stats.totalQuestionsReviewed} label="Questions reviewed" />
+        <ReviewMetric value={accuracy} suffix={accuracy === '—' ? undefined : '%'} label="Accuracy" />
+      </div>
+    </Tile>
+  )
+}
+
+function ReviewMetric({
+  value,
+  unit,
+  suffix,
+  label,
+}: {
+  value: string | number
+  unit?: string
+  suffix?: string
+  label: string
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-[28px] font-bold leading-none tracking-tight text-primary">
+          {value}
+          {suffix ? <span className="text-base text-secondary">{suffix}</span> : null}
+        </span>
+        {unit ? <span className="text-xs font-medium text-secondary">{unit}</span> : null}
+      </div>
+      <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{label}</p>
+    </div>
+  )
+}
+
+function ReviewIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" strokeWidth="2" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <polyline points="3 3 3 8 8 8" />
+    </svg>
   )
 }
 
@@ -92,12 +156,20 @@ function PopulatedDashboard({
 // While loading or on error we render nothing — the banner is a nudge, not load-bearing content.
 function DailyReviewBanner() {
   const { data: questions, isLoading, isError } = useDailyReview()
+  const { data: stats } = useReviewStats()
 
   if (isLoading || isError || !questions) {
     return null
   }
 
   const count = questions.length
+
+  // Already reviewed today: switch from a nudge to an acknowledgement (with the streak), so a return
+  // visit doesn't keep pushing the same call to action. Still offer a way back in if the queue holds
+  // questions the user didn't clear (e.g. ones they got wrong again).
+  if (stats?.reviewedToday) {
+    return <ReviewedTodayBanner streak={stats.currentStreakDays} remaining={count} />
+  }
 
   if (count === 0) {
     return (
@@ -149,6 +221,44 @@ function DailyReviewBanner() {
           <polyline points="12 5 19 12 12 19" />
         </svg>
       </Link>
+    </div>
+  )
+}
+
+// Shown once the user has reviewed today: a green confirmation that also reports the streak the
+// session earned. If the queue still has questions, a quiet link lets them keep going.
+function ReviewedTodayBanner({ streak, remaining }: { streak: number; remaining: number }) {
+  return (
+    <div
+      className="mb-2.5 flex flex-col gap-3 rounded-xl border px-[18px] py-4 sm:flex-row sm:items-center sm:justify-between"
+      style={{ borderColor: 'rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.06)' }}
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: 'rgba(16,185,129,0.12)' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </span>
+        <div>
+          <p className="text-[15px] font-semibold text-primary">Reviewed today</p>
+          <p className="mt-0.5 text-[12px] text-secondary">
+            {streak > 0
+              ? `You're on a ${streak}-day review streak — keep it going tomorrow.`
+              : 'Nice work clearing your review for today.'}
+          </p>
+        </div>
+      </div>
+      {remaining > 0 ? (
+        <Link
+          to="/review"
+          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default px-4 py-2 text-[13px] font-medium text-secondary hover:bg-elevated hover:text-primary"
+        >
+          Review {remaining} more
+        </Link>
+      ) : null}
     </div>
   )
 }

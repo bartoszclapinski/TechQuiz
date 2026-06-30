@@ -36,6 +36,17 @@ export type ReviewGradeResult = {
   explanation: string
 }
 
+// Mirrors the API's ReviewStatsDto — review-specific aggregates (kept apart from quiz stats since the
+// daily queue is small). accuracyPercentage is null until at least one question has been reviewed.
+export type ReviewStats = {
+  totalSessions: number
+  totalQuestionsReviewed: number
+  accuracyPercentage: number | null
+  currentStreakDays: number
+  bestStreakDays: number
+  reviewedToday: boolean
+}
+
 export const DAILY_REVIEW_COUNT = 10
 
 export async function fetchDailyReview(count: number = DAILY_REVIEW_COUNT): Promise<ReviewQuestion[]> {
@@ -45,5 +56,10 @@ export async function fetchDailyReview(count: number = DAILY_REVIEW_COUNT): Prom
 
 export async function gradeReview(answers: ReviewAnswer[]): Promise<ReviewGradeResult[]> {
   const { data } = await apiClient.post<ReviewGradeResult[]>('/api/review/grade', { answers })
+  return data
+}
+
+export async function fetchReviewStats(): Promise<ReviewStats> {
+  const { data } = await apiClient.get<ReviewStats>('/api/review/stats')
   return data
 }
