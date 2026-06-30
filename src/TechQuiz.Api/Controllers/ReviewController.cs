@@ -19,4 +19,13 @@ public sealed class ReviewController(IMediator mediator) : ControllerBase
         var questions = await mediator.Send(new GetDailyReviewQuery(count), cancellationToken);
         return Ok(questions);
     }
+
+    [HttpPost("grade")]
+    public async Task<ActionResult<IReadOnlyList<ReviewGradeResultDto>>> Grade(
+        [FromBody] GradeReviewCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var results = await mediator.Send(command, cancellationToken);
+        return Ok(results);
+    }
 }
