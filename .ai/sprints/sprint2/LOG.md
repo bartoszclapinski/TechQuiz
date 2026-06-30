@@ -5,6 +5,54 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.6: Daily review UI (zamyka Phase 2)
+
+**Cel:** wystawić kolejkę spaced-repetition z 2.5 jako używalną funkcję — banner na Dashboardzie
+("N questions to review today"), dedykowany flow `/review` (quiz-like), który po submit **ocenia**
+zestaw i pokazuje podsumowanie z poprawnymi odpowiedziami + wyjaśnieniami. Nav `Daily review`
+awansowany z `soon` na żywy route.
+
+**Co zrobione (plan + 3 atomic commits):**
+- **Plan** (`#240`) — plik iteracji 2.6: decyzje (a/ stateless grading bez `QuizAttempt`, b/ score-at-
+  end zamiast per-question reveal, c/ współdzielony `useDailyReview` na licznik karty, d/ hard rule #4
+  dalej trzyma — poprawność tylko po submit).
+- **Grading (backend, TDD)** (`#241`) — `POST /api/review/grade`: przyjmuje `[{ questionId,
+  selectedOptionId? }]`, zwraca per-pytanie `{ correctOptionId, isCorrect, explanation }`. Bezstanowe
+  (zero `QuizAttempt`). `GradeReviewCommand` + handler (dopasowanie po id, zachowanie kolejności,
+  pomijanie nieznanych pytań) + validator (NotEmpty, ≤ 50, bez duplikatów questionId). Nowy odczyt
+  `GetQuestionsForGradingByIdsAsync` (niesie poprawną opcję + explanation — tylko ścieżka grade).
+  `ReviewController` zyskuje `POST grade`. Testy: 4 handler, 5 validator, 1 repo (Testcontainers),
+  3 Api smoke (401/400 empty/200).
+- **Review flow (frontend)** (`#242`) — slice `features/review/`: `api`, `query-keys`,
+  `useDailyReview`, `useGradeReview`, `review-page` (runner + summary w jednym pliku przez fazę stanu).
+  Runner mirrorzy quiz shell (badge trudności, opcje, klawiatura 1-4/Enter/Esc, progress), zbiera
+  odpowiedzi lokalnie, ocenia raz na końcu. Summary: hero ze score + lista pytań z Twoją vs poprawną
+  odpowiedzią i wyjaśnieniem (wzór z Result screen). `AppShell` chowa topbar na `/review` (focused,
+  ADR-014) i awansuje nav `Daily review` z `soon` na żywy `NavLink`. Route `/review` w `App.tsx`.
+- **Dashboard banner** (`#243`) — prominentny banner nad bento gridem: "N questions to review today"
+  + CTA `Start review` → `/review`, oraz slim stan "all caught up" gdy kolejka pusta. Współdzieli
+  `useDailyReview` z runnerem (jeden klucz `['review','daily']`) — grzeje cache, wejście w review bez
+  drugiego fetchu.
+
+**Decyzje:**
+- **Stateless grading.** Grade to czysta funkcja (answers, questions) — żaden `QuizAttempt` nie powstaje
+  (kontynuacja decyzji z 2.5; review miesza pytania z wielu quizów i nie zaśmieca History/Dashboard).
+- **Score-at-end.** Runner zbiera odpowiedzi i ocenia raz na submit; poprawność + wyjaśnienia lądują na
+  summary — reuse quiz shell + Result patterns, jeden round-trip. Immediate per-question reveal odłożone
+  jako ewentualny późniejszy polish.
+- **Hard rule #4 trzyma.** `/api/review/daily` dalej bez poprawności; ujawnia ją tylko `/grade` po
+  submit — te same semantyki "reveal dopiero po sesji" co Result screen w żywym quizie.
+
+**Weryfikacja:** pełen pakiet .NET zielony (92 Domain + 170 Application + 54 Infrastructure + 29 Api =
+345). `pnpm build` + lint czyste. Brak migracji/zmiany schematu. Stack postawiony (`--no-cache` rebuild
+api + web), owner przeklikuje: demo login → Dashboard pokazuje licznik review → flow → submit → summary
+z poprawnymi odpowiedziami + wyjaśnieniami, brak wycieku poprawności w trakcie. Oba motywy (dark/light).
+
+**To zamyka Phase 2.** Po 2.6 wracamy do pozostałych prac Phase 3 (sprint order: Phase 3 budowane przed
+Phase 2 do 3.7).
+
+---
+
 ## 2026-06-30 — Iteracja 2.5: Spaced repetition engine (API-only)
 
 **Cel:** silnik **Daily review** — endpoint `GET /api/review/daily` zwracający ważony zestaw pytań,
