@@ -8,6 +8,7 @@ namespace TechQuiz.Application.Features.Review;
 public sealed class GradeReviewCommandHandler(
     IQuizRepository quizRepository,
     IUserContext userContext,
+    IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
     : IRequestHandler<GradeReviewCommand, IReadOnlyList<ReviewGradeResultDto>>
 {
@@ -47,6 +48,7 @@ public sealed class GradeReviewCommandHandler(
             var session = ReviewSession.Create(
                 Guid.NewGuid(), userContext.UserId, timeProvider.GetUtcNow(), items);
             await quizRepository.AddReviewSessionAsync(session, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return results;

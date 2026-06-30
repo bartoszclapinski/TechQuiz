@@ -14,6 +14,7 @@ public class GradeReviewCommandHandlerTests
 
     private readonly IQuizRepository _quizRepository = Substitute.For<IQuizRepository>();
     private readonly IUserContext _userContext = Substitute.For<IUserContext>();
+    private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
     public GradeReviewCommandHandlerTests()
@@ -22,7 +23,7 @@ public class GradeReviewCommandHandlerTests
         _timeProvider.GetUtcNow().Returns(Now);
     }
 
-    private GradeReviewCommandHandler CreateSut() => new(_quizRepository, _userContext, _timeProvider);
+    private GradeReviewCommandHandler CreateSut() => new(_quizRepository, _userContext, _unitOfWork, _timeProvider);
 
     [Fact]
     public async Task Handle_GradesEachAnswer_DerivingCorrectnessAndCarryingExplanation()
@@ -139,6 +140,20 @@ public class GradeReviewCommandHandlerTests
                 && s.Items.Any(i => i.QuestionId == q1 && i.SelectedOptionId == o1)
                 && s.Items.Any(i => i.QuestionId == q2 && i.SelectedOptionId == null)),
             Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_AllQuestionsMissing_DoesNotCommit()
+    {
+        _quizRepository.GetQuestionsForGradingByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        await CreateSut().Handle(
+            new GradeReviewCommand([new ReviewAnswerInput(Guid.NewGuid(), null)]),
+            CancellationToken.None);
+
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
