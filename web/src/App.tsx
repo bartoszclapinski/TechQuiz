@@ -11,6 +11,7 @@ import { GeneratePage } from './features/generate/generate-page'
 import { PoolPage } from './features/pool/pool-page'
 import { CodeChallengesPage } from './features/code-challenges/code-challenges-page'
 import { CodeChallengePage } from './features/code-challenges/code-challenge-page'
+import { DashboardPage } from './features/dashboard/dashboard-page'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
             <Route path="/pool" element={<PoolPage />} />

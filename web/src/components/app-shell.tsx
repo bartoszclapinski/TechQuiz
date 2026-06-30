@@ -4,7 +4,7 @@ import { ThemeToggle } from './ui/theme-toggle'
 
 // Phase 2/3 destinations live in the topbar as disabled "soon" items per ADR-014, so the nav
 // shape is final from day one and users see what's coming.
-const COMING_SOON = ['Daily review', 'Dashboard', 'History']
+const COMING_SOON = ['Daily review', 'History']
 
 function initialsFromEmail(email: string): string {
   const local = email.split('@')[0] ?? ''
@@ -34,6 +34,16 @@ export function AppShell() {
         </NavLink>
 
         <nav className="flex flex-1 items-center gap-1">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `rounded-md px-2.5 py-1.5 text-[13px] font-medium ${
+                isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
           <NavLink
             to="/categories"
             className={({ isActive }) =>
