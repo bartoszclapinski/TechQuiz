@@ -56,4 +56,24 @@ public interface IQuizRepository
         int skip,
         int take,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns one <see cref="ReviewCandidate"/> per answer the user gave in a completed, scored
+    /// attempt, carrying the question's difficulty, when it was answered, and whether it was correct
+    /// (derived by matching the selected option to a correct one; an unanswered question counts as
+    /// incorrect). A question answered across several attempts yields several candidates — the daily
+    /// review selector keeps the latest per question. Feeds <see cref="ReviewSelector"/>.
+    /// </summary>
+    Task<IReadOnlyList<ReviewCandidate>> GetReviewCandidatesAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the content (text, type, options, category name) of the given questions for the Daily
+    /// review queue, in the in-quiz <see cref="ReviewQuestionDto"/> shape (no correctness leaked).
+    /// Order is unspecified; the caller restores the review order.
+    /// </summary>
+    Task<IReadOnlyList<ReviewQuestionDto>> GetReviewQuestionsByIdsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken = default);
 }
