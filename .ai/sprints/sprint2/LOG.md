@@ -5,6 +5,41 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.3: Time-range filter (Week / Month / All)
+
+**Cel:** segmented control Week / Month / All time na Dashboardzie. Zakres filtruje agregaty;
+backend dokłada param do istniejącego `GET /api/dashboard` (jeden endpoint), frontend cache'uje
+każdy zakres osobno.
+
+**Co zrobione (plan + 3 atomic commits):**
+- **Plan** (`#222`) — pełny plik iteracji 2.3 (semantyka okien, empty-state, DoD).
+- **Backend** (`#223`, TDD) — enum `DashboardRange { Week, Month, All }`; `GetDashboardSummaryQuery`
+  bierze `Range`; `GET /api/dashboard?range=` binduje (default All). Handler skopuje score-over-time,
+  category strength, recent activity, totals i average do zakresu; **streak + sparkline zostają
+  all-time**. 5 nowych testów handlera (granica Week/Month, All bez filtra, streak/sparkline nietknięte,
+  pusty zakres przy danych all-time). Application **141/141**, Api **23/23**.
+- **Frontend** (`#224`) — `dashboardKey(range)` w kluczu, `useDashboard(range)` +
+  `fetchDashboardSummary(range)` wysyłają `?range=`. `keepPreviousData` trzyma poprzedni zakres na
+  ekranie podczas przełączania (bez flasha loadingu). Segmented control w headerze (oba stany), default
+  All. First-run prompt tylko gdy `range === 'all' && averageScore === null`.
+
+**Decyzje:**
+- **Streak i sparkline poza filtrem** — to „stan na teraz" (kolejne dni do dziś / stałe okno 14 dni),
+  Week/Month nie powinien ich przepisywać (inaczej „streak: 0" w poniedziałek rano na widoku „Week").
+- **Okna date-based, UTC** — Week = dziś−6 (7 dni), Month = dziś−29 (30 dni), spójnie ze streak.
+- **Bez zmiany DTO na empty-state** — `averageScore` odnosi się do zakresu; na „All" null = brak
+  jakichkolwiek prób → first-run. Węższy pusty zakres przy danych all-time → populated layout z pustymi
+  wykresami, nie prompt.
+- **API binding** — `range` po nazwie (case-insensitive); brak → default All; śmieci → 400 (frontend
+  i tak wysyła tylko week/month/all).
+
+**Weryfikacja:**
+- `pnpm build` (tsc) + `pnpm lint` czyste.
+- Stack postawiony (rebuild api/web), demo login, przełączanie zakresów (agregaty się zmieniają,
+  streak/sparkline trzymają), oba motywy — owner potwierdza w przeglądarce.
+
+---
+
 ## 2026-06-30 — Iteracja 2.2: Dashboard UI
 
 **Cel:** Dashboard screen — 8-kaflowy bento grid z `mockups/dashboard-*.html`, zasilany jednym

@@ -40,7 +40,7 @@ public class GetDashboardSummaryQueryHandlerTests
     {
         GivenAttempts();
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CurrentStreakDays.Should().Be(0);
         result.ActivitySparkline.Should().HaveCount(14).And.OnlyContain(c => c == 0);
@@ -58,7 +58,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 40d, Day(2026, 6, 15), answers: 3),
             Row("C#", 80d, Day(2026, 6, 15), answers: 2));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.AverageScore.Should().Be(60d);
         result.TotalQuestionsAnswered.Should().Be(5);
@@ -73,7 +73,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 90d, Day(2026, 6, 15)),
             Row("EF Core", 30d, Day(2026, 6, 15)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CategoryStrength.Select(c => c.Category).Should().Equal("C#", "SQL", "EF Core");
         result.CategoryStrength.Select(c => c.AverageScore).Should().Equal(90d, 60d, 30d);
@@ -87,7 +87,7 @@ public class GetDashboardSummaryQueryHandlerTests
         var t2 = Day(2026, 6, 14);
         GivenAttempts(Row("C#", 40d, t1), Row("C#", 80d, t2));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.ScoreOverTime.Select(p => p.CompletedAt).Should().Equal(t1, t2);
         result.ScoreOverTime.Select(p => p.ScorePercentage).Should().Equal(40d, 80d);
@@ -104,7 +104,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 50d, Day(2026, 6, 5)),
             Row("C#", 60d, Day(2026, 6, 6)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.RecentActivity.Should().HaveCount(5);
         result.RecentActivity.Select(r => r.ScorePercentage).Should().Equal(60d, 50d, 40d, 30d, 20d);
@@ -118,7 +118,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 80d, Day(2026, 6, 14)),
             Row("C#", 80d, Day(2026, 6, 13)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CurrentStreakDays.Should().Be(3);
     }
@@ -131,7 +131,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 80d, Day(2026, 6, 14)),
             Row("C#", 80d, Day(2026, 6, 13)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CurrentStreakDays.Should().Be(2);
     }
@@ -144,7 +144,7 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 80d, Day(2026, 6, 15)),
             Row("C#", 80d, Day(2026, 6, 13)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CurrentStreakDays.Should().Be(1);
     }
@@ -154,7 +154,7 @@ public class GetDashboardSummaryQueryHandlerTests
     {
         GivenAttempts(Row("C#", 80d, Day(2026, 6, 10)));
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.CurrentStreakDays.Should().Be(0);
     }
@@ -168,11 +168,97 @@ public class GetDashboardSummaryQueryHandlerTests
             Row("C#", 80d, Day(2026, 6, 14)),   // index 12 again
             Row("C#", 80d, Day(2026, 6, 1)));   // before the 14-day window → ignored
 
-        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(), CancellationToken.None);
+        var result = await CreateSut().Handle(new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
 
         result.ActivitySparkline.Should().HaveCount(14);
         result.ActivitySparkline[13].Should().Be(1);
         result.ActivitySparkline[12].Should().Be(2);
         result.ActivitySparkline.Sum().Should().Be(3);
+    }
+
+    [Fact]
+    public async Task Handle_Week_IncludesAttemptsWithinSevenDays_ExcludesOlder()
+    {
+        // Today is 06-15. Week cutoff = 06-09 (today − 6). 06-09 is in; 06-08 is out.
+        // Rows are oldest→newest, mirroring the repository's ordering contract.
+        GivenAttempts(
+            Row("C#", 10d, Day(2026, 6, 8), answers: 5),
+            Row("C#", 70d, Day(2026, 6, 9), answers: 3),
+            Row("C#", 90d, Day(2026, 6, 15), answers: 2));
+
+        var result = await CreateSut().Handle(
+            new GetDashboardSummaryQuery(DashboardRange.Week), CancellationToken.None);
+
+        result.ScoreOverTime.Select(p => p.ScorePercentage).Should().Equal(70d, 90d);
+        result.AverageScore.Should().Be(80d);
+        result.TotalQuestionsAnswered.Should().Be(5);
+        result.CategoryStrength.Single().AttemptCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Handle_Month_IncludesAttemptsWithinThirtyDays_ExcludesOlder()
+    {
+        // Today is 06-15. Month cutoff = 05-17 (today − 29). 05-17 is in; 05-16 is out.
+        GivenAttempts(
+            Row("C#", 80d, Day(2026, 6, 15)),
+            Row("C#", 60d, Day(2026, 5, 17)),
+            Row("C#", 20d, Day(2026, 5, 16)));
+
+        var result = await CreateSut().Handle(
+            new GetDashboardSummaryQuery(DashboardRange.Month), CancellationToken.None);
+
+        result.ScoreOverTime.Should().HaveCount(2);
+        result.AverageScore.Should().Be(70d);
+    }
+
+    [Fact]
+    public async Task Handle_All_AppliesNoCutoff()
+    {
+        GivenAttempts(
+            Row("C#", 80d, Day(2026, 6, 15)),
+            Row("C#", 40d, Day(2026, 1, 1)));
+
+        var result = await CreateSut().Handle(
+            new GetDashboardSummaryQuery(DashboardRange.All), CancellationToken.None);
+
+        result.ScoreOverTime.Should().HaveCount(2);
+        result.AverageScore.Should().Be(60d);
+    }
+
+    [Fact]
+    public async Task Handle_StreakAndSparkline_StayAllTime_RegardlessOfRange()
+    {
+        // A 3-day run ending today, plus an old attempt outside the Week window. Filtering to Week
+        // drops the old attempt from the aggregations but must not shorten the streak or empty the
+        // sparkline (both are all-time "state as of now").
+        GivenAttempts(
+            Row("C#", 80d, Day(2026, 6, 15)),
+            Row("C#", 80d, Day(2026, 6, 14)),
+            Row("C#", 80d, Day(2026, 6, 13)),
+            Row("C#", 80d, Day(2026, 5, 1)));
+
+        var result = await CreateSut().Handle(
+            new GetDashboardSummaryQuery(DashboardRange.Week), CancellationToken.None);
+
+        result.CurrentStreakDays.Should().Be(3);
+        result.ActivitySparkline.Sum().Should().Be(3);
+    }
+
+    [Fact]
+    public async Task Handle_RangeEmptyButAllTimeHasData_EmptyAggregations_ButSparklineStillCounts()
+    {
+        // Only an old attempt: the Week range is empty, so averageScore is null and lists are empty —
+        // but the sparkline still reflects all-time activity (the attempt is within 14 days).
+        GivenAttempts(Row("C#", 80d, Day(2026, 6, 5), answers: 4));
+
+        var result = await CreateSut().Handle(
+            new GetDashboardSummaryQuery(DashboardRange.Week), CancellationToken.None);
+
+        result.AverageScore.Should().BeNull();
+        result.ScoreOverTime.Should().BeEmpty();
+        result.CategoryStrength.Should().BeEmpty();
+        result.RecentActivity.Should().BeEmpty();
+        result.TotalQuestionsAnswered.Should().Be(0);
+        result.ActivitySparkline.Sum().Should().Be(1);
     }
 }

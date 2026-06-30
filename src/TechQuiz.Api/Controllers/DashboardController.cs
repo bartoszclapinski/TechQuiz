@@ -12,9 +12,11 @@ namespace TechQuiz.Api.Controllers;
 public sealed class DashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<DashboardSummaryDto>> Get(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<DashboardSummaryDto>> Get(
+        [FromQuery] DashboardRange range = DashboardRange.All,
+        CancellationToken cancellationToken = default)
     {
-        var summary = await mediator.Send(new GetDashboardSummaryQuery(), cancellationToken);
+        var summary = await mediator.Send(new GetDashboardSummaryQuery(range), cancellationToken);
         return Ok(summary);
     }
 }

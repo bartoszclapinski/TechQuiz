@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Area,
@@ -14,10 +15,11 @@ import {
 } from 'recharts'
 import { useAuth } from '../auth/use-auth'
 import { useDashboard } from './use-dashboard'
-import type { CategoryStrength, DashboardSummary, RecentActivityItem } from './api'
+import type { CategoryStrength, DashboardRange, DashboardSummary, RecentActivityItem } from './api'
 
 export function DashboardPage() {
-  const { data, isLoading, isError } = useDashboard()
+  const [range, setRange] = useState<DashboardRange>('all')
+  const { data, isLoading, isError } = useDashboard(range)
 
   if (isLoading) {
     return <Centered>Loading your dashboard…</Centered>
@@ -26,16 +28,25 @@ export function DashboardPage() {
     return <Centered tone="danger">Couldn’t load your dashboard.</Centered>
   }
 
-  // Empty state: no completed attempts ⇒ the API returns a null average. Show the first-run prompt
-  // instead of empty charts (matches dashboard-empty-state.html).
-  if (data.averageScore === null) {
-    return <EmptyDashboard />
+  // First-run empty state: on the All range a null average means the user has no completed attempts
+  // at all, so show the first-run prompt instead of empty charts (matches dashboard-empty-state.html).
+  // A narrower range that happens to be empty falls through to the populated layout (empty charts).
+  if (range === 'all' && data.averageScore === null) {
+    return <EmptyDashboard range={range} onRangeChange={setRange} />
   }
 
-  return <PopulatedDashboard summary={data} />
+  return <PopulatedDashboard summary={data} range={range} onRangeChange={setRange} />
 }
 
-function PopulatedDashboard({ summary }: { summary: DashboardSummary }) {
+function PopulatedDashboard({
+  summary,
+  range,
+  onRangeChange,
+}: {
+  summary: DashboardSummary
+  range: DashboardRange
+  onRangeChange: (range: DashboardRange) => void
+}) {
   const { user } = useAuth()
   const name = firstName(user?.email)
 
@@ -45,15 +56,18 @@ function PopulatedDashboard({ summary }: { summary: DashboardSummary }) {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 sm:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back{name ? `, ${name}` : ''}</h1>
-        {lastAttempt ? (
-          <p className="mt-1 text-[13px] text-secondary">
-            Last attempt:{' '}
-            <span className="font-medium text-accent-text">{Math.round(lastAttempt.scorePercentage)}%</span>{' '}
-            in {lastAttempt.category}, {relativeTime(lastAttempt.completedAt)}.
-          </p>
-        ) : null}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome back{name ? `, ${name}` : ''}</h1>
+          {lastAttempt ? (
+            <p className="mt-1 text-[13px] text-secondary">
+              Last attempt:{' '}
+              <span className="font-medium text-accent-text">{Math.round(lastAttempt.scorePercentage)}%</span>{' '}
+              in {lastAttempt.category}, {relativeTime(lastAttempt.completedAt)}.
+            </p>
+          ) : null}
+        </div>
+        <RangeTabs value={range} onChange={onRangeChange} />
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
@@ -349,17 +363,26 @@ function CategoryExtremeTile({
   )
 }
 
-function EmptyDashboard() {
+function EmptyDashboard({
+  range,
+  onRangeChange,
+}: {
+  range: DashboardRange
+  onRangeChange: (range: DashboardRange) => void
+}) {
   const { user } = useAuth()
   const name = firstName(user?.email)
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 sm:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome{name ? `, ${name}` : ''}</h1>
-        <p className="mt-1 text-[13px] text-secondary">
-          Take your first quiz to start tracking your progress.
-        </p>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome{name ? `, ${name}` : ''}</h1>
+          <p className="mt-1 text-[13px] text-secondary">
+            Take your first quiz to start tracking your progress.
+          </p>
+        </div>
+        <RangeTabs value={range} onChange={onRangeChange} />
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
@@ -414,6 +437,46 @@ function EmptyDashboard() {
         </Tile>
       </div>
     </main>
+  )
+}
+
+const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+  { value: 'all', label: 'All time' },
+]
+
+function RangeTabs({
+  value,
+  onChange,
+}: {
+  value: DashboardRange
+  onChange: (range: DashboardRange) => void
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Time range"
+      className="flex gap-0.5 self-start rounded-lg border border-default bg-base p-[3px]"
+    >
+      {RANGE_OPTIONS.map((option) => {
+        const active = option.value === value
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(option.value)}
+            className={`rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors ${
+              active ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
+            }`}
+          >
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 

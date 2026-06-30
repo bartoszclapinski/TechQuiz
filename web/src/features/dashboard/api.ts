@@ -32,7 +32,10 @@ export type DashboardSummary = {
   recentActivity: RecentActivityItem[]
 }
 
-export async function fetchDashboardSummary(): Promise<DashboardSummary> {
-  const { data } = await apiClient.get<DashboardSummary>('/api/dashboard')
+// Mirrors the API's DashboardRange enum (bound case-insensitively by name on the query string).
+export type DashboardRange = 'week' | 'month' | 'all'
+
+export async function fetchDashboardSummary(range: DashboardRange): Promise<DashboardSummary> {
+  const { data } = await apiClient.get<DashboardSummary>('/api/dashboard', { params: { range } })
   return data
 }
