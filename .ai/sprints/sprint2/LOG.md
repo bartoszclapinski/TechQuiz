@@ -5,6 +5,50 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-06-30 — Iteracja 2.7: Review persistence + pełny spaced-repetition + statystyki
+
+**Cel:** zrobić daily review **stanowym** (po 2.6 nic się nie zapisywało, te same pytania wracały w
+nieskończoność). Po feedbacku właściciela: (1) zapisywać sesje review, (2) **pełny** SR — wynik review
+wraca do kolejki, (3) review ma **własne** statystyki (mniej pytań), (4) streaki. Milestony/odznaki
+wydzielone do osobnej iteracji 2.8.
+
+**Co zrobione (plan + ADR + 5 atomic commits, po warstwach Clean Architecture):**
+- **Plan + ADR-021** (`#246`) — plik iteracji 2.7; ADR-021 odwraca decyzję (a) z 2.6 ("stateless,
+  bez persystencji") i zapisuje, że review trafia do własnej tabeli i zasila kolejkę SR.
+- **Domain (TDD)** (`#247`) — agregat `ReviewSession` (+ `ReviewItem`, niezmiennik: ≥1 pozycja,
+  `InvalidReviewSessionException`). Poprawność **nie jest** zapisywana — wyliczana na odczycie
+  (jak w 2.5). Wydzielony czysty `StreakCalculator` (`CurrentStreak` z jednodniową łaską +
+  `LongestStreak`) i podpięty w Dashboard handlerze — wspólny dla streaka quizów i review (parytet).
+- **Application (TDD)** (`#248`) — `GradeReviewCommandHandler` teraz **zapisuje** `ReviewSession` dla
+  dopasowanych pytań (własny agregat, nigdy `QuizAttempt`); guard `items.Count > 0` (brak dyndającego
+  FK / pustej sesji). Nowe `GetReviewStatsQuery` + handler + `ReviewStatsDto` (sesje, pytania,
+  accuracy, current/best streak, `ReviewedToday`). `IQuizRepository`: `AddReviewSessionAsync`,
+  `GetReviewSessionSummariesAsync`, poszerzony kontrakt `GetReviewCandidatesAsync` (unia quiz+review).
+- **Infrastructure** (`#249`) — mapowanie EF `ReviewSession` + owned `review_items`; migracja
+  `AddReviewSessions` (tabele `review_sessions` / `review_items`). Implementacje repo; **unia** odpowiedzi
+  z review do `GetReviewCandidatesAsync` — poprawna odpowiedź w review staje się najnowszą i wypada z
+  kolejki, błędna zostaje. Testcontainers: round-trip, liczniki/poprawność w summary, scope per-user,
+  **dowód feedbacku SR** (pytanie źle w quizie → dobrze w późniejszym review → najnowszy kandydat poprawny).
+- **Api** (`#250`) — `GET /api/review/stats` (`[Authorize]`, user-scoped) → `GetReviewStatsQuery`.
+  Smoke testy (401 + 200).
+- **Frontend** (`#251`) — `useReviewStats` + `reviewStatsKey`; kafelek **Daily review** na Dashboardzie
+  (review streak, best streak, pytania, accuracy — osobno od statystyk quizów). Banner przełącza się na
+  stan **„Reviewed today"** (z streakiem) gdy `reviewedToday`, z cichym linkiem „Review N more" jeśli
+  kolejka niepusta. Grade unieważnia `['review','daily']` + `['review','stats']` → Dashboard od razu
+  świeży. Pytania sesji **zamrożone** w stanie (`useState(initial)`) — refetch w tle po grade nie
+  przebudowuje runnera/summary.
+
+**Testy:** Domain 104 ✓, Application 176 ✓, Api 31 ✓, Infrastructure 57 ✓ (łącznie 368). `pnpm build` +
+lint czyste.
+
+**Weryfikacja stacku:** stack postawiony (rebuild api+web), do click-through właściciela — demo login →
+Dashboard (kafelek review + licznik) → uruchom i wyślij review → banner „done today", poprawnie
+odpowiedziane pytanie znika z odświeżonej kolejki, kafelek statystyk się aktualizuje.
+
+**Następne:** iteracja 2.8 (milestony/odznaki za streaki review), potem powrót do pozostałych prac Phase 3.
+
+---
+
 ## 2026-06-30 — Iteracja 2.6: Daily review UI (zamyka Phase 2)
 
 **Cel:** wystawić kolejkę spaced-repetition z 2.5 jako używalną funkcję — banner na Dashboardzie
