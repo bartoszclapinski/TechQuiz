@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { AchievementsSection } from '../achievements/achievements-section'
 import { useAuth } from '../auth/use-auth'
 import { useDailyReview } from '../review/use-daily-review'
 import { useReviewStats } from '../review/use-review-stats'
@@ -85,6 +86,8 @@ function PopulatedDashboard({
         <CategoryExtremeTile label="Needs practice" category={needsPractice} tone="warning" />
         <ReviewStatsTile />
       </div>
+
+      <AchievementsSection />
     </main>
   )
 }

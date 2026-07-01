@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { achievementsKey } from '../achievements/query-keys'
 import { gradeReview, type ReviewAnswer, type ReviewGradeResult } from './api'
 import { dailyReviewKey, reviewSessionsKey, reviewStatsKey } from './query-keys'
 
@@ -20,6 +21,8 @@ export function useGradeReview() {
       void queryClient.invalidateQueries({ queryKey: dailyReviewKey })
       void queryClient.invalidateQueries({ queryKey: reviewStatsKey })
       void queryClient.invalidateQueries({ queryKey: reviewSessionsKey })
+      // Review answers feed the review-based badges (first review, 50 correct, streak days).
+      void queryClient.invalidateQueries({ queryKey: achievementsKey })
     },
     onError: () => {
       toast.error('Could not grade your review. Please try again.')
