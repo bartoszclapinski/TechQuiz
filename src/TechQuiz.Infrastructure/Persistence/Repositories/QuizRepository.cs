@@ -195,10 +195,70 @@ public sealed class QuizRepository(AppDbContext db) : IQuizRepository
         return rows
             .GroupBy(r => new { r.Id, r.CompletedAt })
             .Select(g => new ReviewSessionSummary(
+                g.Key.Id,
                 g.Key.CompletedAt,
                 g.Count(),
                 g.Count(x => x.IsCorrect)))
             .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<ReviewSessionDetailResult?> GetReviewSessionDetailAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        var header = await db.ReviewSessions
+            .AsNoTracking()
+            .Where(s => s.Id == sessionId)
+            .Select(s => new { s.Id, s.UserId, s.CompletedAt })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (header is null)
+        {
+            return null;
+        }
+
+        // Join each answered item to its question content and options. IsCorrect on the option is used
+        // only to derive the correct option id and the item's correctness — it never leaves this method
+        // (the response uses OptionDto, which has no correctness).
+        var rows = await (
+            from s in db.ReviewSessions.AsNoTracking()
+            where s.Id == sessionId
+            from item in s.Items
+            join q in db.Questions on item.QuestionId equals q.Id
+            join c in db.Categories on q.CategoryId equals c.Id
+            select new
+            {
+                item.QuestionId,
+                q.Text,
+                Category = c.Name,
+                q.Difficulty,
+                q.Explanation,
+                item.SelectedOptionId,
+                Options = q.Options
+                    .OrderBy(o => o.OrderIndex)
+                    .Select(o => new { o.Id, o.Text, o.OrderIndex, o.IsCorrect })
+                    .ToList(),
+            })
+            .ToListAsync(cancellationToken);
+
+        var items = rows.Select(r =>
+        {
+            var correctOptionId = r.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? Guid.Empty;
+            var isCorrect = r.SelectedOptionId != null && r.SelectedOptionId == correctOptionId;
+            return new ReviewSessionItemDto(
+                r.QuestionId,
+                r.Text,
+                r.Category,
+                r.Difficulty,
+                [.. r.Options.Select(o => new OptionDto(o.Id, o.Text, o.OrderIndex))],
+                r.SelectedOptionId,
+                correctOptionId,
+                isCorrect,
+                r.Explanation);
+        }).ToList();
+
+        return new ReviewSessionDetailResult(header.Id, header.UserId, header.CompletedAt, items);
     }
 
     public async Task<IReadOnlyList<ReviewQuestionDto>> GetReviewQuestionsByIdsAsync(
