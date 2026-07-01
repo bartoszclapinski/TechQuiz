@@ -9,14 +9,15 @@ function initialsFromEmail(email: string): string {
   return letters.toUpperCase()
 }
 
-// Route-aware shell. The quiz runner and the daily review are focused, distraction-free screens
-// (ADR-014), so on /quiz/:id and /review we render only the Outlet and skip the topbar entirely.
+// Route-aware shell. The quiz runner and the daily-review runner are focused, distraction-free screens
+// (ADR-014), so on /quiz/:id and /review/run we render only the Outlet and skip the topbar entirely.
+// The review hub (/review) and a past session (/review/sessions/:id) keep the topbar — they're browsable.
 export function AppShell() {
   const { user, logout } = useAuth()
   const onQuizRoute = useMatch('/quiz/:id') !== null
-  const onReviewRoute = useMatch('/review') !== null
+  const onReviewRunRoute = useMatch('/review/run') !== null
 
-  if (onQuizRoute || onReviewRoute) {
+  if (onQuizRoute || onReviewRunRoute) {
     return <Outlet />
   }
 
