@@ -40,7 +40,11 @@ export function ReviewPage() {
   return <ReviewSession questions={questions} />
 }
 
-function ReviewSession({ questions }: { questions: ReviewQuestion[] }) {
+function ReviewSession({ questions: initialQuestions }: { questions: ReviewQuestion[] }) {
+  // Freeze the queue for the lifetime of the session: grading invalidates the daily-review query,
+  // and without this snapshot a background refetch (shorter queue) would reshape the runner and the
+  // summary mid-session. A review plays a fixed set, so capturing it once is the correct model.
+  const [questions] = useState(initialQuestions)
   const [results, setResults] = useState<ReviewGradeResult[] | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
 

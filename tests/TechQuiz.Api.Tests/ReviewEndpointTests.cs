@@ -73,4 +73,24 @@ public sealed class ReviewEndpointTests(TechQuizApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Stats_requires_authentication()
+    {
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/review/stats");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Stats_with_a_token_returns_200()
+    {
+        var client = await factory.CreateDemoClientAsync();
+
+        var response = await client.GetAsync("/api/review/stats");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }
