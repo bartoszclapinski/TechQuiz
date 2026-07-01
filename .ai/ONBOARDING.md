@@ -265,7 +265,7 @@ cd TechQuiz
 
 # Full stack (API + web + Postgres + Seq)
 docker compose up -d
-# /health → http://localhost:8080/health
+# /health → http://localhost:8085/health
 # Web    → http://localhost:5173
 # Seq UI → http://localhost:8081
 

@@ -17,7 +17,7 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
    ```
    docker compose up -d
    ```
-   Brings up Postgres on `127.0.0.1:5433` and the API on `127.0.0.1:8080`.
+   Brings up Postgres on `127.0.0.1:5433` and the API on `127.0.0.1:8085`.
 
 2. Migrations applied. `docker compose up` does not run them — apply once against the running container:
    ```
@@ -49,7 +49,7 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
   - `KeyNotFoundException` (missing attempt/quiz) → `404 Not Found`
   - `DomainException` (e.g. result requested before the quiz is completed) → `409 Conflict`
   - anything else → `500` with a generic message (no stack trace leaked)
-- **Interactive API reference (Scalar)** at `http://127.0.0.1:8080/scalar/v1` in Development — use the **Authorize** button to paste the access token from login, then call secured endpoints from the browser.
+- **Interactive API reference (Scalar)** at `http://127.0.0.1:8085/scalar/v1` in Development — use the **Authorize** button to paste the access token from login, then call secured endpoints from the browser.
 - **CORS** is enabled for the Vite dev origin `http://localhost:5173` (with credentials, for the refresh cookie).
 - **Newman runner** (session 1.4-D). With the stack up (`docker compose up -d`), run the whole
   collection headless from this folder:
@@ -57,7 +57,7 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
   npm install   # first time only
   npm run smoke
   ```
-  This executes `Auth/` then `Quiz/` against `{{baseUrl}}` (`http://localhost:8080`) and chains the
+  This executes `Auth/` then `Quiz/` against `{{baseUrl}}` (`http://localhost:8085`) and chains the
   saved tokens, so it is the same play-through as the manual Postman steps above. The
   `.github/workflows/api-smoke.yml` workflow runs the identical command on a manual dispatch
   against a CI-booted API; it is not a per-PR gate because the full flow is already covered in

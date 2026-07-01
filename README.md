@@ -106,13 +106,13 @@ cd TechQuiz
 docker compose up -d
 
 # Verify
-curl http://localhost:8080/health        # API → "Healthy"
+curl http://localhost:8085/health        # API → "Healthy"
 open http://localhost:5173               # Web → React app
 open http://localhost:8081               # Seq log explorer (no auth in dev)
 ```
 
 Service ports:
-- **API** → `http://localhost:8080` (health check at `/health`, OpenAPI at `/openapi/v1.json`)
+- **API** → `http://localhost:8085` (health check at `/health`, OpenAPI at `/openapi/v1.json`)
 - **Web** → `http://localhost:5173`
 - **PostgreSQL** → `localhost:5433` (user `techquiz` / password `techquiz_dev` / db `techquiz`)
 - **Seq UI** → `http://localhost:8081` · ingest → `localhost:5341`

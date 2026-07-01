@@ -1,7 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { AuthTokens } from '../features/auth/types'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8085'
 
 // withCredentials lets the browser send and receive the HttpOnly refresh cookie.
 export const apiClient = axios.create({
