@@ -77,11 +77,22 @@ public interface IQuizRepository
 
     /// <summary>
     /// Returns one <see cref="ReviewSessionSummary"/> per completed review session of the user — its
-    /// completion time and how many of its questions were answered (and answered correctly, derived by
-    /// matching the chosen option). Feeds the review stats (totals, accuracy, streaks).
+    /// id, completion time and how many of its questions were answered (and answered correctly, derived
+    /// by matching the chosen option). Feeds the review stats (totals, accuracy, streaks) and the
+    /// history list (which links on the id).
     /// </summary>
     Task<IReadOnlyList<ReviewSessionSummary>> GetReviewSessionSummariesAsync(
         Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the full graded detail of a single review session (question text, options, the user's
+    /// choice, the correct option and explanation — correctness derived by matching the chosen option),
+    /// or <c>null</c> when no session has that id. Carries the owner <c>UserId</c> so the caller can
+    /// authorize access; the session is already submitted, so revealing correctness is allowed here.
+    /// </summary>
+    Task<ReviewSessionDetailResult?> GetReviewSessionDetailAsync(
+        Guid sessionId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
