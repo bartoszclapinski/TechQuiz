@@ -84,7 +84,7 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
             HttpOnly = true,
             // Secure requires HTTPS; relaxed in Development so the http://localhost dev flow works.
             Secure = !environment.IsDevelopment(),
-            // localhost:5173 → :8080 is same-site (ports don't change the site), so Strict is
+            // localhost:5173 → :8085 is same-site (ports don't change the site), so Strict is
             // still sent on the SPA's same-site refresh call. A cross-domain prod frontend
             // would need SameSite=None; Secure — a Phase 4 deployment concern.
             SameSite = SameSiteMode.Strict,

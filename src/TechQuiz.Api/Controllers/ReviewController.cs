@@ -35,4 +35,21 @@ public sealed class ReviewController(IMediator mediator) : ControllerBase
         var stats = await mediator.Send(new GetReviewStatsQuery(), cancellationToken);
         return Ok(stats);
     }
+
+    [HttpGet("sessions")]
+    public async Task<ActionResult<IReadOnlyList<ReviewSessionSummary>>> GetSessions(
+        CancellationToken cancellationToken = default)
+    {
+        var sessions = await mediator.Send(new GetReviewSessionsQuery(), cancellationToken);
+        return Ok(sessions);
+    }
+
+    [HttpGet("sessions/{id:guid}")]
+    public async Task<ActionResult<ReviewSessionDetailDto>> GetSession(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var detail = await mediator.Send(new GetReviewSessionDetailQuery(id), cancellationToken);
+        return Ok(detail);
+    }
 }

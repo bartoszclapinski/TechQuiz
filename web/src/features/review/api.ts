@@ -47,6 +47,37 @@ export type ReviewStats = {
   reviewedToday: boolean
 }
 
+// Mirrors the API's ReviewSessionSummary — one row in the history list. Correctness is a count over the
+// session's items (derived server-side); no per-item detail here.
+export type ReviewSessionSummary = {
+  id: string
+  completedAt: string
+  questionCount: number
+  correctCount: number
+}
+
+// Mirrors the API's ReviewSessionItemDto — one graded question inside a past session. Same shape the
+// post-grade summary renders from, so both views share one row component. Correctness is derived on the
+// server (never persisted); options still carry no IsCorrect.
+export type ReviewSessionItem = {
+  questionId: string
+  questionText: string
+  category: string
+  difficulty: DifficultyValue
+  options: ReviewOption[]
+  selectedOptionId: string | null
+  correctOptionId: string
+  isCorrect: boolean
+  explanation: string
+}
+
+// Mirrors the API's ReviewSessionDetailDto — a past session's full graded results, re-read on demand.
+export type ReviewSessionDetail = {
+  id: string
+  completedAt: string
+  items: ReviewSessionItem[]
+}
+
 export const DAILY_REVIEW_COUNT = 10
 
 export async function fetchDailyReview(count: number = DAILY_REVIEW_COUNT): Promise<ReviewQuestion[]> {
@@ -61,5 +92,15 @@ export async function gradeReview(answers: ReviewAnswer[]): Promise<ReviewGradeR
 
 export async function fetchReviewStats(): Promise<ReviewStats> {
   const { data } = await apiClient.get<ReviewStats>('/api/review/stats')
+  return data
+}
+
+export async function fetchReviewSessions(): Promise<ReviewSessionSummary[]> {
+  const { data } = await apiClient.get<ReviewSessionSummary[]>('/api/review/sessions')
+  return data
+}
+
+export async function fetchReviewSession(id: string): Promise<ReviewSessionDetail> {
+  const { data } = await apiClient.get<ReviewSessionDetail>(`/api/review/sessions/${id}`)
   return data
 }

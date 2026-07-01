@@ -566,6 +566,62 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
         latest.WasCorrect.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task GetReviewSessionDetailAsync_MissingSession_ReturnsNull()
+    {
+        await using var db = CreateDbContext();
+
+        var detail = await new QuizRepository(db).GetReviewSessionDetailAsync(Guid.NewGuid());
+
+        detail.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetReviewSessionDetailAsync_ReturnsGradedItems_WithDerivedCorrectness()
+    {
+        var user = await CreateUserAsync();
+        var (categoryId, _, questions) = await SeedCategoryWithQuizAsync(questionCount: 2);
+        var expectedCategory = $"Test Category {categoryId}";
+        var t = new DateTimeOffset(2026, 7, 1, 8, 0, 0, TimeSpan.Zero);
+        var sessionId = Guid.NewGuid();
+
+        // option[0] is correct, option[1] wrong: answer q0 correctly, q1 wrongly.
+        var session = ReviewSession.Create(sessionId, user, t,
+        [
+            new ReviewItem(questions[0].Id, questions[0].Options[0].Id),
+            new ReviewItem(questions[1].Id, questions[1].Options[1].Id),
+        ]);
+        await using (var writeCtx = CreateDbContext())
+        {
+            writeCtx.ReviewSessions.Add(session);
+            await writeCtx.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var detail = await new QuizRepository(db).GetReviewSessionDetailAsync(sessionId);
+
+        detail.Should().NotBeNull();
+        detail!.Id.Should().Be(sessionId);
+        detail.UserId.Should().Be(user);
+        detail.CompletedAt.Should().Be(t);
+        detail.Items.Should().HaveCount(2);
+
+        var correct = detail.Items.Single(i => i.QuestionId == questions[0].Id);
+        correct.QuestionText.Should().Be("Q?");
+        correct.Category.Should().Be(expectedCategory);
+        correct.Explanation.Should().Be("exp");
+        correct.SelectedOptionId.Should().Be(questions[0].Options[0].Id);
+        correct.CorrectOptionId.Should().Be(questions[0].Options[0].Id);
+        correct.IsCorrect.Should().BeTrue();
+        correct.Options.Should().HaveCount(2);
+        correct.Options.Select(o => o.OrderIndex).Should().BeInAscendingOrder();
+
+        var wrong = detail.Items.Single(i => i.QuestionId == questions[1].Id);
+        wrong.SelectedOptionId.Should().Be(questions[1].Options[1].Id);
+        wrong.CorrectOptionId.Should().Be(questions[1].Options[0].Id);
+        wrong.IsCorrect.Should().BeFalse();
+    }
+
     private async Task SeedReviewSessionAsync(
         Guid userId, DateTimeOffset completedAt, params (Guid QuestionId, Guid? SelectedOptionId)[] items)
     {

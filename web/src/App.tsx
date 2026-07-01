@@ -13,7 +13,9 @@ import { CodeChallengesPage } from './features/code-challenges/code-challenges-p
 import { CodeChallengePage } from './features/code-challenges/code-challenge-page'
 import { DashboardPage } from './features/dashboard/dashboard-page'
 import { HistoryPage } from './features/history/history-page'
-import { ReviewPage } from './features/review/review-page'
+import { ReviewHubPage } from './features/review/review-hub-page'
+import { ReviewRunnerPage } from './features/review/review-runner-page'
+import { ReviewSessionDetailPage } from './features/review/review-session-detail-page'
 
 function App() {
   return (
@@ -25,7 +27,9 @@ function App() {
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />
-            <Route path="/review" element={<ReviewPage />} />
+            <Route path="/review" element={<ReviewHubPage />} />
+            <Route path="/review/run" element={<ReviewRunnerPage />} />
+            <Route path="/review/sessions/:id" element={<ReviewSessionDetailPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/generate" element={<GeneratePage />} />
             <Route path="/pool" element={<PoolPage />} />

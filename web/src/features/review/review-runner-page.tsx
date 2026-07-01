@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Difficulty, type DifficultyValue, type ReviewGradeResult, type ReviewQuestion } from './api'
 import { useDailyReview } from './use-daily-review'
 import { useGradeReview } from './use-grade-review'
+import { ReviewResultView, type ReviewResultItem } from './review-summary'
 
 // Difficulty badge styling per ADR-015, mirroring the quiz runner.
 const DIFFICULTY_META = {
@@ -11,7 +12,8 @@ const DIFFICULTY_META = {
   [Difficulty.Hard]: { label: 'Hard', text: 'text-danger', bg: 'rgba(239,68,68,0.1)' },
 } satisfies Record<DifficultyValue, { label: string; text: string; bg: string }>
 
-export function ReviewPage() {
+// The focused, topbar-less runner at /review/run. Entered from the hub; on finish it returns there.
+export function ReviewRunnerPage() {
   const { data: questions, isLoading, isError, refetch } = useDailyReview()
 
   if (isLoading) {
@@ -49,7 +51,7 @@ function ReviewSession({ questions: initialQuestions }: { questions: ReviewQuest
   const [answers, setAnswers] = useState<Record<string, string>>({})
 
   if (results) {
-    return <ReviewSummary questions={questions} answers={answers} results={results} />
+    return <RunnerSummary questions={questions} answers={answers} results={results} />
   }
 
   return <ReviewRunner questions={questions} answers={answers} setAnswers={setAnswers} onGraded={setResults} />
@@ -113,7 +115,7 @@ function ReviewRunner({
       } else if (event.key === 'Enter') {
         if (answers[question.id]) void handleAdvance()
       } else if (event.key === 'Escape') {
-        navigate('/dashboard')
+        navigate('/review')
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -141,7 +143,7 @@ function ReviewRunner({
         </div>
         <button
           type="button"
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/review')}
           aria-label="Exit review"
           className="flex h-7 w-7 items-center justify-center rounded-md border border-default text-secondary transition-colors hover:bg-elevated"
         >
@@ -217,7 +219,7 @@ function ReviewRunner({
   )
 }
 
-function ReviewSummary({
+function RunnerSummary({
   questions,
   answers,
   results,
@@ -227,186 +229,47 @@ function ReviewSummary({
   results: ReviewGradeResult[]
 }) {
   const navigate = useNavigate()
-  const resultByQuestion = new Map(results.map((result) => [result.questionId, result]))
-  const correctCount = results.filter((result) => result.isCorrect).length
-  const total = results.length
-  const score = total > 0 ? Math.round((correctCount / total) * 100) : 0
+  const items = useMemo<ReviewResultItem[]>(() => {
+    const resultByQuestion = new Map(results.map((result) => [result.questionId, result]))
+    return questions.flatMap((question) => {
+      const result = resultByQuestion.get(question.id)
+      if (!result) return []
+      return [
+        {
+          questionId: question.id,
+          questionText: question.text,
+          difficulty: question.difficulty,
+          options: question.options,
+          selectedOptionId: answers[question.id] ?? null,
+          correctOptionId: result.correctOptionId,
+          isCorrect: result.isCorrect,
+          explanation: result.explanation,
+        },
+      ]
+    })
+  }, [questions, answers, results])
 
   return (
     <div className="min-h-screen bg-base text-primary">
-      <main className="mx-auto max-w-[800px] px-6 py-8 sm:px-9">
-        <div className="mb-2">
-        <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-secondary">Review complete</p>
-        <h1 className="text-2xl font-semibold leading-tight tracking-tight">Daily review</h1>
-      </div>
-
-      <div
-        className="mb-6 mt-5 flex items-center justify-between rounded-[14px] border px-8 py-7"
-        style={{
-          borderColor: 'rgba(139,92,246,0.2)',
-          background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.02))',
-        }}
-      >
-        <div>
-          <p className="mb-1 font-mono text-[12px] uppercase tracking-[0.08em] text-secondary">You got</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-[56px] font-bold leading-none tracking-[-0.04em]">{correctCount}</span>
-            <span className="text-2xl font-semibold text-accent-text">/ {total}</span>
-          </div>
-          <p className="mt-2 text-[12px] font-medium text-muted">{score}% correct</p>
-        </div>
-        <span
-          className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium tracking-[0.04em] text-accent-text"
-          style={{ backgroundColor: 'rgba(139,92,246,0.18)' }}
-        >
-          {bandLabel(score)}
-        </span>
-      </div>
-
-      <section className="mb-7 flex flex-col gap-1.5">
-        {questions.map((question, index) => {
-          const result = resultByQuestion.get(question.id)
-          if (!result) return null
-          return (
-            <SummaryRow
-              key={question.id}
-              number={index + 1}
-              question={question}
-              result={result}
-              selectedOptionId={answers[question.id] ?? null}
-            />
-          )
-        })}
-      </section>
-
-      <div className="flex gap-2.5 border-t border-default pt-5">
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Back to dashboard
-        </button>
-        </div>
-      </main>
+      <ReviewResultView
+        eyebrow="Review complete"
+        title="Daily review"
+        items={items}
+        footer={
+          <button
+            type="button"
+            onClick={() => navigate('/review')}
+            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            Back to review
+          </button>
+        }
+      />
     </div>
-  )
-}
-
-function SummaryRow({
-  number,
-  question,
-  result,
-  selectedOptionId,
-}: {
-  number: number
-  question: ReviewQuestion
-  result: ReviewGradeResult
-  selectedOptionId: string | null
-}) {
-  const [expanded, setExpanded] = useState(!result.isCorrect)
-  const correct = result.isCorrect
-  const userOption = question.options.find((option) => option.id === selectedOptionId)
-  const correctOption = question.options.find((option) => option.id === result.correctOptionId)
-
-  return (
-    <div
-      className="overflow-hidden rounded-lg border bg-surface"
-      style={{ borderColor: correct ? undefined : 'rgba(239,68,68,0.35)' }}
-    >
-      <button
-        type="button"
-        onClick={() => setExpanded((value) => !value)}
-        aria-expanded={expanded}
-        className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left"
-      >
-        <StatusIcon correct={correct} />
-        <span className="min-w-[30px] font-mono text-[11px] text-secondary">Q{number}</span>
-        <p className={`flex-1 text-[13px] ${correct ? 'text-secondary' : 'font-medium text-primary'}`}>
-          {question.text}
-        </p>
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className={`shrink-0 text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="flex flex-col gap-2.5 bg-base px-3.5 py-3.5 pl-12">
-          <AnswerLine label="Your answer">
-            {userOption ? (
-              <AnswerPill text={userOption.text} tone={correct ? 'success' : 'danger'} />
-            ) : (
-              <span className="font-mono text-[12px] text-muted">No answer</span>
-            )}
-          </AnswerLine>
-          {!correct && correctOption && (
-            <AnswerLine label="Correct">
-              <AnswerPill text={correctOption.text} tone="success" />
-            </AnswerLine>
-          )}
-          {result.explanation && (
-            <div
-              className="mt-1 rounded-r border-l-2 px-3 py-2.5"
-              style={{ borderColor: 'var(--accent)', background: 'rgba(139,92,246,0.06)' }}
-            >
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
-              <p className="text-[13px] leading-relaxed text-secondary">{result.explanation}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function AnswerLine({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="min-w-[86px] font-mono text-[10px] uppercase tracking-[0.06em] text-secondary">{label}</span>
-      {children}
-    </div>
-  )
-}
-
-function AnswerPill({ text, tone }: { text: string; tone: 'success' | 'danger' }) {
-  const color = tone === 'success' ? 'text-success' : 'text-danger'
-  const bg = tone === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'
-  return (
-    <code className={`rounded px-2 py-[3px] font-mono text-[12px] ${color}`} style={{ backgroundColor: bg }}>
-      {text}
-    </code>
-  )
-}
-
-function StatusIcon({ correct }: { correct: boolean }) {
-  return (
-    <span
-      className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
-      style={{ backgroundColor: correct ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}
-    >
-      {correct ? (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="3">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      ) : (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="3">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      )}
-    </span>
   )
 }
 
@@ -418,10 +281,10 @@ function CaughtUp() {
       <p className="mb-4 text-sm text-secondary">Nothing to review today — great work.</p>
       <button
         type="button"
-        onClick={() => navigate('/dashboard')}
+        onClick={() => navigate('/review')}
         className="rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
       >
-        Back to dashboard
+        Back to review
       </button>
     </CenteredMessage>
   )
@@ -439,11 +302,4 @@ function Kbd({ children }: { children: React.ReactNode }) {
   return (
     <kbd className="rounded bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-secondary">{children}</kbd>
   )
-}
-
-function bandLabel(score: number): string {
-  if (score >= 80) return 'Great work'
-  if (score >= 60) return 'Good effort'
-  if (score >= 40) return 'Keep practicing'
-  return 'Keep going'
 }

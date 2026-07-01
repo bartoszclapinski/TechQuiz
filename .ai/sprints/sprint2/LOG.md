@@ -5,6 +5,55 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-01 — Iteracja 2.8: Review hub (dashboard daily + historia sesji)
+
+**Cel:** przerobić `/review` z „od razu quiz" na **stronę-hub** feature'u daily review. Po feedbacku
+właściciela (po 2.7): (1) po rozwiązaniu review nadal pokazywało się jako do zrobienia, (2) nie dało się
+podejrzeć wyników ostatniej sesji, (3) **główne** — `/review` ma być podstroną z detalami daily
+(statystyki + wejście w quiz + historia poprzednich sesji do podejrzenia), a nie wejściem prosto w test.
+Milestony/odznaki przesunięte do 2.9.
+
+**Co zrobione (plan + 5 atomic commits, po warstwach Clean Architecture):**
+- **Plan** (`#255`) — plik iteracji 2.8; decyzje: (a) runner → `/review/run`, `/review` = hub;
+  (b) detal historii to **świeży odczyt** (`GET /sessions/{id}`), nie efemeryczny payload z grade;
+  (c) poprawność wyliczana na odczycie (jak wszędzie); (d) „done today" z `reviewedToday` z 2.7;
+  (e) **bez nowej tabeli / migracji** — czyta z tabel `review_sessions` / `review_items` z 2.7.
+- **Application (TDD)** (`#256`) — `GetReviewSessionsQuery` (+ handler, sortowanie newest-first,
+  user-scoped) i `GetReviewSessionDetailQuery(SessionId)` (+ handler: 404 gdy brak, 403 gdy cudza sesja).
+  Nowe DTO (`ReviewSessionItemDto`, `ReviewSessionDetailDto`, `ReviewSessionDetailResult` z `UserId` do
+  authz), `ReviewSessionSummary` dostaje `Id`. `IQuizRepository`: `GetReviewSessionDetailAsync`.
+- **Infrastructure** (`#257`) — `GetReviewSessionSummariesAsync` niesie teraz `Id`; nowy
+  `GetReviewSessionDetailAsync` (join items → questions/options/categories, poprawność wyliczana przez
+  `Option.IsCorrect`, nigdy nie przez `OptionDto`). Testcontainers: brak sesji → null; graded items z
+  wyliczoną poprawnością + kolejnością opcji.
+- **Api** (`#258`) — `GET /api/review/sessions` (lista, newest-first) i `GET /api/review/sessions/{id}`
+  (detal), oba `[Authorize]`, user-scoped. 403/404 mapowane centralnie przez `GlobalExceptionHandler`.
+  Smoke: 401 (bez tokenu), 200 (lista), 404 (nieznane id).
+- **Frontend** (`#259`) — `/review` = **hub** (kafelki statystyk, karta daily „N due → Start"
+  **albo** „Reviewed today ✓", lista historii z linkami). Runner przeniesiony na `/review/run`
+  (pełny ekran, topbar ukryty — reguła `AppShell` przecelowana z `/review` na `/review/run`).
+  `/review/sessions/:id` = detal przeszłej sesji, współdzieli layout summary (wyciągnięty
+  `ReviewResultView` w `review-summary.tsx` — jedna ścieżka dla post-grade i historii). Hooki
+  `use-review-sessions` / `use-review-session` + klucze `reviewSessionsKey` / `reviewSessionKey(id)`;
+  grade unieważnia też `sessions`. Karta „Start review" na Dashboardzie prowadzi na hub (`/review`).
+
+**Testy:** Domain 104 ✓, Application 182 ✓, Infrastructure 59 ✓, Api 35 ✓ (łącznie 380). `pnpm build` +
+lint czyste.
+
+**Weryfikacja stacku:** stack postawiony (rebuild api+web), do click-through właściciela — demo login →
+`/review` hub (statystyki + licznik due) → Start → runner + submit → powrót na hub, nowa sesja w historii,
+stan „done today" → wejście w przeszłą sesję → wyniki się renderują (oba motywy). Live smoke na 8085:
+`/api/review/sessions` 200 (1 sesja 9/10), detal 200 (10 pozycji), nieznane id → 404.
+
+**Zmiana portu (`#260`, chore):** port hosta API przeniesiony **8080 → 8085** (kolidował z inną lokalną
+apką właściciela); port kontenera zostaje 8080 (Kestrel/EXPOSE/CI bez zmian). Zaktualizowane
+`docker-compose.yml`, domyślny `baseURL` frontendu i dokumentacja (README, ONBOARDING, Postman).
+
+**Następne:** iteracja 2.9 (milestony/odznaki za streaki review) zamyka Phase 2, potem powrót do
+pozostałych prac Phase 3.
+
+---
+
 ## 2026-06-30 — Iteracja 2.7: Review persistence + pełny spaced-repetition + statystyki
 
 **Cel:** zrobić daily review **stanowym** (po 2.6 nic się nie zapisywało, te same pytania wracały w

@@ -41,8 +41,8 @@ public class GetReviewStatsQueryHandlerTests
     public async Task Handle_AggregatesTotalsAndAccuracy()
     {
         GivenSessions(
-            new ReviewSessionSummary(Now.AddDays(-2), QuestionCount: 10, CorrectCount: 7),
-            new ReviewSessionSummary(Now.AddDays(-1), QuestionCount: 10, CorrectCount: 8));
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-2), QuestionCount: 10, CorrectCount: 7),
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-1), QuestionCount: 10, CorrectCount: 8));
 
         var stats = await CreateSut().Handle(new GetReviewStatsQuery(), CancellationToken.None);
 
@@ -56,10 +56,10 @@ public class GetReviewStatsQueryHandlerTests
     {
         // A 3-day run ending today, and an older isolated day.
         GivenSessions(
-            new ReviewSessionSummary(Now.AddDays(-10), 5, 5),
-            new ReviewSessionSummary(Now.AddDays(-2), 5, 5),
-            new ReviewSessionSummary(Now.AddDays(-1), 5, 5),
-            new ReviewSessionSummary(Now, 5, 5));
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-10), 5, 5),
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-2), 5, 5),
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-1), 5, 5),
+            new ReviewSessionSummary(Guid.NewGuid(), Now, 5, 5));
 
         var stats = await CreateSut().Handle(new GetReviewStatsQuery(), CancellationToken.None);
 
@@ -73,8 +73,8 @@ public class GetReviewStatsQueryHandlerTests
     {
         // Last review was yesterday: not reviewed today, but the streak isn't broken yet (grace).
         GivenSessions(
-            new ReviewSessionSummary(Now.AddDays(-2), 5, 5),
-            new ReviewSessionSummary(Now.AddDays(-1), 5, 5));
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-2), 5, 5),
+            new ReviewSessionSummary(Guid.NewGuid(), Now.AddDays(-1), 5, 5));
 
         var stats = await CreateSut().Handle(new GetReviewStatsQuery(), CancellationToken.None);
 

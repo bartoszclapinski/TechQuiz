@@ -5,7 +5,7 @@
 #
 # Service map:
 #   postgres  → 127.0.0.1:5433 (host) → 5432 (container)   (5432 host port is in use elsewhere)
-#   api       → 127.0.0.1:8080
+#   api       → 127.0.0.1:8085 (host) → 8080 (container)   (8080 host port is in use elsewhere)
 #   web       → 127.0.0.1:5173
 #   seq UI    → 127.0.0.1:8081
 #   seq ingest→ 127.0.0.1:5341 (matches Serilog appsettings default)
@@ -64,7 +64,7 @@ services:
       # Dev-only JWT signing key. NEVER copy this anywhere; production must override.
       Jwt__SigningKey: "Yk2N+9P3uVw/AaQXkF1ZJzr8jbE6S0LpD4hCnTgRqIyMxv7K0BtUaH3WeOoiPlmd"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8085:8080"
     networks:
       - techquiz
 
