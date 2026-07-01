@@ -5,6 +5,50 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-01 — Iteracja 2.9: Milestones / odznaki (achievement badges)
+
+**Cel:** dać uczącemu się poczucie **progresu** przez **odznaki** zdobywane za korzystanie z aplikacji
+(ukończone quizy, odpowiedzi, wyniki 100%, sesje review, streaki). Ostatni element UX Phase 2. Odznaki
+**wyliczane na odczyt** z danych, które już mamy (attempts + review_sessions) — **bez nowej tabeli,
+migracji i znacznika `unlocked_at`**. Właściciel zaznaczył, że grafiki odznak (SVG) dorobimy — na razie
+ikony per grupa.
+
+**Co zrobione (plan + 4 atomic commits, po warstwach):**
+- **Plan** (`#263`) — plik iteracji 2.9; decyzje: (a) derive-on-read, zero persystencji; (b) **bez nowego
+  odczytu z repo** — dwa istniejące reads (`GetCompletedAttemptsWithCategoryAsync`,
+  `GetReviewSessionSummariesAsync`) mają wszystkie liczby; (c) streak = **best**, nie current (raz zdobyta
+  odznaka nie znika po przerwie); (d) tylko monotoniczne progi w v1 → czysty pasek postępu; (e) brak
+  notyfikacji „nowa odznaka!" (wymagałaby `unlocked_at`); (f) katalog w warstwie Application.
+- **Application (TDD)** (`#264`) — czysty `AchievementCalculator` (7-odznakowy katalog, `Progress =
+  min(raw, Target)`, `Unlocked = raw >= Target`) nad dwoma reads; `GetAchievementsQuery` + handler;
+  `AchievementDto`/`AchievementsDto`. Testy: granice odblokowania (tuż-poniżej / dokładnie-na targecie),
+  clamp postępu, unia dni quiz+review dla streaka, roll-up. 13 nowych testów.
+- **Api** (`#265`) — `GET /api/achievements` (`[Authorize]`, user-scoped) → katalog + `UnlockedCount`/
+  `TotalCount`. Smoke: 401 (bez tokenu), 200 (kształt + liczniki, `progress <= target`).
+- **Frontend** (`#266`) — feature `achievements` (api, `achievementsKey`, `use-achievements`, ikony SVG
+  per grupa quiz/review/streak); **sekcja Achievements na Dashboardzie** pod bento gridem: nagłówek
+  „N/M unlocked", odblokowane w akcencie + checkmark, zablokowane wygaszone z paskiem postępu (dla
+  odznak wieloetapowych). Inwalidacja `achievements` po `complete-quiz` i po `grade-review` (świeża
+  odznaka bez ręcznego reloadu).
+
+**Katalog v1 (7 odznak, wszystkie monotoniczne):** First Steps (1 quiz), Quiz Regular (10 quizów),
+Centurion (100 pytań, quiz+review), Flawless (quiz 100%), First Review (1 sesja), Sharpshooter (50
+poprawnych w review), Streak Keeper (7-dniowy best streak, unia dni quiz+review).
+
+**Testy:** pełna suita zielona — Application 195 ✓, Api 37 ✓, Infrastructure 59 ✓, Domain ✓. `pnpm build`
++ lint czyste.
+
+**Weryfikacja stacku:** rebuild api+web, stack up (web :5173, api :8085). Live smoke: login demo →
+`GET /api/achievements` 200 → 7 odznak, `unlockedCount` 2 (First Steps + First Review), realny postęp
+(Quiz Regular 2/10, Centurion 59/100). Click-through właściciela potwierdzony (oba motywy).
+
+**Świadomie odpuszczone (v1):** brak notyfikacji „nowa odznaka!", odznak złożonych (accuracy-nad-
+wolumenem, mistrz kategorii), osobnej strony `/achievements`; grafiki per-odznaka to przyszły pass.
+
+**Zamyka UX Phase 2** — po tej iteracji wracamy do pozostałych prac Phase 3 (AI).
+
+---
+
 ## 2026-07-01 — Iteracja 2.8: Review hub (dashboard daily + historia sesji)
 
 **Cel:** przerobić `/review` z „od razu quiz" na **stronę-hub** feature'u daily review. Po feedbacku
