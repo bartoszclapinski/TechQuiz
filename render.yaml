@@ -1,0 +1,58 @@
+# Render Blueprint — staging deployment (ADR-022).
+#
+# Two Docker-based web services built from the repo's existing Dockerfiles: the .NET API and the
+# nginx-served SPA. PostgreSQL is NOT defined here — it runs on Neon (free managed Postgres); its
+# connection string is supplied as a secret env var on the API service.
+#
+# Apply once from the Render dashboard: New → Blueprint → connect this repo. Render then auto-builds
+# and redeploys both services on every push to `master` (autoDeploy). Secrets marked `sync: false`
+# must be filled in the dashboard after the first apply (they are never committed — hard rule #1):
+#   - techquiz-api › ConnectionStrings__DefaultConnection  (Neon connection string)
+#   - techquiz-api › Jwt__SigningKey                        (a strong random key)
+#
+# See docs/DEPLOYMENT.md for the full runbook.
+
+services:
+  # ─── API (.NET) ──────────────────────────────────────────────────────────────
+  - type: web
+    name: techquiz-api
+    runtime: docker
+    repo: https://github.com/bartoszclapinski/TechQuiz
+    branch: master
+    # API Dockerfile COPYs csproj files from the repo root, so the build context is the root.
+    dockerfilePath: ./src/TechQuiz.Api/Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Staging
+      # Neon connection string — set in the dashboard, never committed.
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      # JWT signing key — set in the dashboard, never committed.
+      - key: Jwt__SigningKey
+        sync: false
+      # CORS: allow the deployed SPA origin (configuration-driven, per the API's Cors:AllowedOrigins).
+      - key: Cors__AllowedOrigins__0
+        value: https://techquiz-web.onrender.com
+
+  # ─── Web (nginx-served SPA) ──────────────────────────────────────────────────
+  - type: web
+    name: techquiz-web
+    runtime: docker
+    repo: https://github.com/bartoszclapinski/TechQuiz
+    branch: master
+    # Web Dockerfile's build context is the web/ directory.
+    dockerfilePath: ./web/Dockerfile
+    dockerContext: ./web
+    plan: free
+    region: frankfurt
+    autoDeploy: true
+    envVars:
+      # Baked into the SPA bundle at build time (Render passes env vars as Docker build args) so the
+      # deployed frontend calls the deployed API.
+      - key: VITE_API_BASE_URL
+        value: https://techquiz-api.onrender.com

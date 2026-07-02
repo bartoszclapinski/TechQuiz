@@ -13,6 +13,15 @@ using TechQuiz.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Container hosts (Render and similar PaaS) inject the port to listen on via PORT and route traffic
+// there; honour it so the app binds where the platform expects (ADR-022). Locally PORT is unset and
+// the Dockerfile's ASPNETCORE_URLS default (or launch settings) stands.
+var listenPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(listenPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{listenPort}");
+}
+
 // ─── Logging ─────────────────────────────────────────────────────────────────
 
 builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
@@ -70,15 +79,21 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// CORS for the Vite dev frontend. AllowCredentials is required because the refresh token
-// rides in an HttpOnly cookie (memory-only JWT + cookie refresh — see CLAUDE.md), and that
-// rules out AllowAnyOrigin, so the dev origin is listed explicitly. Production CORS is a
-// Phase 4 (deployment) concern.
+// CORS for the web frontend. AllowCredentials is required because the refresh token rides in an
+// HttpOnly cookie (memory-only JWT + cookie refresh — see CLAUDE.md), and that rules out
+// AllowAnyOrigin, so origins are listed explicitly. The allowed origins come from configuration
+// (Cors:AllowedOrigins) so the deployed web origin is supplied per-environment (ADR-022) rather than
+// hardcoded; absent config (local dev) falls back to the Vite dev origin.
 const string webCorsPolicy = "web";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (allowedOrigins is null || allowedOrigins.Length == 0)
+{
+    allowedOrigins = ["http://localhost:5173"];
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(webCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -109,11 +124,12 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
-// Dev-only seeding. The seeder itself is idempotent per-resource, but the Development
-// guard makes the intent explicit and keeps staging/prod hosts from running the demo
-// bootstrap. Critical-level log on failure surfaces what stage of startup failed —
-// re-throw preserves the existing host-aborts-on-error behaviour.
-if (app.Environment.IsDevelopment())
+// Seeding runs for Development and Staging. The seeder is idempotent per-resource (a no-op on a
+// non-empty DB), so seeding the staging host makes the live portfolio URL instantly demo-able (demo
+// user + questions) without manual data entry (ADR-022). A future Production tier stays unseeded —
+// it is deliberately excluded from this guard. Critical-level log on failure surfaces what stage of
+// startup failed; re-throw preserves the existing host-aborts-on-error behaviour.
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     // ValidateOnStart normally fires inside IHost.StartAsync (i.e. during app.Run()).
     // The seeder runs before app.Run(), so without an explicit Validate() here a
