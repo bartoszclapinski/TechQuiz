@@ -17,6 +17,12 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+# The API base URL is baked into the bundle at build time (Vite). Render passes the service's
+# VITE_API_BASE_URL env var as a build arg, so the deployed SPA points at the deployed API; unset
+# locally, the client falls back to its http://localhost:8085 default (ADR-022).
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN pnpm build
 
 # ─── Runtime stage ───────────────────────────────────────────────────────────
