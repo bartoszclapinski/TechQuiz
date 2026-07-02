@@ -20,6 +20,15 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
     private const string RefreshCookieName = "refresh_token";
     private const string RefreshCookiePath = "/api/auth/refresh";
 
+    // In Development the SPA and API share http://localhost (same-site), so Strict works and keeps the
+    // refresh cookie off cross-site requests. In Staging/Production the web and API live on different
+    // hosts (e.g. *.onrender.com subdomains — cross-site), so the browser sends the refresh cookie only
+    // if it is SameSite=None; that in turn requires Secure (set alongside), which holds over the
+    // deployment's HTTPS (ADR-022). Append and Delete must use the same attributes for the browser to
+    // clear the cookie, so both read this one value.
+    private SameSiteMode CrossSiteCookieMode =>
+        environment.IsDevelopment() ? SameSiteMode.Strict : SameSiteMode.None;
+
     [HttpPost("register")]
     public async Task<ActionResult<AuthTokensDto>> Register(
         [FromBody] RegisterRequest request,
@@ -71,7 +80,7 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
         {
             HttpOnly = true,
             Secure = !environment.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
+            SameSite = CrossSiteCookieMode,
             Path = RefreshCookiePath,
         });
         return NoContent();
@@ -83,11 +92,10 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
         {
             HttpOnly = true,
             // Secure requires HTTPS; relaxed in Development so the http://localhost dev flow works.
+            // Outside Development SameSite=None (see CrossSiteCookieMode) mandates Secure, which holds
+            // over the deployment's HTTPS.
             Secure = !environment.IsDevelopment(),
-            // localhost:5173 → :8085 is same-site (ports don't change the site), so Strict is
-            // still sent on the SPA's same-site refresh call. A cross-domain prod frontend
-            // would need SameSite=None; Secure — a Phase 4 deployment concern.
-            SameSite = SameSiteMode.Strict,
+            SameSite = CrossSiteCookieMode,
             Path = RefreshCookiePath,
             Expires = tokens.RefreshTokenExpiresAt,
         });
