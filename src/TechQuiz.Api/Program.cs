@@ -115,11 +115,12 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
-// Dev-only seeding. The seeder itself is idempotent per-resource, but the Development
-// guard makes the intent explicit and keeps staging/prod hosts from running the demo
-// bootstrap. Critical-level log on failure surfaces what stage of startup failed —
-// re-throw preserves the existing host-aborts-on-error behaviour.
-if (app.Environment.IsDevelopment())
+// Seeding runs for Development and Staging. The seeder is idempotent per-resource (a no-op on a
+// non-empty DB), so seeding the staging host makes the live portfolio URL instantly demo-able (demo
+// user + questions) without manual data entry (ADR-022). A future Production tier stays unseeded —
+// it is deliberately excluded from this guard. Critical-level log on failure surfaces what stage of
+// startup failed; re-throw preserves the existing host-aborts-on-error behaviour.
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     // ValidateOnStart normally fires inside IHost.StartAsync (i.e. during app.Run()).
     // The seeder runs before app.Run(), so without an explicit Validate() here a
