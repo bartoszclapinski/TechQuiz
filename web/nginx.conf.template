@@ -1,10 +1,15 @@
-# nginx config for the TechQuiz SPA.
+# nginx config template for the TechQuiz SPA.
+# The nginx:alpine image runs envsubst over /etc/nginx/templates/*.template at startup, so ${PORT}
+# is filled from the environment: container hosts (Render) inject PORT and route there; locally the
+# web Dockerfile defaults PORT=80 so docker-compose keeps serving on 80. Only ${PORT} is an env var,
+# so nginx's own $uri/$host references pass through envsubst untouched.
+#
 # Single-page app: every unknown URL must serve /index.html so React Router
 # (BrowserRouter) can pick up the path client-side.
 
 server {
-    listen       80;
-    listen  [::]:80;
+    listen       ${PORT};
+    listen  [::]:${PORT};
     server_name  localhost;
 
     root   /usr/share/nginx/html;
