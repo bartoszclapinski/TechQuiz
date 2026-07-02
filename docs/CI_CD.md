@@ -15,7 +15,7 @@ This document describes the continuous integration and deployment setup for Tech
 2. PR to `master` triggers CI (build + test + lint + commitlint)
 3. After CI passes, the PR can be squash-merged
 4. Merge to `master` triggers semantic-release → version bump → tag → CHANGELOG update
-5. Release event triggers deploy to Azure App Service (staging)
+5. Render rebuilds and redeploys the staging services on the push to `master` (see Deployment below)
 
 ## Workflows
 
@@ -54,45 +54,40 @@ On a successful release, the workflow:
 
 Configuration: `.releaserc.json` at repo root.
 
-### `deploy-staging.yml` — Azure deployment
+## Deployment — Render + Neon
 
-Runs after a successful `Release` workflow (`workflow_run` trigger) and on manual dispatch.
+Deployment is **not** a GitHub Actions workflow. Staging runs on **Render**, driven by the
+[`render.yaml`](../render.yaml) Blueprint at the repo root: two Docker web services built from the repo's
+own Dockerfiles (the `.NET` API and the nginx-served SPA), with **Neon** as the managed PostgreSQL
+provider. Render **auto-builds and redeploys on every push to `master`** (`autoDeploy: true`), so a merge
+that CI has already gated flows straight to staging.
 
-**Two jobs in parallel:**
+The full step-by-step (provisioning, secrets, verification) lives in
+[`docs/DEPLOYMENT.md`](DEPLOYMENT.md). The choice of Render over the earlier Azure App Service plan — and
+why — is recorded in **ADR-022** (student Azure credit is finite; Azure's free tier can't run our
+containers).
 
-- `deploy-api` — Builds `TechQuiz.Api`, publishes to Azure App Service (Linux, .NET 9). Then applies EF Core migrations against the staging database.
-- `deploy-web` — Builds React app with `VITE_API_BASE_URL` set to staging API URL, deploys static files to a separate App Service slot.
+- **API** — Render builds `src/TechQuiz.Api/Dockerfile`, binds Render's `$PORT`, runs `ASPNETCORE_ENVIRONMENT=Staging`, applies EF Core migrations on startup, and seeds the demo data (idempotent).
+- **Web** — Render builds `web/Dockerfile` (nginx, SPA fallback), baking `VITE_API_BASE_URL` at build time so the SPA calls the deployed API.
 
-Both jobs use the `staging` environment with manual approval gates configurable via Azure Portal (see "Environment configuration" below).
+### Secrets
 
-## Why Azure App Service?
+Deploy secrets live in **Render's dashboard** (per service), never in the repo (declared `sync: false`
+in `render.yaml`):
 
-This project targets .NET roles. Hosting on Azure (rather than Fly.io or Railway) communicates familiarity with Microsoft's cloud stack — directly relevant to most job postings in the niche. App Service for Linux runs .NET 9 natively, costs nothing on the F1 free tier (with limits) or ~$13/month on B1.
+- `ConnectionStrings__DefaultConnection` — the Neon PostgreSQL connection string.
+- `Jwt__SigningKey` — a strong random signing key (`openssl rand -base64 48`).
 
-Trade-offs: App Service cold starts are slower than Fly.io. The free tier sleeps after 20 minutes of inactivity. Acceptable for portfolio demos; not for production traffic.
+Non-secret config (environment name, CORS origin, API URL) is committed in `render.yaml`. Local
+development still uses `dotnet user-secrets` for the JWT key and DB password — never commit secrets.
 
-## Secrets
+### Cold starts
 
-Configured in GitHub: **Settings → Secrets and variables → Actions**.
+Render's free tier sleeps a service after ~15 minutes idle; the next request wakes it (~30–50 s). Neon's
+free compute autosuspends similarly. Acceptable for a portfolio demo; the README calls it out.
 
-Required for staging deploy:
-
-- `AZURE_CREDENTIALS` — JSON output from `az ad sp create-for-rbac`. Used by `azure/login@v2`.
-- `STAGING_DB_CONNECTION` — Connection string to staging PostgreSQL (Azure Database for PostgreSQL Flexible Server).
-
-The Azure service principal needs `Contributor` role on the resource group containing the App Service resources.
-
-Local development uses `dotnet user-secrets` for JWT signing key and DB password — never commit secrets to the repo.
-
-## Environment configuration
-
-The `staging` environment in GitHub (**Settings → Environments → staging**) holds:
-
-- Environment-specific secrets (overrides repo-level secrets if needed)
-- Optional manual approval gate before each deploy
-- Deployment branch policy: only `master` can deploy to staging
-
-When production deployment is added (Phase 4), a separate `production` environment will require manual approval and pin to git tags only, not arbitrary commits.
+When a dedicated **production** environment is added later, it reuses the same Render Blueprint shape with
+its own services + secrets.
 
 ## Versioning policy
 

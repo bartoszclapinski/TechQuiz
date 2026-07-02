@@ -82,7 +82,7 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 ### Coming in Phase 4
 - Gamification (XP, levels, badges, streaks)
 - Email confirmation and password reset
-- Production deployment to Railway or Azure
+- Production deployment to Render + Neon (staging live; see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md))
 - Full CI/CD pipeline with automated testing
 - README polish with screenshots and demo GIF
 
@@ -200,10 +200,13 @@ TechQuiz/
 │   └── sprints/sprintN/                 # Per-phase iteration plans + LOG.md
 │
 └── .github/
-    ├── workflows/                       # ci.yml + release.yml + deploy-staging.yml
+    ├── workflows/                       # ci.yml + release.yml
     ├── BRANCH_PROTECTION.md             # Required protection rules (master)
     └── PULL_REQUEST_TEMPLATE.md
 ```
+
+> Deployment is defined in [`render.yaml`](render.yaml) (Render Blueprint) — see
+> [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the staging runbook.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a detailed technical overview and [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) for the reasoning behind major decisions.
 
