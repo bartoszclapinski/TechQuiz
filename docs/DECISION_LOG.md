@@ -393,7 +393,7 @@ The dashboard uses a **3-column bento grid** on desktop. Tiles have varying size
 
 ## ADR-017: CI/CD Strategy
 
-**Status:** Accepted
+**Status:** Accepted — **Staging-deploy target amended by ADR-022** (host changed from Azure App Service to Render + Neon; branch-protection, CI-check, and semantic-release decisions stand unchanged)
 **Date:** 2026-05-11
 
 ### Context
@@ -578,3 +578,39 @@ Keeping `ReviewSession` separate from `QuizAttempt` preserves the *intent* of th
 - **Stay stateless (the 2.6 status quo).** Simplest, but leaves the queue with no feedback loop and no done-today signal — the same questions resurface indefinitely. Rejected: it makes the spaced-repetition engine cosmetic.
 - **Record review answers into the existing `Answer`/`QuizAttempt` history** so the selector picks them up for free. Achieves the feedback loop with no new table, but pollutes quiz History and Dashboard aggregates with non-quiz activity and forces a synthetic `quizId`. Rejected: violates the clean separation that motivated the 2.6 decision.
 - **Rewrite `ReviewSelector` to take review outcomes as a second input.** More explicit, but duplicates the latest-answer-per-question logic and changes proven 2.5 code. Rejected in favour of unioning the candidate source, which reuses the selector unchanged.
+
+---
+
+## ADR-022: Staging Host — Render + Neon instead of Azure App Service
+
+**Status:** Accepted
+**Date:** 2026-07-02
+
+**Amends ADR-017** (CI/CD Strategy). Only the *staging deployment target* and its *secret-management surface* change. ADR-017's branch protection, required CI checks, squash-merge, and semantic-release decisions stand unchanged. ADR-005 (PostgreSQL via EF Core) is untouched — this ADR only decides *where* that PostgreSQL runs.
+
+### Context
+ADR-017 chose **Azure App Service** for staging, on a portfolio-fit rationale (Azure familiarity signals .NET-cloud experience). Reaching the actual first deploy (iteration 4.6) surfaced two facts that rationale didn't account for, given the only Azure account available is a **free Azure-for-Students** subscription with finite, partly-spent credit:
+
+1. **Managed PostgreSQL on Azure is not free.** The cheapest Azure Database for PostgreSQL Flexible Server (Burstable B1ms) runs ~$12–15/mo at 24/7. On a capped student credit that drains in a few months, after which the DB — and the portfolio URL — stop working.
+2. **Azure App Service's free tier (F1, Linux) cannot run custom containers.** Container deploys require Basic (B1+), which is paid. The web tier *must* ship as our nginx image (it carries the SPA-fallback config); serving raw static files instead 404s on deep-link refresh. So Azure free either can't run our stack or forces a paid tier.
+
+Both API and web are already Dockerized (`src/TechQuiz.Api/Dockerfile`, `web/Dockerfile`), and the goal is a portfolio URL that stays live **indefinitely at $0**.
+
+### Decision
+Staging is hosted on **Render** (two Docker-based Web Services — one per Dockerfile — for the API and the nginx web image) with **Neon** as the managed PostgreSQL provider. Services are declared in a version-controlled **`render.yaml`** blueprint; Render auto-builds and redeploys on push to `master`, so the Azure-specific `deploy-staging.yml` is retired. Secrets (Neon connection string, JWT signing key) live in Render's dashboard/env, never in source (hard rule #1 intact).
+
+The cross-origin production gaps this exposes are host-independent and fixed in code regardless of host: **CORS allowed origins become configuration-driven**, and the **refresh cookie uses `SameSite=None; Secure` outside Development** (API and web sit on different `*.onrender.com` subdomains — cross-site — exactly as they would on `*.azurewebsites.net`).
+
+### Consequences
+- **$0, long-lived.** Render free Web Services + Neon free Postgres keep the portfolio URL live without draining credit. Neon's free tier does not expire the way Render's own free Postgres (90-day) would, so the DB is paired with Neon rather than Render Postgres.
+- **Container-native.** Render runs our existing Dockerfiles directly — the nginx web image ships with its SPA fallback; no static-hosting workaround.
+- **Loses the "Azure on the CV" signal** that motivated ADR-017. Mitigated: the deploy still demonstrates Docker, infra-as-code (`render.yaml`), managed Postgres, CI/CD, and cross-origin auth hardening — transferable cloud competency. A live, always-reachable URL is a stronger portfolio signal than an Azure URL that costs money or can't run the stack.
+- **Cold starts remain.** Render free instances sleep after ~15 min idle (first request ~30–50 s) — the same trade-off ADR-017 already accepted for Azure free; documented in the README.
+- `deploy-staging.yml` (Azure) is removed; deployment moves to Render's push-triggered builds driven by `render.yaml`.
+- A future production promotion (ADR-017's deferred item) would reuse Render environments rather than an Azure `production` slot.
+
+### Alternatives Rejected
+- **Stay on Azure and pay.** Honouring ADR-017 as written means either a paid B1 App Service + paid Postgres (drains student credit, portfolio dies when it runs out) or a broken free-tier deploy (no containers). Rejected: defeats the "live at $0 indefinitely" goal.
+- **Fly.io.** Runs our containers and can stay always-on within a free allowance, but its free Postgres is self-managed (you operate the DB VM), more ops than a portfolio warrants. Render + Neon is more managed for the same $0.
+- **Railway.** Clean Docker DX, but no longer has a genuinely free tier (trial credit then ~$5/mo). Rejected on the same cost-longevity grounds as paid Azure.
+- **Render Postgres (instead of Neon).** One-dashboard simplicity, but the free database expires after 90 days. Rejected in favour of Neon's non-expiring free tier for a set-and-forget portfolio.
