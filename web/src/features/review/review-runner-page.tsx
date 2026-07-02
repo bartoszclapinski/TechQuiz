@@ -194,8 +194,9 @@ function ReviewRunner({
             })}
           </div>
 
-          <div className="mt-8 flex items-center justify-between gap-4 border-t border-default pt-5">
-            <p className="font-mono text-[11px] text-secondary">
+          <div className="mt-8 flex items-center justify-end gap-4 border-t border-default pt-5 sm:justify-between">
+            {/* Keyboard tip is desktop-only guidance — phones have no 1-4/Enter shortcuts. */}
+            <p className="hidden font-mono text-[11px] text-secondary sm:block">
               Tip: press <Kbd>1-4</Kbd> to select, <Kbd>Enter</Kbd> to continue
             </p>
             <button
