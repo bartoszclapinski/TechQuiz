@@ -13,6 +13,15 @@ using TechQuiz.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Container hosts (Render and similar PaaS) inject the port to listen on via PORT and route traffic
+// there; honour it so the app binds where the platform expects (ADR-022). Locally PORT is unset and
+// the Dockerfile's ASPNETCORE_URLS default (or launch settings) stands.
+var listenPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(listenPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{listenPort}");
+}
+
 // ─── Logging ─────────────────────────────────────────────────────────────────
 
 builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
