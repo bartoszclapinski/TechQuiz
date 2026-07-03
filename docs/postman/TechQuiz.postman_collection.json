@@ -51,7 +51,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"demo@techquiz.local\",\n  \"password\": \"Demo123!\"\n}"
+              "raw": "{\n  \"email\": \"demo@techquiz.local\",\n  \"password\": \"DemoPass123!\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",

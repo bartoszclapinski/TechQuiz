@@ -60,7 +60,7 @@ and redeploys both services on every push to `master`.
 The API applies EF Core migrations **on startup** in Staging (the same host-boots-then-migrates path the
 container already uses). No separate migration step is needed on Render. The `Staging` environment also
 **seeds** the demo user + questions (idempotent — a no-op once the DB has data), so the live URL is
-demo-able immediately. Demo login: `demo@techquiz.local` / `Demo123!`.
+demo-able immediately. Demo login: `demo@techquiz.local` / `DemoPass123!`.
 
 ## How a deploy happens
 
