@@ -9,7 +9,7 @@ import { useAuth } from './use-auth'
 import { AuthLayout } from './auth-layout'
 
 const DEMO_EMAIL = 'demo@techquiz.local'
-const DEMO_PASSWORD = 'Demo123!'
+const DEMO_PASSWORD = 'DemoPass123!'
 
 const loginSchema = z.object({
   email: z.email('Enter a valid email address'),

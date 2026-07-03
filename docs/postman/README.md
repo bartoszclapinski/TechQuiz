@@ -29,7 +29,7 @@ Login + refresh include post-response scripts that stash `accessToken` and `refr
 
 1. Import both JSON files into Postman.
 2. Select the `TechQuiz Local` environment.
-3. Run `Auth/Login (demo user)` — pre-filled with `demo@techquiz.local` / `Demo123!`. Expected: `200 OK` with `accessToken`, `accessTokenExpiresAt`, `refreshToken`, `refreshTokenExpiresAt`. The post-response script saves both tokens to the environment.
+3. Run `Auth/Login (demo user)` — pre-filled with `demo@techquiz.local` / `DemoPass123!`. Expected: `200 OK` with `accessToken`, `accessTokenExpiresAt`, `refreshToken`, `refreshTokenExpiresAt`. The post-response script saves both tokens to the environment.
 4. Run `Auth/Refresh` — picks up the saved `refreshToken`, rotates it (server-side: marks the old token revoked, issues a new pair), returns `200 OK`. Re-running `Refresh` against the *previous* token now fails (rotation = single-use).
 5. (Optional) Run `Auth/Register` with the pre-filled payload to create a fresh user; receives a `200 OK` with tokens.
 6. With a valid `accessToken` in the environment, run the `Quiz/` folder top to bottom:

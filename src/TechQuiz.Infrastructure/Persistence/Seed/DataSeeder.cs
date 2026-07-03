@@ -20,7 +20,7 @@ public sealed class DataSeeder(
 {
     internal const string DemoUserEmail = "demo@techquiz.local";
     internal const string DemoUserName = "demo";
-    internal const string DemoUserPassword = "Demo123!";
+    internal const string DemoUserPassword = "DemoPass123!";
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {

@@ -7,10 +7,11 @@ namespace TechQuiz.Api.Tests.Support;
 
 internal static class ApiTestExtensions
 {
-    // Seeded by the dev DataSeeder on startup (see docker-compose / DataSeeder). The relaxed
-    // password policy in appsettings.Development.json is what lets this 8-char password stand.
+    // Seeded by the DataSeeder on startup (see docker-compose / DataSeeder). The password
+    // satisfies the strict 12-char policy from appsettings.json, so the demo user seeds under
+    // any environment's policy.
     public const string DemoEmail = "demo@techquiz.local";
-    public const string DemoPassword = "Demo123!";
+    public const string DemoPassword = "DemoPass123!";
 
     /// <summary>
     /// Returns a client whose Authorization header carries a fresh demo-user JWT — the same

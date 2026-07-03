@@ -36,9 +36,10 @@ public static class DependencyInjection
         // would conflict with Identity's default cookie wiring.
         //
         // Password policy is bound from the Identity:Password configuration section so
-        // production-safe defaults in appsettings.json can be relaxed per-environment.
-        // The dev override lives in appsettings.Development.json, matching the seeded
-        // demo password (Demo123!).
+        // production-safe defaults in appsettings.json (RequiredLength 12) can be relaxed
+        // per-environment; the dev override lives in appsettings.Development.json. The seeded
+        // demo password (DemoPass123!) satisfies the strict 12-char default, so seeding works
+        // under Staging's production-safe policy too.
         services
             .AddIdentityCore<ApplicationUser>(options =>
             {

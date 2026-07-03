@@ -152,7 +152,7 @@ A demo user is seeded automatically on first run (when the categories table is e
 
 ```
 Email:    demo@techquiz.local
-Password: Demo123!
+Password: DemoPass123!
 ```
 
 Sign in with these to skip registration and explore the full quiz flow. Re-seeding is a no-op on a non-empty database — to start fresh, run `docker compose down -v`.
