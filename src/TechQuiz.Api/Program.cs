@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -140,12 +141,21 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     try
     {
         using var scope = app.Services.CreateScope();
+
+        // Bring the schema up to date before seeding. On a fresh managed database (e.g. Neon) no
+        // migrations have been applied yet, so the seeder's first query would hit a missing table.
+        // MigrateAsync is idempotent — it applies only pending migrations and is a no-op once the
+        // schema is current (ADR-022). A future Production tier would migrate here too but stays
+        // unseeded via the guard above.
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await dbContext.Database.MigrateAsync();
+
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await seeder.SeedAsync();
     }
     catch (Exception ex)
     {
-        app.Logger.LogCritical(ex, "Data seeding failed — aborting startup");
+        app.Logger.LogCritical(ex, "Database migration or seeding failed — aborting startup");
         throw;
     }
 }
