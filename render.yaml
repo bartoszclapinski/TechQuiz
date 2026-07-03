@@ -53,6 +53,7 @@ services:
     autoDeploy: true
     envVars:
       # Baked into the SPA bundle at build time (Render passes env vars as Docker build args) so the
-      # deployed frontend calls the deployed API.
+      # deployed frontend calls the deployed API. Render appended a `-j4kr` suffix to the API host
+      # on creation (the plain `techquiz-api` subdomain was taken), so this is the API's actual URL.
       - key: VITE_API_BASE_URL
-        value: https://techquiz-api.onrender.com
+        value: https://techquiz-api-j4kr.onrender.com
