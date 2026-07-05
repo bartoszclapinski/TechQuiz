@@ -47,10 +47,10 @@ export function AppShell() {
     <div className="min-h-screen bg-base text-primary">
       <header className="flex items-center gap-4 border-b border-default bg-surface px-4 py-3.5 sm:gap-7 sm:px-6">
         <NavLink to="/categories" className="flex items-center gap-2">
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent text-sm font-bold text-white">
+          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
             T
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">TechQuiz</span>
+          <span className="text-[16px] font-semibold tracking-tight">TechQuiz</span>
         </NavLink>
 
         {/* Desktop nav — hidden on mobile, where the hamburger drawer takes over. */}
@@ -60,7 +60,7 @@ export function AppShell() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-md px-2.5 py-1.5 text-[13px] font-medium ${
+                `rounded-md px-2.5 py-1.5 text-[14px] font-medium ${
                   isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
                 }`
               }
@@ -90,7 +90,7 @@ export function AppShell() {
             onClick={() => void logout()}
             aria-label="Log out"
             title="Log out"
-            className="hidden h-7 w-7 items-center justify-center rounded-full bg-accent-bg text-[11px] font-semibold text-accent-text md:flex"
+            className="hidden h-7 w-7 items-center justify-center rounded-full bg-accent-bg text-[13px] font-semibold text-accent-text md:flex"
           >
             {user ? initialsFromEmail(user.email) : '?'}
           </button>
@@ -146,11 +146,11 @@ function MobileMenu({
       <div className="absolute right-0 top-0 flex h-full w-72 max-w-[82%] flex-col border-l border-default bg-surface">
         <div className="flex items-center justify-between border-b border-default px-4 py-3.5">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-bg text-[12px] font-semibold text-accent-text">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-bg text-[13px] font-semibold text-accent-text">
               {initials}
             </span>
             {email ? (
-              <span className="max-w-[150px] truncate text-[13px] text-secondary">{email}</span>
+              <span className="max-w-[150px] truncate text-[14px] text-secondary">{email}</span>
             ) : null}
           </div>
           <button
@@ -170,7 +170,7 @@ function MobileMenu({
               to={item.to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex min-h-[44px] items-center rounded-md px-3 text-[15px] font-medium ${
+                `flex min-h-[44px] items-center rounded-md px-3 text-[16px] font-medium ${
                   isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
                 }`
               }
@@ -182,7 +182,7 @@ function MobileMenu({
             to="/settings"
             onClick={onClose}
             className={({ isActive }) =>
-              `flex min-h-[44px] items-center gap-2 rounded-md px-3 text-[15px] font-medium ${
+              `flex min-h-[44px] items-center gap-2 rounded-md px-3 text-[16px] font-medium ${
                 isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
               }`
             }
@@ -196,7 +196,7 @@ function MobileMenu({
           <button
             type="button"
             onClick={onLogout}
-            className="flex min-h-[44px] w-full items-center rounded-md px-3 text-[15px] font-medium text-secondary hover:text-primary"
+            className="flex min-h-[44px] w-full items-center rounded-md px-3 text-[16px] font-medium text-secondary hover:text-primary"
           >
             Log out
           </button>

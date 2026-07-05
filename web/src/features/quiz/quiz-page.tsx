@@ -118,7 +118,7 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
     <div className="flex min-h-screen flex-col bg-base text-primary">
       <header className="flex items-center justify-between gap-4 border-b border-default px-6 py-3">
         <div className="flex flex-1 items-center gap-3">
-          <span className="whitespace-nowrap font-mono text-[11px] font-medium text-secondary">
+          <span className="whitespace-nowrap font-mono text-[13px] font-medium text-secondary">
             {session.categoryName} · {currentIndex + 1} of {total}
           </span>
           <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-elevated">
@@ -145,7 +145,7 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
         <div className="w-full max-w-[600px]">
           <div className="mb-6">
             <span
-              className={`mb-3.5 inline-block rounded-full px-2 py-[3px] font-mono text-[10px] font-medium uppercase tracking-[0.04em] ${difficulty.text}`}
+              className={`mb-3.5 inline-block rounded-full px-2 py-[3px] font-mono text-[12px] font-medium uppercase tracking-[0.04em] ${difficulty.text}`}
               style={{ backgroundColor: difficulty.bg }}
             >
               {difficulty.label}
@@ -162,14 +162,14 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
                   type="button"
                   onClick={() => selectAnswer(question.id, option.id)}
                   aria-pressed={selected}
-                  className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-[18px] py-3.5 text-left text-[14px] transition-colors ${
+                  className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-[18px] py-3.5 text-left text-[15px] transition-colors ${
                     selected
                       ? 'border-accent shadow-[0_0_0_3px_rgba(139,92,246,0.15)]'
                       : 'border-default hover:border-strong'
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-[12px] font-semibold ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-[13px] font-semibold ${
                       selected ? 'bg-accent text-white' : 'bg-base text-muted'
                     }`}
                   >
@@ -183,14 +183,14 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
 
           <div className="mt-8 flex items-center justify-end gap-4 border-t border-default pt-5 sm:justify-between">
             {/* Keyboard tip is desktop-only guidance — phones have no 1-4/Enter shortcuts. */}
-            <p className="hidden font-mono text-[11px] text-secondary sm:block">
+            <p className="hidden font-mono text-[13px] text-secondary sm:block">
               Tip: press <Kbd>1-4</Kbd> to select, <Kbd>Enter</Kbd> to continue
             </p>
             <button
               type="button"
               onClick={handleAdvance}
               disabled={!selectedOptionId || isCompleting}
-              className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[13px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[14px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isLast ? 'Submit quiz' : 'Next'}
               {!isLast && (
@@ -215,6 +215,6 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-secondary">{children}</kbd>
+    <kbd className="rounded bg-elevated px-1.5 py-0.5 font-mono text-[12px] text-secondary">{children}</kbd>
   )
 }

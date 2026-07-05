@@ -13,24 +13,24 @@ export function SettingsPage() {
     <main className="mx-auto max-w-3xl px-6 py-8 sm:px-9">
       <div className="mb-7">
         <h1 className="mb-1 text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-[13px] text-secondary">
+        <p className="text-[14px] text-secondary">
           Bring your own AI provider key to generate questions. Keys are encrypted at rest and are
           never shown again after you save them.
         </p>
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-primary">AI providers</h2>
+        <h2 className="mb-3 text-[15px] font-semibold text-primary">AI providers</h2>
 
         {isLoading ? (
-          <p className="text-sm text-secondary">Loading providers…</p>
+          <p className="text-[15px] text-secondary">Loading providers…</p>
         ) : isError ? (
-          <div className="text-sm text-secondary">
+          <div className="text-[15px] text-secondary">
             <p className="mb-2 text-danger">Could not load your providers.</p>
             <button
               type="button"
               onClick={() => void refetch()}
-              className="rounded-md border border-strong px-3 py-1.5 text-sm font-medium transition-colors hover:bg-elevated"
+              className="rounded-md border border-strong px-3 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
             >
               Retry
             </button>
@@ -64,10 +64,10 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
     return (
       <div className="flex items-center justify-between rounded-[10px] border border-default bg-base p-3.5 opacity-60">
         <div>
-          <p className="text-[13px] font-semibold text-primary">{provider.label}</p>
-          <p className="text-[11px] text-muted">Not yet available</p>
+          <p className="text-[14px] font-semibold text-primary">{provider.label}</p>
+          <p className="text-[13px] text-muted">Not yet available</p>
         </div>
-        <span className="rounded-full bg-elevated px-1.5 py-0.5 font-mono text-[9px] text-secondary">
+        <span className="rounded-full bg-elevated px-1.5 py-0.5 font-mono text-[11px] text-secondary">
           soon
         </span>
       </div>
@@ -106,9 +106,9 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
   return (
     <div className="rounded-[10px] border border-default bg-surface p-3.5">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-primary">{provider.label}</p>
+        <p className="text-[14px] font-semibold text-primary">{provider.label}</p>
         <span
-          className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] ${
+          className={`rounded-full px-1.5 py-0.5 font-mono text-[12px] ${
             configured ? 'bg-accent-bg text-accent-text' : 'bg-elevated text-muted'
           }`}
         >
@@ -129,10 +129,10 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
             }}
             aria-invalid={inlineError ? true : undefined}
             aria-describedby={inlineError ? `${provider.id}-error` : undefined}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {inlineError ? (
-            <p id={`${provider.id}-error`} className="mt-1.5 text-xs text-danger">
+            <p id={`${provider.id}-error`} className="mt-1.5 text-[13px] text-danger">
               {inlineError}
             </p>
           ) : null}
@@ -141,7 +141,7 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
           type="submit"
           disabled={setKey.isPending}
           aria-busy={setKey.isPending}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-accent px-4 py-2 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {setKey.isPending ? 'Saving…' : configured ? 'Rotate' : 'Save'}
         </button>
@@ -151,13 +151,13 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
         <div className="mt-3 border-t border-default pt-3">
           {confirmingRemove ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-secondary">Remove this key?</span>
+              <span className="text-[13px] text-secondary">Remove this key?</span>
               <button
                 type="button"
                 onClick={onRemove}
                 disabled={removeKey.isPending}
                 aria-busy={removeKey.isPending}
-                className="rounded-md border border-strong px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-elevated disabled:opacity-60"
+                className="rounded-md border border-strong px-2.5 py-1 text-[13px] font-medium text-danger transition-colors hover:bg-elevated disabled:opacity-60"
               >
                 {removeKey.isPending ? 'Removing…' : 'Confirm remove'}
               </button>
@@ -165,7 +165,7 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
                 type="button"
                 onClick={() => setConfirmingRemove(false)}
                 disabled={removeKey.isPending}
-                className="rounded-md px-2.5 py-1 text-xs font-medium text-secondary transition-colors hover:text-primary"
+                className="rounded-md px-2.5 py-1 text-[13px] font-medium text-secondary transition-colors hover:text-primary"
               >
                 Cancel
               </button>
@@ -174,7 +174,7 @@ function ProviderRow({ provider, configured }: { provider: AiProvider; configure
             <button
               type="button"
               onClick={() => setConfirmingRemove(true)}
-              className="text-xs font-medium text-secondary transition-colors hover:text-danger"
+              className="text-[13px] font-medium text-secondary transition-colors hover:text-danger"
             >
               Remove key
             </button>

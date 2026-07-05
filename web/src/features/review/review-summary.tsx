@@ -35,7 +35,7 @@ export function ReviewResultView({
   return (
     <main className="mx-auto max-w-[800px] px-6 py-8 sm:px-9">
       <div className="mb-2">
-        <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-secondary">{eyebrow}</p>
+        <p className="mb-1.5 font-mono text-[13px] uppercase tracking-[0.1em] text-secondary">{eyebrow}</p>
         <h1 className="text-2xl font-semibold leading-tight tracking-tight">{title}</h1>
       </div>
 
@@ -47,15 +47,15 @@ export function ReviewResultView({
         }}
       >
         <div>
-          <p className="mb-1 font-mono text-[12px] uppercase tracking-[0.08em] text-secondary">You got</p>
+          <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.08em] text-secondary">You got</p>
           <div className="flex items-baseline gap-1">
             <span className="text-[56px] font-bold leading-none tracking-[-0.04em]">{correctCount}</span>
             <span className="text-2xl font-semibold text-accent-text">/ {total}</span>
           </div>
-          <p className="mt-2 text-[12px] font-medium text-muted">{score}% correct</p>
+          <p className="mt-2 text-[13px] font-medium text-muted">{score}% correct</p>
         </div>
         <span
-          className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium tracking-[0.04em] text-accent-text"
+          className="rounded-full px-3 py-1.5 font-mono text-[13px] font-medium tracking-[0.04em] text-accent-text"
           style={{ backgroundColor: 'rgba(139,92,246,0.18)' }}
         >
           {bandLabel(score)}
@@ -91,8 +91,8 @@ function SummaryRow({ number, item }: { number: number; item: ReviewResultItem }
         className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left"
       >
         <StatusIcon correct={correct} />
-        <span className="min-w-[30px] font-mono text-[11px] text-secondary">Q{number}</span>
-        <p className={`flex-1 text-[13px] ${correct ? 'text-secondary' : 'font-medium text-primary'}`}>
+        <span className="min-w-[30px] font-mono text-[13px] text-secondary">Q{number}</span>
+        <p className={`flex-1 text-[14px] ${correct ? 'text-secondary' : 'font-medium text-primary'}`}>
           {item.questionText}
         </p>
         <svg
@@ -114,7 +114,7 @@ function SummaryRow({ number, item }: { number: number; item: ReviewResultItem }
             {userOption ? (
               <AnswerPill text={userOption.text} tone={correct ? 'success' : 'danger'} />
             ) : (
-              <span className="font-mono text-[12px] text-muted">No answer</span>
+              <span className="font-mono text-[13px] text-muted">No answer</span>
             )}
           </AnswerLine>
           {!correct && correctOption && (
@@ -127,8 +127,8 @@ function SummaryRow({ number, item }: { number: number; item: ReviewResultItem }
               className="mt-1 rounded-r border-l-2 px-3 py-2.5"
               style={{ borderColor: 'var(--accent)', background: 'rgba(139,92,246,0.06)' }}
             >
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
-              <p className="text-[13px] leading-relaxed text-secondary">{item.explanation}</p>
+              <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
+              <p className="text-[14px] leading-relaxed text-secondary">{item.explanation}</p>
             </div>
           )}
         </div>
@@ -140,7 +140,7 @@ function SummaryRow({ number, item }: { number: number; item: ReviewResultItem }
 function AnswerLine({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="min-w-[86px] font-mono text-[10px] uppercase tracking-[0.06em] text-secondary">{label}</span>
+      <span className="min-w-[86px] font-mono text-[12px] uppercase tracking-[0.06em] text-secondary">{label}</span>
       {children}
     </div>
   )
@@ -150,7 +150,7 @@ function AnswerPill({ text, tone }: { text: string; tone: 'success' | 'danger' }
   const color = tone === 'success' ? 'text-success' : 'text-danger'
   const bg = tone === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'
   return (
-    <code className={`rounded px-2 py-[3px] font-mono text-[12px] ${color}`} style={{ backgroundColor: bg }}>
+    <code className={`rounded px-2 py-[3px] font-mono text-[13px] ${color}`} style={{ backgroundColor: bg }}>
       {text}
     </code>
   )

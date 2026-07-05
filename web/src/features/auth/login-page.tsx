@@ -73,14 +73,14 @@ export function LoginPage() {
     <AuthLayout>
       <div className="mb-8">
         <h1 className="mb-2 text-[28px] font-semibold leading-tight tracking-tight">Welcome back.</h1>
-        <p className="text-sm text-secondary">
+        <p className="text-[15px] text-secondary">
           Continue where you left off, or start fresh with a new category.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="mb-3.5">
-          <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-secondary">
+          <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-secondary">
             Email
           </label>
           <input
@@ -91,10 +91,10 @@ export function LoginPage() {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.email ? (
-            <p id="email-error" className="mt-1.5 text-xs text-danger">
+            <p id="email-error" className="mt-1.5 text-[13px] text-danger">
               {errors.email.message}
             </p>
           ) : null}
@@ -102,13 +102,13 @@ export function LoginPage() {
 
         <div className="mb-5">
           <div className="mb-1.5 flex items-center justify-between">
-            <label htmlFor="password" className="text-xs font-medium text-secondary">
+            <label htmlFor="password" className="text-[13px] font-medium text-secondary">
               Password
             </label>
             <button
               type="button"
               onClick={() => toast.info('Password recovery arrives in a later phase.')}
-              className="text-xs text-secondary transition-colors hover:text-primary"
+              className="text-[13px] text-secondary transition-colors hover:text-primary"
             >
               Forgot password?
             </button>
@@ -121,10 +121,10 @@ export function LoginPage() {
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.password ? (
-            <p id="password-error" className="mt-1.5 text-xs text-danger">
+            <p id="password-error" className="mt-1.5 text-[13px] text-danger">
               {errors.password.message}
             </p>
           ) : null}
@@ -133,7 +133,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
@@ -141,7 +141,7 @@ export function LoginPage() {
 
       <div className="my-4 flex items-center gap-3">
         <div className="h-px flex-1 bg-[var(--border-default)]" />
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">or</span>
+        <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-muted">or</span>
         <div className="h-px flex-1 bg-[var(--border-default)]" />
       </div>
 
@@ -149,7 +149,7 @@ export function LoginPage() {
         type="button"
         onClick={onDemo}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-strong bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:bg-elevated disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-strong bg-transparent px-4 py-2.5 text-[15px] font-medium transition-colors hover:bg-elevated disabled:opacity-60"
       >
         <svg
           width="14"
@@ -169,7 +169,7 @@ export function LoginPage() {
         {demoLoading ? 'Signing in…' : 'Continue as demo'}
       </button>
 
-      <p className="mt-7 text-center text-[13px] text-secondary">
+      <p className="mt-7 text-center text-[14px] text-secondary">
         Don't have an account?{' '}
         <Link to="/register" className="font-medium text-accent-text hover:underline">
           Create one

@@ -83,7 +83,7 @@ function ChallengeEditor({
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8 sm:px-9">
-      <Link to="/challenges" className="mb-5 inline-block text-[12px] text-secondary hover:text-primary">
+      <Link to="/challenges" className="mb-5 inline-block text-[13px] text-secondary hover:text-primary">
         ← All challenges
       </Link>
 
@@ -91,14 +91,14 @@ function ChallengeEditor({
         <h1 className="text-2xl font-semibold tracking-tight">{challenge.title}</h1>
         {badge ? (
           <span
-            className={`mt-1 shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] ${badge.text}`}
+            className={`mt-1 shrink-0 rounded-full px-2 py-0.5 font-mono text-[12px] ${badge.text}`}
             style={{ backgroundColor: badge.bg }}
           >
             {challenge.difficulty}
           </span>
         ) : null}
       </div>
-      <p className="mb-5 whitespace-pre-line text-[13px] leading-relaxed text-secondary">
+      <p className="mb-5 whitespace-pre-line text-[14px] leading-relaxed text-secondary">
         {challenge.prompt}
       </p>
 
@@ -119,14 +119,14 @@ function ChallengeEditor({
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="flex-1 text-[12px] text-secondary">
+        <label className="flex-1 text-[13px] text-secondary">
           <span className="mb-1 block">Custom input (stdin) for Run</span>
           <textarea
             value={stdin}
             onChange={(event) => setStdin(event.target.value)}
             rows={2}
             placeholder="e.g. 2 3"
-            className="w-full resize-y rounded-[8px] border border-default bg-surface px-2.5 py-1.5 font-mono text-[12px] text-primary placeholder:text-muted focus:border-accent focus:outline-none"
+            className="w-full resize-y rounded-[8px] border border-default bg-surface px-2.5 py-1.5 font-mono text-[13px] text-primary placeholder:text-muted focus:border-accent focus:outline-none"
           />
         </label>
         <div className="flex gap-2">
@@ -134,7 +134,7 @@ function ChallengeEditor({
             type="button"
             onClick={handleRun}
             disabled={busy}
-            className="rounded-[8px] border border-default bg-surface px-3.5 py-2 text-[13px] font-medium text-primary hover:border-accent disabled:opacity-50"
+            className="rounded-[8px] border border-default bg-surface px-3.5 py-2 text-[14px] font-medium text-primary hover:border-accent disabled:opacity-50"
           >
             {run.isPending ? 'Running…' : 'Run'}
           </button>
@@ -142,7 +142,7 @@ function ChallengeEditor({
             type="button"
             onClick={handleSubmit}
             disabled={busy}
-            className="rounded-[8px] bg-accent px-3.5 py-2 text-[13px] font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-[8px] bg-accent px-3.5 py-2 text-[14px] font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {grade.isPending ? 'Submitting…' : 'Submit'}
           </button>
@@ -151,7 +151,7 @@ function ChallengeEditor({
             onClick={handleFeedback}
             disabled={busy || !feedbackProvider}
             title={feedbackProvider ? undefined : 'Add an AI provider key in Settings first'}
-            className="rounded-[8px] border border-default bg-surface px-3.5 py-2 text-[13px] font-medium text-primary hover:border-accent disabled:opacity-50"
+            className="rounded-[8px] border border-default bg-surface px-3.5 py-2 text-[14px] font-medium text-primary hover:border-accent disabled:opacity-50"
           >
             {feedback.isPending ? 'Asking AI…' : 'Get AI feedback'}
           </button>
@@ -159,7 +159,7 @@ function ChallengeEditor({
       </div>
 
       {!feedbackProvider ? (
-        <p className="mt-2 text-[11px] text-muted">
+        <p className="mt-2 text-[13px] text-muted">
           AI feedback needs your own provider key —{' '}
           <Link to="/settings" className="text-accent hover:underline">
             add one in Settings
@@ -208,16 +208,16 @@ function feedbackErrorMessage(error: unknown): string {
 function Feedback({ result }: { result: CodeFeedbackResult }) {
   return (
     <div className="rounded-[10px] border border-default bg-surface p-3.5">
-      <div className="mb-2 flex items-center gap-2 text-[12px]">
+      <div className="mb-2 flex items-center gap-2 text-[13px]">
         <span className="font-semibold text-primary">AI feedback</span>
-        <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[10px] text-secondary">
+        <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[12px] text-secondary">
           {result.provider}
         </span>
       </div>
-      <p className="whitespace-pre-line text-[13px] leading-relaxed text-secondary">
+      <p className="whitespace-pre-line text-[14px] leading-relaxed text-secondary">
         {result.feedback}
       </p>
-      <p className="mt-2.5 text-[10px] text-muted">
+      <p className="mt-2.5 text-[12px] text-muted">
         Complementary guidance — the tests above decide pass or fail.
       </p>
     </div>
@@ -228,9 +228,9 @@ function Feedback({ result }: { result: CodeFeedbackResult }) {
 function RunOutput({ result }: { result: CodeExecutionResult }) {
   return (
     <div className="rounded-[10px] border border-default bg-surface p-3.5">
-      <div className="mb-2 flex items-center gap-2 text-[12px]">
+      <div className="mb-2 flex items-center gap-2 text-[13px]">
         <span className="font-semibold text-primary">Run</span>
-        <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[10px] text-secondary">
+        <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[12px] text-secondary">
           {result.status}
         </span>
       </div>
@@ -249,7 +249,7 @@ function Verdict({ result }: { result: CodeChallengeGradeResult }) {
   if (!result.compiled) {
     return (
       <div className="rounded-[10px] border border-danger bg-surface p-3.5">
-        <p className="mb-2 text-[13px] font-semibold text-danger">Doesn’t compile</p>
+        <p className="mb-2 text-[14px] font-semibold text-danger">Doesn’t compile</p>
         <OutputBlock label="Compiler output" body={result.compileOutput ?? '(no output)'} tone="danger" />
       </div>
     )
@@ -259,7 +259,7 @@ function Verdict({ result }: { result: CodeChallengeGradeResult }) {
   return (
     <div className="rounded-[10px] border border-default bg-surface p-3.5">
       <p
-        className={`mb-3 text-[13px] font-semibold ${allPassed ? 'text-success' : 'text-warning'}`}
+        className={`mb-3 text-[14px] font-semibold ${allPassed ? 'text-success' : 'text-warning'}`}
       >
         {allPassed ? 'All tests passed' : 'Some tests failed'} — {result.passedCount}/
         {result.totalCount}
@@ -268,14 +268,14 @@ function Verdict({ result }: { result: CodeChallengeGradeResult }) {
         {result.cases.map((testCase) => (
           <li
             key={testCase.orderIndex}
-            className="flex items-center gap-2 text-[12px] text-secondary"
+            className="flex items-center gap-2 text-[13px] text-secondary"
           >
             <span className={testCase.passed ? 'text-success' : 'text-danger'}>
               {testCase.passed ? '✓' : '✗'}
             </span>
             <span>Test {testCase.orderIndex + 1}</span>
             {!testCase.passed ? (
-              <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[10px] text-muted">
+              <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[12px] text-muted">
                 {testCase.status}
               </span>
             ) : null}
@@ -297,9 +297,9 @@ function OutputBlock({
 }) {
   return (
     <div className="mb-2 last:mb-0">
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-muted">{label}</p>
+      <p className="mb-1 text-[12px] uppercase tracking-wide text-muted">{label}</p>
       <pre
-        className={`overflow-x-auto rounded-[6px] bg-[#0d1117] p-2.5 font-mono text-[11px] leading-relaxed ${
+        className={`overflow-x-auto rounded-[6px] bg-[#0d1117] p-2.5 font-mono text-[13px] leading-relaxed ${
           tone === 'danger' ? 'text-danger' : 'text-secondary'
         }`}
       >
@@ -312,7 +312,7 @@ function OutputBlock({
 function Panel({ children, tone }: { children: React.ReactNode; tone?: 'danger' }) {
   return (
     <div
-      className={`rounded-[10px] border bg-surface p-3.5 text-[13px] ${
+      className={`rounded-[10px] border bg-surface p-3.5 text-[14px] ${
         tone === 'danger' ? 'border-danger text-danger' : 'border-default text-secondary'
       }`}
     >
@@ -324,7 +324,7 @@ function Panel({ children, tone }: { children: React.ReactNode; tone?: 'danger' 
 function Centered({ children, tone }: { children: React.ReactNode; tone?: 'danger' }) {
   return (
     <main className="mx-auto max-w-4xl px-6 py-8 sm:px-9">
-      <p className={`text-sm ${tone === 'danger' ? 'text-danger' : 'text-secondary'}`}>{children}</p>
+      <p className={`text-[15px] ${tone === 'danger' ? 'text-danger' : 'text-secondary'}`}>{children}</p>
     </main>
   )
 }

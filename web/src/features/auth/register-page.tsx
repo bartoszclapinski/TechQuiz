@@ -102,14 +102,14 @@ export function RegisterPage() {
         <h1 className="mb-2 text-[28px] font-semibold leading-tight tracking-tight">
           Create your account.
         </h1>
-        <p className="text-sm text-secondary">
+        <p className="text-[15px] text-secondary">
           Start tracking your progress across technical categories.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="mb-3.5">
-          <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-secondary">
+          <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-secondary">
             Email
           </label>
           <input
@@ -120,17 +120,17 @@ export function RegisterPage() {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.email ? (
-            <p id="email-error" className="mt-1.5 text-xs text-danger">
+            <p id="email-error" className="mt-1.5 text-[13px] text-danger">
               {errors.email.message}
             </p>
           ) : null}
         </div>
 
         <div className="mb-3.5">
-          <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-secondary">
+          <label htmlFor="password" className="mb-1.5 block text-[13px] font-medium text-secondary">
             Password
           </label>
           <input
@@ -141,10 +141,10 @@ export function RegisterPage() {
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.password ? (
-            <p id="password-error" className="mt-1.5 text-xs text-danger">
+            <p id="password-error" className="mt-1.5 text-[13px] text-danger">
               {errors.password.message}
             </p>
           ) : null}
@@ -153,7 +153,7 @@ export function RegisterPage() {
         <div className="mb-5">
           <label
             htmlFor="confirmPassword"
-            className="mb-1.5 block text-xs font-medium text-secondary"
+            className="mb-1.5 block text-[13px] font-medium text-secondary"
           >
             Confirm password
           </label>
@@ -165,10 +165,10 @@ export function RegisterPage() {
             aria-invalid={errors.confirmPassword ? true : undefined}
             aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
             {...register('confirmPassword')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
           />
           {errors.confirmPassword ? (
-            <p id="confirmPassword-error" className="mt-1.5 text-xs text-danger">
+            <p id="confirmPassword-error" className="mt-1.5 text-[13px] text-danger">
               {errors.confirmPassword.message}
             </p>
           ) : null}
@@ -177,13 +177,13 @@ export function RegisterPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>
       </form>
 
-      <p className="mt-7 text-center text-[13px] text-secondary">
+      <p className="mt-7 text-center text-[14px] text-secondary">
         Already have an account?{' '}
         <Link to="/login" className="font-medium text-accent-text hover:underline">
           Sign in

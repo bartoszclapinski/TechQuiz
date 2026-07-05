@@ -41,14 +41,14 @@ export function HistoryPage() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-          <p className="mt-1 text-[13px] text-secondary">Every quiz you’ve completed.</p>
+          <p className="mt-1 text-[14px] text-secondary">Every quiz you’ve completed.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start">
           <select
             value={category ?? ''}
             onChange={(event) => setCategory(event.target.value || null)}
             aria-label="Filter by category"
-            className="rounded-lg border border-default bg-surface px-3 py-1.5 text-[13px] font-medium text-primary"
+            className="rounded-lg border border-default bg-surface px-3 py-1.5 text-[14px] font-medium text-primary"
           >
             <option value="">All categories</option>
             {categories.map((c) => (
@@ -62,9 +62,9 @@ export function HistoryPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-secondary">Loading your history…</p>
+        <p className="text-[15px] text-secondary">Loading your history…</p>
       ) : isError ? (
-        <p className="text-sm text-danger">Couldn’t load your history.</p>
+        <p className="text-[15px] text-danger">Couldn’t load your history.</p>
       ) : items.length === 0 ? (
         <EmptyHistory hasFilter={category !== null} />
       ) : (
@@ -80,7 +80,7 @@ export function HistoryPage() {
                 type="button"
                 onClick={() => void fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="rounded-lg border border-default bg-surface px-4 py-2 text-[13px] font-medium text-primary hover:bg-elevated disabled:opacity-60"
+                className="rounded-lg border border-default bg-surface px-4 py-2 text-[14px] font-medium text-primary hover:bg-elevated disabled:opacity-60"
               >
                 {isFetchingNextPage ? 'Loading…' : 'Load more'}
               </button>
@@ -98,14 +98,14 @@ function HistoryRow({ item }: { item: HistoryItem }) {
       to={`/result/${item.attemptId}`}
       className="flex items-center gap-2.5 border-b border-default py-3 last:border-b-0 hover:opacity-80"
     >
-      <div className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent-bg font-mono text-[10px] font-semibold text-accent-text">
+      <div className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent-bg font-mono text-[12px] font-semibold text-accent-text">
         {categoryBadge(item.category)}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium text-primary">{item.category}</p>
-        <p className="font-mono text-[10px] text-secondary">{formatDate(item.completedAt)}</p>
+        <p className="text-[14px] font-medium text-primary">{item.category}</p>
+        <p className="font-mono text-[12px] text-secondary">{formatDate(item.completedAt)}</p>
       </div>
-      <span className={`font-mono text-[13px] font-bold ${scoreColor(item.scorePercentage)}`}>
+      <span className={`font-mono text-[14px] font-bold ${scoreColor(item.scorePercentage)}`}>
         {Math.round(item.scorePercentage)}%
       </span>
     </Link>
@@ -135,7 +135,7 @@ function SortControl({
             type="button"
             aria-pressed={active}
             onClick={() => onSelect(field.value)}
-            className={`flex items-center gap-1 rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1 rounded-md px-3 py-1 font-mono text-[13px] font-medium transition-colors ${
               active ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
             }`}
           >
@@ -150,17 +150,17 @@ function SortControl({
 
 function EmptyHistory({ hasFilter }: { hasFilter: boolean }) {
   if (hasFilter) {
-    return <p className="text-sm text-secondary">No attempts in this category yet.</p>
+    return <p className="text-[15px] text-secondary">No attempts in this category yet.</p>
   }
   return (
     <div className="rounded-xl border border-default bg-surface px-6 py-10 text-center">
-      <h3 className="mb-1.5 text-[15px] font-semibold text-primary">No attempts yet</h3>
-      <p className="mb-4 text-xs text-secondary">
+      <h3 className="mb-1.5 text-[16px] font-semibold text-primary">No attempts yet</h3>
+      <p className="mb-4 text-[13px] text-secondary">
         Complete a quiz and it’ll show up here.
       </p>
       <Link
         to="/categories"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white hover:opacity-90"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[14px] font-medium text-white hover:opacity-90"
       >
         Browse categories
       </Link>

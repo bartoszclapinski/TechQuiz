@@ -20,11 +20,11 @@ export function ReviewSessionDetailPage() {
           <button
             type="button"
             onClick={() => void refetch()}
-            className="rounded-md border border-strong px-3 py-1.5 text-sm font-medium transition-colors hover:bg-elevated"
+            className="rounded-md border border-strong px-3 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
           >
             Retry
           </button>
-          <Link to="/review" className="rounded-md border border-default px-3 py-1.5 text-sm font-medium text-secondary hover:bg-elevated hover:text-primary">
+          <Link to="/review" className="rounded-md border border-default px-3 py-1.5 text-[15px] font-medium text-secondary hover:bg-elevated hover:text-primary">
             Back to review
           </Link>
         </div>
@@ -48,7 +48,7 @@ function BackButton() {
     <button
       type="button"
       onClick={() => navigate('/review')}
-      className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+      className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <line x1="19" y1="12" x2="5" y2="12" />

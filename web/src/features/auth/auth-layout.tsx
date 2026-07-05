@@ -24,7 +24,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <footer className="pt-6">
-          <p className="font-mono text-[11px] text-muted">© 2026 TechQuiz · v0.1.0</p>
+          <p className="font-mono text-[13px] text-muted">© 2026 TechQuiz · v0.1.0</p>
         </footer>
       </div>
 

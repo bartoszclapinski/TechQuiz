@@ -13,7 +13,7 @@ export function ReviewHubPage() {
   return (
     <main className="mx-auto max-w-[800px] px-6 py-8 sm:px-9">
       <div className="mb-6">
-        <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-secondary">Spaced repetition</p>
+        <p className="mb-1.5 font-mono text-[13px] uppercase tracking-[0.1em] text-secondary">Spaced repetition</p>
         <h1 className="text-2xl font-semibold leading-tight tracking-tight">Daily review</h1>
       </div>
 
@@ -21,7 +21,7 @@ export function ReviewHubPage() {
       <DailyCard />
 
       <section>
-        <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-secondary">History</h2>
+        <h2 className="mb-3 text-[14px] font-semibold uppercase tracking-[0.08em] text-secondary">History</h2>
         <HistoryList
           sessions={sessions.data}
           isLoading={sessions.isLoading}
@@ -48,7 +48,7 @@ function StatsRow({ stats }: { stats: ReviewStats | undefined }) {
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-default bg-surface px-4 py-3.5">
-      <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-secondary">{label}</p>
+      <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-secondary">{label}</p>
       <p className="mt-1 text-[22px] font-bold leading-none tracking-[-0.02em] text-primary">{value}</p>
     </div>
   )
@@ -72,7 +72,7 @@ function DailyCard() {
 
   if (count === 0) {
     return (
-      <div className="mb-6 flex items-center gap-2.5 rounded-xl border border-default bg-surface px-[18px] py-3.5 text-[13px] text-secondary">
+      <div className="mb-6 flex items-center gap-2.5 rounded-xl border border-default bg-surface px-[18px] py-3.5 text-[14px] text-secondary">
         <CheckCircle />
         You&apos;re all caught up on reviews today.
       </div>
@@ -95,17 +95,17 @@ function DailyCard() {
           </svg>
         </span>
         <div>
-          <p className="text-[15px] font-semibold text-primary">
+          <p className="text-[16px] font-semibold text-primary">
             {count} {count === 1 ? 'question' : 'questions'} to review today
           </p>
-          <p className="mt-0.5 text-[12px] text-secondary">
+          <p className="mt-0.5 text-[13px] text-secondary">
             Revisit questions you&apos;ve seen before to reinforce what you&apos;ve learned.
           </p>
         </div>
       </div>
       <Link
         to="/review/run"
-        className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white hover:opacity-90"
+        className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[14px] font-medium text-white hover:opacity-90"
       >
         Start review
         <ArrowRight />
@@ -130,8 +130,8 @@ function ReviewedTodayCard({ streak, remaining }: { streak: number; remaining: n
           </svg>
         </span>
         <div>
-          <p className="text-[15px] font-semibold text-primary">Reviewed today</p>
-          <p className="mt-0.5 text-[12px] text-secondary">
+          <p className="text-[16px] font-semibold text-primary">Reviewed today</p>
+          <p className="mt-0.5 text-[13px] text-secondary">
             {streak > 0
               ? `You're on a ${streak}-day review streak — keep it going tomorrow.`
               : 'Nice work clearing your review for today.'}
@@ -141,7 +141,7 @@ function ReviewedTodayCard({ streak, remaining }: { streak: number; remaining: n
       {remaining > 0 ? (
         <Link
           to="/review/run"
-          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default px-4 py-2 text-[13px] font-medium text-secondary hover:bg-elevated hover:text-primary"
+          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default px-4 py-2 text-[14px] font-medium text-secondary hover:bg-elevated hover:text-primary"
         >
           Review {remaining} more
         </Link>
@@ -162,17 +162,17 @@ function HistoryList({
   onRetry: () => void
 }) {
   if (isLoading) {
-    return <p className="rounded-xl border border-default bg-surface px-[18px] py-4 text-[13px] text-secondary">Loading history…</p>
+    return <p className="rounded-xl border border-default bg-surface px-[18px] py-4 text-[14px] text-secondary">Loading history…</p>
   }
 
   if (isError || !sessions) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-default bg-surface px-[18px] py-4 text-[13px] text-secondary">
+      <div className="flex items-center gap-3 rounded-xl border border-default bg-surface px-[18px] py-4 text-[14px] text-secondary">
         <span className="text-danger">Could not load your review history.</span>
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-md border border-strong px-2.5 py-1 text-[12px] font-medium transition-colors hover:bg-elevated"
+          className="rounded-md border border-strong px-2.5 py-1 text-[13px] font-medium transition-colors hover:bg-elevated"
         >
           Retry
         </button>
@@ -182,7 +182,7 @@ function HistoryList({
 
   if (sessions.length === 0) {
     return (
-      <p className="rounded-xl border border-default bg-surface px-[18px] py-4 text-[13px] text-secondary">
+      <p className="rounded-xl border border-default bg-surface px-[18px] py-4 text-[14px] text-secondary">
         No past sessions yet. Finish a daily review and it&apos;ll show up here.
       </p>
     )
@@ -207,13 +207,13 @@ function HistoryRow({ session }: { session: ReviewSessionSummary }) {
       className="flex items-center gap-4 rounded-lg border border-default bg-surface px-4 py-3 transition-colors hover:border-strong hover:bg-elevated"
     >
       <div className="flex-1">
-        <p className="text-[13px] font-medium text-primary">{formatDate(session.completedAt)}</p>
-        <p className="mt-0.5 font-mono text-[11px] text-secondary">
+        <p className="text-[14px] font-medium text-primary">{formatDate(session.completedAt)}</p>
+        <p className="mt-0.5 font-mono text-[13px] text-secondary">
           {session.correctCount} / {session.questionCount} correct
         </p>
       </div>
       <span
-        className="rounded-full px-2.5 py-1 font-mono text-[12px] font-medium text-accent-text"
+        className="rounded-full px-2.5 py-1 font-mono text-[13px] font-medium text-accent-text"
         style={{ backgroundColor: 'rgba(139,92,246,0.14)' }}
       >
         {score}%

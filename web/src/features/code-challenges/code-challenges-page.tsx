@@ -17,19 +17,19 @@ export function CodeChallengesPage() {
     <main className="mx-auto max-w-3xl px-6 py-8 sm:px-9">
       <div className="mb-7">
         <h1 className="mb-1 text-2xl font-semibold tracking-tight">Code challenges</h1>
-        <p className="text-[13px] text-secondary">
+        <p className="text-[14px] text-secondary">
           Write C#, run it, and submit for grading against hidden tests. Your code compiles and
           runs in an isolated sandbox.
         </p>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-secondary">Loading challenges…</p>
+        <p className="text-[15px] text-secondary">Loading challenges…</p>
       ) : isError ? (
-        <p className="text-sm text-danger">Couldn’t load challenges. Please try again.</p>
+        <p className="text-[15px] text-danger">Couldn’t load challenges. Please try again.</p>
       ) : !challenges || challenges.length === 0 ? (
         <div className="rounded-[10px] border border-default bg-surface p-4">
-          <p className="text-[13px] text-secondary">No challenges available yet.</p>
+          <p className="text-[14px] text-secondary">No challenges available yet.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -51,17 +51,17 @@ function ChallengeCard({ challenge }: { challenge: CodeChallenge }) {
       className="block rounded-[10px] border border-default bg-surface p-3.5 transition-colors hover:border-accent"
     >
       <div className="mb-1.5 flex items-start justify-between gap-3">
-        <p className="text-[14px] font-semibold text-primary">{challenge.title}</p>
+        <p className="text-[15px] font-semibold text-primary">{challenge.title}</p>
         {badge ? (
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] ${badge.text}`}
+            className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[12px] ${badge.text}`}
             style={{ backgroundColor: badge.bg }}
           >
             {challenge.difficulty}
           </span>
         ) : null}
       </div>
-      <p className="line-clamp-2 text-[12px] leading-snug text-secondary">{challenge.prompt}</p>
+      <p className="line-clamp-2 text-[13px] leading-snug text-secondary">{challenge.prompt}</p>
     </Link>
   )
 }

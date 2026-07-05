@@ -37,7 +37,7 @@ const generateSchema = z.object({
 type GenerateValues = z.infer<typeof generateSchema>
 
 const inputClass =
-  'w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-sm outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent'
+  'w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent'
 
 export function GeneratePage() {
   const { data: configured, isLoading: providersLoading } = useConfiguredProviders()
@@ -79,23 +79,23 @@ export function GeneratePage() {
     <main className="mx-auto max-w-3xl px-6 py-8 sm:px-9">
       <div className="mb-7">
         <h1 className="mb-1 text-2xl font-semibold tracking-tight">Generate questions</h1>
-        <p className="text-[13px] text-secondary">
+        <p className="text-[14px] text-secondary">
           Draft new questions with your own AI provider. Review them below and publish the good ones
           to the shared pool.
         </p>
       </div>
 
       {providersLoading ? (
-        <p className="text-sm text-secondary">Loading providers…</p>
+        <p className="text-[15px] text-secondary">Loading providers…</p>
       ) : !hasProvider ? (
         <div className="rounded-[10px] border border-default bg-surface p-4">
-          <p className="mb-1 text-[13px] font-semibold text-primary">No provider configured</p>
-          <p className="mb-3 text-[13px] text-secondary">
+          <p className="mb-1 text-[14px] font-semibold text-primary">No provider configured</p>
+          <p className="mb-3 text-[14px] text-secondary">
             Add an AI provider key before generating questions.
           </p>
           <Link
             to="/settings"
-            className="inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="inline-block rounded-lg bg-accent px-4 py-2 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
           >
             Go to Settings
           </Link>
@@ -103,7 +103,7 @@ export function GeneratePage() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="rounded-[10px] border border-default bg-surface p-4">
           <div className="mb-3.5">
-            <label htmlFor="topic" className="mb-1.5 block text-xs font-medium text-secondary">
+            <label htmlFor="topic" className="mb-1.5 block text-[13px] font-medium text-secondary">
               Topic
             </label>
             <input
@@ -114,12 +114,12 @@ export function GeneratePage() {
               {...register('topic')}
               className={inputClass}
             />
-            {errors.topic ? <p className="mt-1.5 text-xs text-danger">{errors.topic.message}</p> : null}
+            {errors.topic ? <p className="mt-1.5 text-[13px] text-danger">{errors.topic.message}</p> : null}
           </div>
 
           <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
             <div>
-              <label htmlFor="difficulty" className="mb-1.5 block text-xs font-medium text-secondary">
+              <label htmlFor="difficulty" className="mb-1.5 block text-[13px] font-medium text-secondary">
                 Difficulty
               </label>
               <select id="difficulty" {...register('difficulty')} className={inputClass}>
@@ -132,7 +132,7 @@ export function GeneratePage() {
             </div>
 
             <div>
-              <label htmlFor="count" className="mb-1.5 block text-xs font-medium text-secondary">
+              <label htmlFor="count" className="mb-1.5 block text-[13px] font-medium text-secondary">
                 Count
               </label>
               <input
@@ -144,11 +144,11 @@ export function GeneratePage() {
                 {...register('count', { valueAsNumber: true })}
                 className={inputClass}
               />
-              {errors.count ? <p className="mt-1.5 text-xs text-danger">{errors.count.message}</p> : null}
+              {errors.count ? <p className="mt-1.5 text-[13px] text-danger">{errors.count.message}</p> : null}
             </div>
 
             <div>
-              <label htmlFor="provider" className="mb-1.5 block text-xs font-medium text-secondary">
+              <label htmlFor="provider" className="mb-1.5 block text-[13px] font-medium text-secondary">
                 Provider
               </label>
               <select id="provider" {...register('provider')} className={inputClass}>
@@ -165,7 +165,7 @@ export function GeneratePage() {
             type="submit"
             disabled={generate.isPending}
             aria-busy={generate.isPending}
-            className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {generate.isPending ? 'Generating…' : 'Generate'}
           </button>
@@ -187,7 +187,7 @@ function DraftPreview({ result }: { result: GenerateResult }) {
 
   if (result.questions.length === 0) {
     return (
-      <p className="mt-6 text-sm text-secondary">
+      <p className="mt-6 text-[15px] text-secondary">
         No questions came back. Try a different topic or a smaller count.
       </p>
     )
@@ -205,7 +205,7 @@ function DraftPreview({ result }: { result: GenerateResult }) {
 
   return (
     <section className="mt-7">
-      <h2 className="mb-3 text-sm font-semibold text-primary">
+      <h2 className="mb-3 text-[15px] font-semibold text-primary">
         {result.questions.length} draft{result.questions.length === 1 ? '' : 's'} from{' '}
         {result.provider}
       </h2>
@@ -218,10 +218,10 @@ function DraftPreview({ result }: { result: GenerateResult }) {
           return (
             <article key={draft.id} className="rounded-[10px] border border-default bg-base p-3.5">
               <div className="mb-2 flex items-start justify-between gap-3">
-                <p className="text-[13px] font-semibold text-primary">{draft.stem}</p>
+                <p className="text-[14px] font-semibold text-primary">{draft.stem}</p>
                 {badge ? (
                   <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] ${badge.text}`}
+                    className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[12px] ${badge.text}`}
                     style={{ backgroundColor: badge.bg }}
                   >
                     {draft.difficulty}
@@ -230,8 +230,8 @@ function DraftPreview({ result }: { result: GenerateResult }) {
               </div>
               <ul className="mb-2 flex flex-col gap-1">
                 {draft.options.map((option, optionIndex) => (
-                  <li key={optionIndex} className="text-[12px] text-secondary">
-                    <span className="mr-1.5 font-mono text-[10px] text-muted">
+                  <li key={optionIndex} className="text-[13px] text-secondary">
+                    <span className="mr-1.5 font-mono text-[12px] text-muted">
                       {String.fromCharCode(65 + optionIndex)}.
                     </span>
                     {option}
@@ -239,11 +239,11 @@ function DraftPreview({ result }: { result: GenerateResult }) {
                 ))}
               </ul>
               {draft.explanation ? (
-                <p className="mb-2 text-[11px] leading-snug text-muted">{draft.explanation}</p>
+                <p className="mb-2 text-[13px] leading-snug text-muted">{draft.explanation}</p>
               ) : null}
               <div className="flex justify-end">
                 {isPublished ? (
-                  <span className="rounded-md px-2.5 py-1.5 text-xs font-medium text-success">
+                  <span className="rounded-md px-2.5 py-1.5 text-[13px] font-medium text-success">
                     Published ✓
                   </span>
                 ) : (
@@ -252,7 +252,7 @@ function DraftPreview({ result }: { result: GenerateResult }) {
                     onClick={() => onPublish(draft.id)}
                     disabled={isPublishing}
                     aria-busy={isPublishing}
-                    className="rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                    className="rounded-md bg-accent px-2.5 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                   >
                     {isPublishing ? 'Publishing…' : 'Publish to pool'}
                   </button>

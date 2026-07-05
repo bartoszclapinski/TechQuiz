@@ -15,8 +15,8 @@ export function AchievementsSection() {
   return (
     <section className="mt-2.5">
       <div className="mb-3 flex items-center justify-between px-0.5">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">Achievements</h2>
-        <span className="font-mono text-[11px] text-secondary">
+        <h2 className="font-mono text-[13px] uppercase tracking-[0.08em] text-muted">Achievements</h2>
+        <span className="font-mono text-[13px] text-secondary">
           {data.unlockedCount}/{data.totalCount} unlocked
         </span>
       </div>
@@ -49,12 +49,12 @@ function BadgeCard({ badge }: { badge: Achievement }) {
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className={`text-[14px] font-semibold ${unlocked ? 'text-primary' : 'text-secondary'}`}>
+          <p className={`text-[15px] font-semibold ${unlocked ? 'text-primary' : 'text-secondary'}`}>
             {title}
           </p>
           {unlocked ? <UnlockedCheck /> : null}
         </div>
-        <p className={`mt-0.5 text-[12px] ${unlocked ? 'text-secondary' : 'text-muted'}`}>
+        <p className={`mt-0.5 text-[13px] ${unlocked ? 'text-secondary' : 'text-muted'}`}>
           {description}
         </p>
         {!unlocked && multiStep ? <ProgressBar progress={progress} target={target} /> : null}
@@ -71,7 +71,7 @@ function ProgressBar({ progress, target }: { progress: number; target: number })
       <div className="h-1.5 overflow-hidden rounded-full bg-elevated">
         <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-1 font-mono text-[10px] text-muted">
+      <p className="mt-1 font-mono text-[12px] text-muted">
         {progress}/{target}
       </p>
     </div>
