@@ -3,12 +3,10 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "ADO.NET" category. Content adapted from the EPAM .NET
-/// Fundamentals course, module 012 (ADO.NET) graded and ungraded quizzes, expanded with
-/// standard interview ground — the abstract provider model (<c>DbConnection</c>,
-/// <c>DbCommand</c>, <c>DbDataReader</c>, <c>DbParameter</c>), command execution methods,
-/// parameterized queries, the connected vs disconnected models, transactions, and
-/// connection pooling.
+/// Question bank for the "ADO.NET" category (.NET track). Covers the abstract provider model
+/// (<c>DbConnection</c>, <c>DbCommand</c>, <c>DbDataReader</c>, <c>DbParameter</c>), command
+/// execution methods, parameterized queries, the connected vs disconnected models, transactions,
+/// and connection pooling.
 /// </summary>
 /// <remarks>
 /// Source quiz items are single-answer; a few expanded questions follow the same shape to

@@ -3,10 +3,8 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "EF Core" category. Content adapted from the EPAM .NET
-/// Fundamentals course, module 013 (Entity Framework Core) graded and ungraded quizzes —
-/// covering the ORM role, DbContext/DbSet, migrations, model configuration, loading
-/// strategies, change tracking, and persistence behaviour.
+/// Question bank for the "EF Core" category (.NET track). Covers the ORM role, DbContext/DbSet,
+/// migrations, model configuration, loading strategies, change tracking, and persistence behaviour.
 /// </summary>
 /// <remarks>
 /// Several source questions were "select ALL correct" / "pick TWO" items. They were

@@ -3,12 +3,9 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "C#/.NET" category. Content adapted from the EPAM .NET
-/// Fundamentals course, modules 004-010 (Reflection, JSON Serialization, XML
-/// Serialization, Threads &amp; Thread Pools, Synchronization, Task Parallel Library,
-/// Task-based Asynchronous Programming) graded and practice quizzes — covering runtime
-/// reflection, serialization defaults, the threading and synchronization toolkit, the
-/// TPL, and async/await.
+/// Question bank for the "C#/.NET" category (.NET track). Covers runtime reflection, JSON and
+/// XML serialization defaults, the threading and synchronization toolkit, the Task Parallel
+/// Library, and task-based async/await.
 /// </summary>
 /// <remarks>
 /// Several source questions were "select TWO" / "select THREE" items. They were rephrased to

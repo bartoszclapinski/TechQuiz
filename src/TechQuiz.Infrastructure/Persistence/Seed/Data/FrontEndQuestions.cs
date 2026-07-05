@@ -3,12 +3,13 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "Front-End" category. Content covers JavaScript and TypeScript
+/// Question bank for the Front-End track. Content covers JavaScript and TypeScript
 /// fundamentals (equality and type coercion, scope and hoisting, closures, the event loop,
 /// promises and async/await, <c>this</c> binding, and TypeScript's type system) plus core
 /// HTML and CSS (semantic markup, the box model, specificity, positioning, flexbox, and grid).
-/// Front-End sits outside the EPAM .NET Fundamentals track, so questions are authored from
-/// canonical language and platform behaviour at a junior/mid interview level.
+/// Authored from canonical language and platform behaviour at a junior/mid interview level. The
+/// per-question factory methods are partitioned into subcategory lists (JavaScript,
+/// AsyncAndEvents, TypeScript, HtmlAndCss).
 /// </summary>
 /// <remarks>
 /// All questions are single-correct to satisfy the <c>MultipleChoice</c> Domain invariant
@@ -16,21 +17,40 @@ namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 /// </remarks>
 public static class FrontEndQuestions
 {
-    public static IReadOnlyList<Question> CreateAll(Guid categoryId) =>
+    public static IReadOnlyList<Question> JavaScript(Guid categoryId) =>
     [
         Q01_StrictEquality(categoryId),
         Q02_TypeofNull(categoryId),
         Q03_LetConstVar(categoryId),
         Q04_Hoisting(categoryId),
         Q05_Closures(categoryId),
+        Q09_ThisBinding(categoryId),
+        Q13_MapVsForEach(categoryId),
+        Q21_Destructuring(categoryId),
+        Q22_SpreadRest(categoryId),
+        Q23_Reduce(categoryId),
+        Q24_NullVsUndefined(categoryId),
+        Q29_OptionalChaining(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> AsyncAndEvents(Guid categoryId) =>
+    [
         Q06_EventLoop(categoryId),
         Q07_PromiseStates(categoryId),
         Q08_AsyncReturnsPromise(categoryId),
-        Q09_ThisBinding(categoryId),
+        Q25_EventBubbling(categoryId),
+        Q26_PromiseAll(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> TypeScript(Guid categoryId) =>
+    [
         Q10_TypeScriptCompiles(categoryId),
         Q11_Generics(categoryId),
         Q12_TypeNarrowing(categoryId),
-        Q13_MapVsForEach(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> HtmlAndCss(Guid categoryId) =>
+    [
         Q14_SemanticHtml(categoryId),
         Q15_BoxModel(categoryId),
         Q16_Specificity(categoryId),
@@ -38,15 +58,8 @@ public static class FrontEndQuestions
         Q18_Positioning(categoryId),
         Q19_GridVsFlex(categoryId),
         Q20_DisplayNoneVsVisibility(categoryId),
-        Q21_Destructuring(categoryId),
-        Q22_SpreadRest(categoryId),
-        Q23_Reduce(categoryId),
-        Q24_NullVsUndefined(categoryId),
-        Q25_EventBubbling(categoryId),
-        Q26_PromiseAll(categoryId),
         Q27_CssUnitsRem(categoryId),
         Q28_MediaQueries(categoryId),
-        Q29_OptionalChaining(categoryId),
         Q30_PseudoClassVsElement(categoryId),
     ];
 

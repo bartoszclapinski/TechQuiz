@@ -3,19 +3,18 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "SQL" category. Content adapted from the EPAM .NET
-/// Fundamentals course, module 011 (Relational Databases &amp; SQL) graded quizzes —
-/// covering DBMS concepts, keys, constraints, relationships, normalization, the
-/// SELECT statement, DML/TCL, and DDL.
+/// Question bank for the Databases track — relational database and SQL fundamentals covering
+/// DBMS concepts, keys, constraints, relationships, normalization, the SELECT statement, DML/TCL,
+/// and DDL. The per-question factory methods are partitioned into subcategory lists
+/// (DatabaseFundamentals, Normalization, Querying, DataManipulation, SchemaDefinition).
 /// </summary>
 /// <remarks>
-/// Several source questions were "select ALL correct" / "pick TWO" items. They were
-/// rephrased to single-correct (often NOT-questions or "which is true/false") to satisfy
-/// the <c>MultipleChoice</c> Domain invariant (exactly one correct option per question).
+/// All questions are single-correct (often NOT-questions or "which is true/false") to satisfy the
+/// <c>MultipleChoice</c> Domain invariant (exactly one correct option per question).
 /// </remarks>
 public static class SqlQuestions
 {
-    public static IReadOnlyList<Question> CreateAll(Guid categoryId) =>
+    public static IReadOnlyList<Question> DatabaseFundamentals(Guid categoryId) =>
     [
         Q01_WhatIsDbms(categoryId),
         Q02_PrimaryKeyIncorrect(categoryId),
@@ -25,28 +24,44 @@ public static class SqlQuestions
         Q06_ManyToMany(categoryId),
         Q07_SqlDeclarative(categoryId),
         Q08_SqlDisadvantage(categoryId),
-        Q09_HavingWithNull(categoryId),
-        Q10_CteKeyword(categoryId),
-        Q11_IntersectFalse(categoryId),
+        Q21_ForeignKey(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> Normalization(Guid categoryId) =>
+    [
         Q12_FirstNormalForm(categoryId),
         Q13_SecondNormalForm(categoryId),
         Q14_NormalizationWorkloads(categoryId),
-        Q15_InsertNull(categoryId),
-        Q16_UpdateAllRows(categoryId),
-        Q17_DeleteSyntax(categoryId),
-        Q18_Truncate(categoryId),
-        Q19_AlterTable(categoryId),
-        Q20_View(categoryId),
-        Q21_ForeignKey(categoryId),
+        Q28_ThirdNormalForm(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> Querying(Guid categoryId) =>
+    [
+        Q09_HavingWithNull(categoryId),
+        Q10_CteKeyword(categoryId),
+        Q11_IntersectFalse(categoryId),
         Q22_InnerVsLeftJoin(categoryId),
         Q23_GroupBy(categoryId),
         Q24_WhereVsHaving(categoryId),
         Q25_AggregateCount(categoryId),
         Q26_Distinct(categoryId),
-        Q27_IndexPurpose(categoryId),
-        Q28_ThirdNormalForm(categoryId),
         Q29_UnionVsUnionAll(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> DataManipulation(Guid categoryId) =>
+    [
+        Q15_InsertNull(categoryId),
+        Q16_UpdateAllRows(categoryId),
+        Q17_DeleteSyntax(categoryId),
         Q30_AcidProperties(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> SchemaDefinition(Guid categoryId) =>
+    [
+        Q18_Truncate(categoryId),
+        Q19_AlterTable(categoryId),
+        Q20_View(categoryId),
+        Q27_IndexPurpose(categoryId),
     ];
 
     private static Question Q01_WhatIsDbms(Guid categoryId)

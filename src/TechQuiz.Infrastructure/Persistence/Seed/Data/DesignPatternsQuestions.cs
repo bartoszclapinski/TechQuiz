@@ -3,10 +3,8 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "Design Patterns" category. Content covers the EPAM .NET
-/// Fundamentals course, module 014 (Design Patterns &amp; Application Architecture) — the
-/// GoF creational, structural, and behavioral patterns, the SOLID principles, and common
-/// architectural styles. Module 014 ships topic notes rather than quizzes, so questions are
+/// Question bank for the "Design Patterns" category (.NET track). Covers the GoF creational,
+/// structural, and behavioral patterns, the SOLID principles, and common architectural styles,
 /// authored from the canonical pattern and principle definitions.
 /// </summary>
 /// <remarks>
