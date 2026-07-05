@@ -3,9 +3,8 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "Unit Testing" category. Content adapted from the EPAM .NET
-/// Fundamentals course, module 003 (Unit Testing) — 14 questions from the module-end
-/// quiz and 5 from the test-doubles mini-quiz.
+/// Question bank for the "Unit Testing" category (.NET track). Covers unit-testing
+/// fundamentals in .NET — MSTest/NUnit/xUnit, the AAA pattern, test doubles, and Moq.
 /// </summary>
 /// <remarks>
 /// One source question ("Which THREE frameworks…") had three correct options and was

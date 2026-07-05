@@ -3,12 +3,13 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "Engineering Practices" category. Content covers Git and version
-/// control (EPAM .NET Fundamentals course, module 001 — Git), continuous integration and
-/// delivery (CI/CD), and clean-code practices (naming, small functions, DRY/KISS/YAGNI, code
-/// smells, code review, and testing strategy). The SOLID principles are intentionally omitted
-/// here — they are covered in the Design Patterns bank — so this category focuses on workflow
-/// and craftsmanship rather than object-oriented design.
+/// Question bank for the Engineering Practices track. Content covers Git and version control,
+/// continuous integration and delivery (CI/CD), and clean-code practices (naming, small functions,
+/// DRY/KISS/YAGNI, code smells, code review, and testing strategy). The SOLID principles are
+/// intentionally omitted here — they are covered in the Design Patterns bank — so this track focuses
+/// on workflow and craftsmanship rather than object-oriented design. The per-question factory methods
+/// are partitioned into subcategory lists (GitAndVersionControl, ContinuousIntegrationDelivery,
+/// CleanCode).
 /// </summary>
 /// <remarks>
 /// All questions are single-correct to satisfy the <c>MultipleChoice</c> Domain invariant
@@ -16,7 +17,7 @@ namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 /// </remarks>
 public static class EngineeringPracticesQuestions
 {
-    public static IReadOnlyList<Question> CreateAll(Guid categoryId) =>
+    public static IReadOnlyList<Question> GitAndVersionControl(Guid categoryId) =>
     [
         Q01_GitCommit(categoryId),
         Q02_StagingArea(categoryId),
@@ -26,24 +27,32 @@ public static class EngineeringPracticesQuestions
         Q06_CherryPick(categoryId),
         Q07_GitIgnore(categoryId),
         Q08_FastForward(categoryId),
+        Q21_GitStash(categoryId),
+        Q22_ResetVsRevert(categoryId),
+        Q23_ConventionalCommits(categoryId),
+        Q25_PullRequestPurpose(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> ContinuousIntegrationDelivery(Guid categoryId) =>
+    [
         Q09_ContinuousIntegration(categoryId),
         Q10_DeliveryVsDeployment(categoryId),
         Q11_CiPipelinePurpose(categoryId),
         Q12_BuildOnceDeployMany(categoryId),
         Q13_FeatureBranchFlow(categoryId),
         Q14_BlueGreenDeployment(categoryId),
+        Q24_SemanticVersioning(categoryId),
+        Q26_TrunkBasedDevelopment(categoryId),
+    ];
+
+    public static IReadOnlyList<Question> CleanCode(Guid categoryId) =>
+    [
         Q15_MeaningfulNames(categoryId),
         Q16_Dry(categoryId),
         Q17_Yagni(categoryId),
         Q18_CodeSmell(categoryId),
         Q19_CodeReview(categoryId),
         Q20_TestPyramid(categoryId),
-        Q21_GitStash(categoryId),
-        Q22_ResetVsRevert(categoryId),
-        Q23_ConventionalCommits(categoryId),
-        Q24_SemanticVersioning(categoryId),
-        Q25_PullRequestPurpose(categoryId),
-        Q26_TrunkBasedDevelopment(categoryId),
         Q27_TechnicalDebt(categoryId),
         Q28_Refactoring(categoryId),
         Q29_BoyScoutRule(categoryId),

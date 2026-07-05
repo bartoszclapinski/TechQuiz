@@ -9,14 +9,37 @@ namespace TechQuiz.Infrastructure.Tests.Persistence.Repositories;
 public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : IntegrationTestBase(fixture)
 {
     [Fact]
-    public async Task GetAllAsync_ReturnsCategoriesOrderedByName()
+    public async Task GetTracksAsync_ReturnsTracksOrderedByPosition()
     {
         await using (var seed = CreateDbContext())
         {
+            seed.Tracks.AddRange(
+                new Track(Guid.NewGuid(), "Databases", "D desc", "DB", position: 1),
+                new Track(Guid.NewGuid(), ".NET", "N desc", ".NET", position: 0),
+                new Track(Guid.NewGuid(), "Front-End", "F desc", "FE", position: 2));
+            await seed.SaveChangesAsync();
+        }
+
+        await using var db = CreateDbContext();
+        var sut = new CategoryRepository(db);
+
+        var result = await sut.GetTracksAsync();
+
+        result.Select(t => t.Name).Should().Equal(".NET", "Databases", "Front-End");
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ReturnsCategoriesOrderedByPosition()
+    {
+        var trackId = Guid.NewGuid();
+
+        await using (var seed = CreateDbContext())
+        {
+            seed.Tracks.Add(new Track(trackId, "Track", "t", "T", position: 0));
             seed.Categories.AddRange(
-                new Category(Guid.NewGuid(), "Beta",  "B desc", "icon-b"),
-                new Category(Guid.NewGuid(), "Alpha", "A desc", "icon-a"),
-                new Category(Guid.NewGuid(), "Gamma", "G desc", "icon-g"));
+                new Category(Guid.NewGuid(), trackId, "Gamma", "G desc", "icon-g", position: 2),
+                new Category(Guid.NewGuid(), trackId, "Alpha", "A desc", "icon-a", position: 0),
+                new Category(Guid.NewGuid(), trackId, "Beta", "B desc", "icon-b", position: 1));
             await seed.SaveChangesAsync();
         }
 
@@ -42,11 +65,13 @@ public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : 
     [Fact]
     public async Task GetQuestionCountsAsync_ReturnsCountPerCategory()
     {
-        var unitTesting = new Category(Guid.NewGuid(), "Unit Testing", "x", "icon");
-        var sql = new Category(Guid.NewGuid(), "SQL", "x", "icon");
+        var trackId = Guid.NewGuid();
+        var unitTesting = new Category(Guid.NewGuid(), trackId, "Unit Testing", "x", "icon", position: 0);
+        var sql = new Category(Guid.NewGuid(), trackId, "SQL", "x", "icon", position: 1);
 
         await using (var seed = CreateDbContext())
         {
+            seed.Tracks.Add(new Track(trackId, "Track", "t", "T", position: 0));
             seed.Categories.AddRange(unitTesting, sql);
             seed.Questions.AddRange(
                 CreateQuestion(unitTesting.Id),
@@ -71,11 +96,13 @@ public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : 
     {
         // The GroupBy in the repo never emits a row for a category with zero questions.
         // The Application handler relies on this — it falls back to 0 via TryGetValue.
-        var withQuestions = new Category(Guid.NewGuid(), "WithQ", "x", "icon");
-        var empty = new Category(Guid.NewGuid(), "Empty", "x", "icon");
+        var trackId = Guid.NewGuid();
+        var withQuestions = new Category(Guid.NewGuid(), trackId, "WithQ", "x", "icon", position: 0);
+        var empty = new Category(Guid.NewGuid(), trackId, "Empty", "x", "icon", position: 1);
 
         await using (var seed = CreateDbContext())
         {
+            seed.Tracks.Add(new Track(trackId, "Track", "t", "T", position: 0));
             seed.Categories.AddRange(withQuestions, empty);
             seed.Questions.Add(CreateQuestion(withQuestions.Id));
             await seed.SaveChangesAsync();
@@ -131,10 +158,12 @@ public sealed class CategoryRepositoryTests(PostgresContainerFixture fixture) : 
 
     private async Task<(Guid CategoryId, Guid QuizId)> SeedCategoryWithQuizAsync()
     {
+        var trackId = Guid.NewGuid();
         var categoryId = Guid.NewGuid();
         var quizId = Guid.NewGuid();
         await using var db = CreateDbContext();
-        db.Categories.Add(new Category(categoryId, $"Cat-{categoryId:N}", "x", "icon"));
+        db.Tracks.Add(new Track(trackId, $"Track-{trackId:N}", "x", "icon", position: 0));
+        db.Categories.Add(new Category(categoryId, trackId, $"Cat-{categoryId:N}", "x", "icon", position: 0));
         db.Quizzes.Add(Quiz.Create(quizId, categoryId, [CreateQuestion(categoryId)]));
         await db.SaveChangesAsync();
         return (categoryId, quizId);

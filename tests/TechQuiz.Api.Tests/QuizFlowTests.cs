@@ -19,9 +19,9 @@ public sealed class QuizFlowTests(TechQuizApiFactory factory)
     {
         var client = await factory.CreateDemoClientAsync();
 
-        var categories = await client.GetFromJsonAsync<List<CategoryDto>>("/api/categories");
-        categories.Should().NotBeNullOrEmpty();
-        var categoryId = categories![0].Id;
+        var tracks = await client.GetFromJsonAsync<List<TrackDto>>("/api/categories");
+        tracks.Should().NotBeNullOrEmpty();
+        var categoryId = tracks!.SelectMany(t => t.Categories).First().Id;
 
         var startResponse = await client.PostAsJsonAsync(
             "/api/quizzes/start", new StartQuizRequest(categoryId));

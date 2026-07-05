@@ -9,6 +9,7 @@ namespace TechQuiz.Infrastructure.Persistence;
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
+    public DbSet<Track> Tracks => Set<Track>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<Option> Options => Set<Option>();

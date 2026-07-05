@@ -5,6 +5,45 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-05 — Iteracja 4.8: Taksonomia kategorii (Tracks) + czyszczenie treści
+
+**Cel:** zamienić płaską listę 9 kategorii na dwupoziomową taksonomię **Track → Category (quiz) →
+Question** i usunąć z treści atrybucję do zewnętrznego kursu. Decyzja: **ADR-023**.
+
+**Kontekst (zgłoszone przez ownera na żywym deployu):** (1) opisy kategorii cytowały nazwę kursu — na
+portfolio niedopuszczalne; (2) 9 płaskich kafli bez grupowania; (3) grube banki (SQL/Front-End/Engineering)
+mieszały wiele podtematów w jednym quizie. Owner wybrał **pełne rozbicie na podtematy** (nie tylko grupowanie).
+
+**Taksonomia:** 4 tracki nad 18 podkategoriami:
+- **.NET** — C#/.NET · ASP.NET Core · EF Core · ADO.NET · Unit Testing · Design Patterns (6 bez zmian).
+- **Databases** — SQL(30) rozbite na Database Fundamentals · Normalization · Querying · Data Manipulation · Schema Definition.
+- **Front-End** — 30 rozbite na JavaScript · Async & Events · TypeScript · HTML & CSS.
+- **Engineering Practices** — 30 rozbite na Git & Version Control · CI/CD · Clean Code.
+- **Practical Challenges** — nesting tylko we froncie (nie Track w bazie), link do `/challenges`; wypięte z topnav.
+
+**Kluczowy zabieg (zero ryzyka contentowego):** rozbicie to **przepartycjonowanie istniejących metod-fabryk
+pytań** — teksty/opcje/wyjaśnienia bajt-w-bajt bez zmian; zmienia się tylko która podlista je referuje.
+Suma pytań bez zmian: **269** (i 1076 opcji). Invariant single-correct zachowany.
+
+**Co zrobione (6 atomic commitów, issues #293–298):**
+- **docs** (`#293`) — ADR-023 + plik iteracji 4.8.
+- **domain** (`#294`) — encja `Track` + `Category.TrackId`/`Position` (TDD).
+- **infra** (`#295`) — tabela `tracks`, FK `categories.track_id` (cascade), migracja `AddTracks`, `GetTracksAsync`.
+- **api** (`#296`) — `TrackDto` (zagnieżdżone `CategoryDto`), handler grupuje po tracku wg pozycji, kontroler zwraca tracki.
+- **seed** (`#297`) — reorg `DataSeeder` na tracki+podkategorie, rozbicie 3 banków, usunięcie atrybucji z opisów i komentarzy.
+- **web** (`#298`) — strona kategorii jako master/detail (kafle tracków → drill do podkategorii), kafel Practical Challenges, spłaszczenie tracków dla filtra History, wypięcie Challenges z topnav.
+
+**Weryfikacja:** cały suite .NET zielony — **Domain 105, Application 196, Infrastructure 60, Api 37 = 398**
+(w tym integracyjny full quiz-flow przez nowy kształt tracków). Web `pnpm build` + `pnpm lint` czyste.
+`grep EPAM` po `src/` — czysto.
+
+**Uwaga deployowa (do Fazy C):** migracja `AddTracks` doda `track_id`=pusty-Guid do istniejących 9 kategorii
+na Neonie i FK to wywali na starcie. Dlatego przed deployem **reset tabel treści na Neonie** (kategorie/quizy/
+pytania/opcje) — konta userów nietknięte — żeby nowa taksonomia zaseedowała się od zera. Status iteracji
+`in-progress` do potwierdzenia klik-through na żywym URL-u.
+
+---
+
 ## 2026-07-02 — Iteracja 4.1: Mobile responsive
 
 **Cel:** każdy ekran ma być używalny na telefonie (**375–768px**) bez poziomego scrolla, ściśniętego

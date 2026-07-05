@@ -29,9 +29,11 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
     public async Task GetByCategoryAsync_ReturnsNull_WhenCategoryHasNoQuiz()
     {
         var loneCategoryId = Guid.NewGuid();
+        var trackId = Guid.NewGuid();
         await using (var seed = CreateDbContext())
         {
-            seed.Categories.Add(new Category(loneCategoryId, "LoneCategory", "x", "icon"));
+            seed.Tracks.Add(new Track(trackId, "LoneTrack", "x", "icon", position: 0));
+            seed.Categories.Add(new Category(loneCategoryId, trackId, "LoneCategory", "x", "icon", position: 0));
             await seed.SaveChangesAsync();
         }
 
@@ -657,11 +659,14 @@ public sealed class QuizRepositoryTests(PostgresContainerFixture fixture) : Inte
     {
         var categoryId = Guid.NewGuid();
         var quizId = Guid.NewGuid();
-        var category = new Category(categoryId, $"Test Category {categoryId}", "desc", "icon");
+        var trackId = Guid.NewGuid();
+        var track = new Track(trackId, $"Test Track {trackId}", "desc", "icon", position: 0);
+        var category = new Category(categoryId, trackId, $"Test Category {categoryId}", "desc", "icon", position: 0);
         var questions = Enumerable.Range(0, questionCount).Select(_ => CreateQuestion(categoryId)).ToArray();
         var quiz = Quiz.Create(quizId, categoryId, questions);
 
         await using var db = CreateDbContext();
+        db.Tracks.Add(track);
         db.Categories.Add(category);
         db.Quizzes.Add(quiz);
         await db.SaveChangesAsync();

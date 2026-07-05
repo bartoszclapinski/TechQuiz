@@ -3,11 +3,9 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Persistence.Seed.Data;
 
 /// <summary>
-/// Question bank for the "ASP.NET Core" category. Content adapted from the EPAM .NET
-/// Fundamentals course, modules 015-021 (Introduction, Middleware, Minimal API,
-/// Fundamentals/DI/Routing, Web API, Authentication &amp; Authorization) graded quizzes —
-/// covering app models, the middleware pipeline, dependency injection, routing, Web API
-/// design, and auth.
+/// Question bank for the "ASP.NET Core" category (.NET track). Covers app models, the
+/// middleware pipeline, dependency injection, routing, minimal APIs, Web API design, and
+/// authentication &amp; authorization.
 /// </summary>
 /// <remarks>
 /// Several source questions were "select TWO" / "select ALL" items. They were rephrased to
