@@ -17,7 +17,6 @@ const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/categories', label: 'Categories' },
   { to: '/generate', label: 'Generate' },
   { to: '/pool', label: 'Pool' },
-  { to: '/challenges', label: 'Challenges' },
   { to: '/history', label: 'History' },
   { to: '/review', label: 'Daily review' },
 ]

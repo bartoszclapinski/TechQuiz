@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useCategories } from '../categories/use-categories'
+import { useTracks } from '../categories/use-categories'
 import { useHistory } from './use-history'
 import type { HistoryItem, HistorySortBy } from './api'
 import type { HistoryFilters } from './query-keys'
@@ -20,7 +20,9 @@ export function HistoryPage() {
     isFetchingNextPage,
   } = useHistory(filters)
 
-  const { data: categories } = useCategories()
+  // The catalogue endpoint returns tracks; the filter dropdown wants a flat category list.
+  const { data: tracks } = useTracks()
+  const categories = tracks?.flatMap((track) => track.categories) ?? []
   const items = data?.pages.flat() ?? []
 
   // Clicking the active field flips direction; clicking the other field switches to it (newest /
@@ -49,7 +51,7 @@ export function HistoryPage() {
             className="rounded-lg border border-default bg-surface px-3 py-1.5 text-[13px] font-medium text-primary"
           >
             <option value="">All categories</option>
-            {categories?.map((c) => (
+            {categories.map((c) => (
               <option key={c.id} value={c.name}>
                 {c.name}
               </option>

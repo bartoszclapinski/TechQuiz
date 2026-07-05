@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchCategories } from './api'
+import { fetchTracks } from './api'
 import { categoriesKey } from './query-keys'
 
-export function useCategories() {
-  return useQuery({ queryKey: categoriesKey(), queryFn: fetchCategories })
+// The catalogue endpoint returns tracks with nested subcategories (ADR-023).
+export function useTracks() {
+  return useQuery({ queryKey: categoriesKey(), queryFn: fetchTracks })
 }
