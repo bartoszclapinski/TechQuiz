@@ -74,7 +74,7 @@ export function RegisterPage() {
   async function onSubmit(values: RegisterValues) {
     try {
       await registerUser(values.email, values.password)
-      navigate('/categories', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       // 400 (validation / Identity policy) and 409 (conflict) mean the API rejected the input —
       // surface the server's own messages on the matching fields. Anything else is unexpected.

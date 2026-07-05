@@ -40,7 +40,7 @@ function App() {
             <Route path="/result/:attemptId" element={<ResultPage />} />
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/categories" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   )

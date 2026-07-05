@@ -24,7 +24,7 @@ export function LoginPage() {
   const location = useLocation()
   const [demoLoading, setDemoLoading] = useState(false)
 
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/categories'
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/dashboard'
 
   const {
     register,
