@@ -614,3 +614,46 @@ The cross-origin production gaps this exposes are host-independent and fixed in 
 - **Fly.io.** Runs our containers and can stay always-on within a free allowance, but its free Postgres is self-managed (you operate the DB VM), more ops than a portfolio warrants. Render + Neon is more managed for the same $0.
 - **Railway.** Clean Docker DX, but no longer has a genuinely free tier (trial credit then ~$5/mo). Rejected on the same cost-longevity grounds as paid Azure.
 - **Render Postgres (instead of Neon).** One-dashboard simplicity, but the free database expires after 90 days. Rejected in favour of Neon's non-expiring free tier for a set-and-forget portfolio.
+
+---
+
+## ADR-023: Two-Level Category Taxonomy — Tracks over Categories
+
+**Status:** Accepted
+**Date:** 2026-07-05
+
+Additive to the domain model; does not contradict a prior ADR. ADR-013 (MVP-first scope) shipped a **flat** list of quiz categories — never a recorded decision, just the shape the MVP needed. This ADR introduces the grouping the content now warrants.
+
+### Context
+The catalogue grew to nine flat categories, each a single ~30-question quiz. Two problems surfaced once the app went live:
+
+1. **No grouping.** Nine sibling tiles with no hierarchy read as an undifferentiated pile. A learner looking for ".NET" sees six of the nine tiles are .NET topics, but nothing says so; SQL, Front-End, and Engineering sit alongside them at the same level.
+2. **Coarse categories.** Single 30-question banks (SQL, Front-End, Engineering) each span many distinct subtopics (SQL alone covers DBMS concepts, keys, normalization, querying, DML, and DDL). One quiz can't target "just normalization".
+
+Separately, category descriptions cited a specific third-party course by name — inappropriate for a portfolio; descriptions must read as general.
+
+### Decision
+Introduce a top-level **`Track`** entity (Name, Description, IconCode, Position). `Category` gains a `TrackId` and stays the quizzable unit. Hierarchy: **Track → Category (quiz) → Question**.
+
+Taxonomy:
+- **.NET** — C#/.NET, ASP.NET Core, EF Core, ADO.NET, Unit Testing, Design Patterns (the six existing .NET categories, unchanged, regrouped under the track).
+- **Databases** — the former single "SQL" category, split into Database Fundamentals, Normalization, Querying, Data Manipulation, Schema Definition.
+- **Front-End** — split into JavaScript, TypeScript, HTML, CSS.
+- **Engineering Practices** — split into Git & Version Control, CI/CD, Clean Code.
+
+The split **repartitions existing question builders without altering any question's text, options, or explanation** — the per-question factory methods are byte-identical; only which subcategory list references them changes. The single-correct `MultipleChoice` invariant is preserved.
+
+**Practical Challenges** (code-execution tasks) are surfaced under the categories browse view and removed from the top nav, but remain a separate catalog (`ICodeChallengeCatalog`) — they are **not** a `Track` in the database. Their nesting is a frontend navigation concern. (Live execution still needs Judge0, which is not deployed on Render — tracked separately.)
+
+Course-attribution sentences are removed from all category descriptions and question-file doc comments; descriptions are rewritten as general topic summaries.
+
+### Consequences
+- **Schema change.** New `tracks` table + `categories.track_id` FK (one migration). The API's categories endpoint returns tracks with nested categories rather than a flat category list; the web categories page renders tracks and drills into subcategories.
+- **Richer catalogue.** Nine categories become four tracks over eighteen subcategory quizzes, each targeting a coherent subtopic.
+- **Live data refresh.** The staging (Neon) database already holds the old flat categories with course-attributed descriptions. Because the seeder is insert-if-missing, a code change alone won't update it; the staging quiz-content tables are reset once so the new taxonomy seeds fresh. User accounts are untouched.
+- **Content integrity.** No question wording changes, so difficulty balance and answer keys carry over verbatim; only grouping moves.
+
+### Alternatives Rejected
+- **Presentation-only grouping** (group flat categories in the frontend, no schema change). Rejected: the split into finer subcategories needs real per-subcategory quizzes and question counts — that is data, not layout.
+- **Self-referencing `Category.ParentId`.** One table modelling both groups and quizzes muddies the aggregate (a "group" row has no quiz). A dedicated `Track` keeps Track → Category → Quiz a clean, readable hierarchy.
+- **Keep flat, just clean descriptions.** Fixes the attribution problem but not the two structural ones. Rejected as half a solution.
