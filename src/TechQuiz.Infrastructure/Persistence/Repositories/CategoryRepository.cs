@@ -6,10 +6,16 @@ namespace TechQuiz.Infrastructure.Persistence.Repositories;
 
 public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
 {
+    public async Task<IReadOnlyList<Track>> GetTracksAsync(CancellationToken cancellationToken = default) =>
+        await db.Tracks
+            .AsNoTracking()
+            .OrderBy(t => t.Position)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await db.Categories
             .AsNoTracking()
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.Position)
             .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyDictionary<Guid, int>> GetQuestionCountsAsync(CancellationToken cancellationToken = default) =>

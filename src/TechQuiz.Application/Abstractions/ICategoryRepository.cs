@@ -4,6 +4,12 @@ namespace TechQuiz.Application.Abstractions;
 
 public interface ICategoryRepository
 {
+    /// <summary>
+    /// Returns all tracks (top-level groupings). Ordering is the caller's concern — the
+    /// query handler sorts by <see cref="Domain.Track.Position"/>.
+    /// </summary>
+    Task<IReadOnlyList<Track>> GetTracksAsync(CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
