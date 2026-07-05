@@ -55,7 +55,7 @@ public class CompleteQuizCommandHandlerTests
         _quizRepository.GetByIdAsync(quiz.Id, Arg.Any<CancellationToken>()).Returns(quiz);
 
         _categoryRepository.GetAllAsync(Arg.Any<CancellationToken>())
-            .Returns(new List<Category> { new(categoryId, "C# Basics", "desc", "icon") });
+            .Returns(new List<Category> { new(categoryId, Guid.NewGuid(), "C# Basics", "desc", "icon", 0) });
         _categoryRepository.GetUserBestScoresAsync(userId, Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, double>());
 

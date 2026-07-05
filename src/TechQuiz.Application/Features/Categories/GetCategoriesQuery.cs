@@ -3,4 +3,4 @@ using TechQuiz.Application.Common.Dtos;
 
 namespace TechQuiz.Application.Features.Categories;
 
-public sealed record GetCategoriesQuery : IRequest<IReadOnlyList<CategoryDto>>;
+public sealed record GetCategoriesQuery : IRequest<IReadOnlyList<TrackDto>>;

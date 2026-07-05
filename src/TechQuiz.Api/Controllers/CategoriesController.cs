@@ -12,9 +12,9 @@ namespace TechQuiz.Api.Controllers;
 public sealed class CategoriesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<CategoryDto>>> Get(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<TrackDto>>> Get(CancellationToken cancellationToken)
     {
-        var categories = await mediator.Send(new GetCategoriesQuery(), cancellationToken);
-        return Ok(categories);
+        var tracks = await mediator.Send(new GetCategoriesQuery(), cancellationToken);
+        return Ok(tracks);
     }
 }
