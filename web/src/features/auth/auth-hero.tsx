@@ -30,7 +30,7 @@ export function AuthHero() {
 
       <div className="relative z-10 flex h-full flex-col p-12">
         <div className="mb-10">
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+          <p className="mb-3 font-mono text-[13px] uppercase tracking-[0.14em] text-muted">
             Sharpen your skills
           </p>
           <h2 className="max-w-[380px] text-3xl font-bold leading-tight tracking-tight">
@@ -48,7 +48,7 @@ export function AuthHero() {
                 C#
               </div>
               <div>
-                <p className="mb-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-accent-text">
+                <p className="mb-0.5 font-mono text-[13px] uppercase tracking-[0.08em] text-accent-text">
                   Last session
                 </p>
                 <p className="text-[17px] font-semibold">C# Advanced</p>
@@ -59,7 +59,7 @@ export function AuthHero() {
           <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full bg-accent" style={{ width: '87%' }} />
           </div>
-          <div className="flex justify-between font-mono text-[11px] text-secondary">
+          <div className="flex justify-between font-mono text-[13px] text-secondary">
             <span>13 / 15 correct</span>
             <span>4 min 12 s</span>
           </div>
@@ -71,14 +71,14 @@ export function AuthHero() {
               key={row.code}
               className="flex items-center gap-3 rounded-[10px] border border-default bg-elevated px-4 py-3"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-bg font-mono text-[10px] font-semibold text-accent-text">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-bg font-mono text-[12px] font-semibold text-accent-text">
                 {row.code}
               </div>
-              <p className="flex-1 text-[13px] font-medium">{row.label}</p>
+              <p className="flex-1 text-[14px] font-medium">{row.label}</p>
               <div className="h-1 w-20 overflow-hidden rounded-full bg-surface">
                 <div className="h-full rounded-full bg-accent" style={{ width: `${row.pct}%` }} />
               </div>
-              <span className="min-w-[26px] text-right font-mono text-[11px] font-medium text-secondary">
+              <span className="min-w-[26px] text-right font-mono text-[13px] font-medium text-secondary">
                 {row.pct}%
               </span>
             </div>

@@ -27,7 +27,7 @@ export function ReviewRunnerPage() {
         <button
           type="button"
           onClick={() => void refetch()}
-          className="rounded-md border border-strong px-3 py-1.5 text-sm font-medium transition-colors hover:bg-elevated"
+          className="rounded-md border border-strong px-3 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
         >
           Retry
         </button>
@@ -131,7 +131,7 @@ function ReviewRunner({
     <div className="flex min-h-screen flex-col bg-base text-primary">
       <header className="flex items-center justify-between gap-4 border-b border-default px-6 py-3">
         <div className="flex flex-1 items-center gap-3">
-          <span className="whitespace-nowrap font-mono text-[11px] font-medium text-secondary">
+          <span className="whitespace-nowrap font-mono text-[13px] font-medium text-secondary">
             Daily review · {question.category} · {currentIndex + 1} of {total}
           </span>
           <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-elevated">
@@ -158,7 +158,7 @@ function ReviewRunner({
         <div className="w-full max-w-[600px]">
           <div className="mb-6">
             <span
-              className={`mb-3.5 inline-block rounded-full px-2 py-[3px] font-mono text-[10px] font-medium uppercase tracking-[0.04em] ${difficulty.text}`}
+              className={`mb-3.5 inline-block rounded-full px-2 py-[3px] font-mono text-[12px] font-medium uppercase tracking-[0.04em] ${difficulty.text}`}
               style={{ backgroundColor: difficulty.bg }}
             >
               {difficulty.label}
@@ -175,14 +175,14 @@ function ReviewRunner({
                   type="button"
                   onClick={() => selectAnswer(question.id, option.id)}
                   aria-pressed={selected}
-                  className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-[18px] py-3.5 text-left text-[14px] transition-colors ${
+                  className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-[18px] py-3.5 text-left text-[15px] transition-colors ${
                     selected
                       ? 'border-accent shadow-[0_0_0_3px_rgba(139,92,246,0.15)]'
                       : 'border-default hover:border-strong'
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-[12px] font-semibold ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-[13px] font-semibold ${
                       selected ? 'bg-accent text-white' : 'bg-base text-muted'
                     }`}
                   >
@@ -196,14 +196,14 @@ function ReviewRunner({
 
           <div className="mt-8 flex items-center justify-end gap-4 border-t border-default pt-5 sm:justify-between">
             {/* Keyboard tip is desktop-only guidance — phones have no 1-4/Enter shortcuts. */}
-            <p className="hidden font-mono text-[11px] text-secondary sm:block">
+            <p className="hidden font-mono text-[13px] text-secondary sm:block">
               Tip: press <Kbd>1-4</Kbd> to select, <Kbd>Enter</Kbd> to continue
             </p>
             <button
               type="button"
               onClick={handleAdvance}
               disabled={!selectedOptionId || isPending}
-              className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[13px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[14px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isLast ? (isPending ? 'Grading…' : 'Finish review') : 'Next'}
               {!isLast && (
@@ -260,7 +260,7 @@ function RunnerSummary({
           <button
             type="button"
             onClick={() => navigate('/review')}
-            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="19" y1="12" x2="5" y2="12" />
@@ -278,12 +278,12 @@ function CaughtUp() {
   const navigate = useNavigate()
   return (
     <CenteredMessage>
-      <p className="mb-1 text-[15px] font-semibold text-primary">You&apos;re all caught up</p>
-      <p className="mb-4 text-sm text-secondary">Nothing to review today — great work.</p>
+      <p className="mb-1 text-[16px] font-semibold text-primary">You&apos;re all caught up</p>
+      <p className="mb-4 text-[15px] text-secondary">Nothing to review today — great work.</p>
       <button
         type="button"
         onClick={() => navigate('/review')}
-        className="rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+        className="rounded-lg bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
       >
         Back to review
       </button>
@@ -301,6 +301,6 @@ function CenteredMessage({ children }: { children: React.ReactNode }) {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-secondary">{children}</kbd>
+    <kbd className="rounded bg-elevated px-1.5 py-0.5 font-mono text-[12px] text-secondary">{children}</kbd>
   )
 }

@@ -63,7 +63,7 @@ function PopulatedDashboard({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back{name ? `, ${name}` : ''}</h1>
           {lastAttempt ? (
-            <p className="mt-1 text-[13px] text-secondary">
+            <p className="mt-1 text-[14px] text-secondary">
               Last attempt:{' '}
               <span className="font-medium text-accent-text">{Math.round(lastAttempt.scorePercentage)}%</span>{' '}
               in {lastAttempt.category}, {relativeTime(lastAttempt.completedAt)}.
@@ -138,9 +138,9 @@ function ReviewMetric({
           {value}
           {suffix ? <span className="text-base text-secondary">{suffix}</span> : null}
         </span>
-        {unit ? <span className="text-xs font-medium text-secondary">{unit}</span> : null}
+        {unit ? <span className="text-[13px] font-medium text-secondary">{unit}</span> : null}
       </div>
-      <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{label}</p>
+      <p className="mt-2 font-mono text-[13px] uppercase tracking-[0.08em] text-muted">{label}</p>
     </div>
   )
 }
@@ -176,7 +176,7 @@ function DailyReviewBanner() {
 
   if (count === 0) {
     return (
-      <div className="mb-2.5 flex items-center gap-2.5 rounded-xl border border-default bg-surface px-[18px] py-3 text-[13px] text-secondary">
+      <div className="mb-2.5 flex items-center gap-2.5 rounded-xl border border-default bg-surface px-[18px] py-3 text-[14px] text-secondary">
         <span
           className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
           style={{ backgroundColor: 'rgba(16,185,129,0.1)' }}
@@ -206,17 +206,17 @@ function DailyReviewBanner() {
           </svg>
         </span>
         <div>
-          <p className="text-[15px] font-semibold text-primary">
+          <p className="text-[16px] font-semibold text-primary">
             {count} {count === 1 ? 'question' : 'questions'} to review today
           </p>
-          <p className="mt-0.5 text-[12px] text-secondary">
+          <p className="mt-0.5 text-[13px] text-secondary">
             Revisit questions you&apos;ve seen before to reinforce what you&apos;ve learned.
           </p>
         </div>
       </div>
       <Link
         to="/review"
-        className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white hover:opacity-90"
+        className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[14px] font-medium text-white hover:opacity-90"
       >
         Start review
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
@@ -246,8 +246,8 @@ function ReviewedTodayBanner({ streak, remaining }: { streak: number; remaining:
           </svg>
         </span>
         <div>
-          <p className="text-[15px] font-semibold text-primary">Reviewed today</p>
-          <p className="mt-0.5 text-[12px] text-secondary">
+          <p className="text-[16px] font-semibold text-primary">Reviewed today</p>
+          <p className="mt-0.5 text-[13px] text-secondary">
             {streak > 0
               ? `You're on a ${streak}-day review streak — keep it going tomorrow.`
               : 'Nice work clearing your review for today.'}
@@ -257,7 +257,7 @@ function ReviewedTodayBanner({ streak, remaining }: { streak: number; remaining:
       {remaining > 0 ? (
         <Link
           to="/review"
-          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default px-4 py-2 text-[13px] font-medium text-secondary hover:bg-elevated hover:text-primary"
+          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default px-4 py-2 text-[14px] font-medium text-secondary hover:bg-elevated hover:text-primary"
         >
           Review {remaining} more
         </Link>
@@ -280,7 +280,7 @@ function Tile({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{children}</span>
+    <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-muted">{children}</span>
   )
 }
 
@@ -293,10 +293,10 @@ function StreakTile({ days, sparkline }: { days: number; sparkline: number[] }) 
       </div>
       <div className="mb-3.5 flex items-baseline gap-1.5">
         <span className="text-[40px] font-bold leading-none tracking-tight text-primary">{days}</span>
-        <span className="text-sm font-medium text-secondary">{days === 1 ? 'day' : 'days'}</span>
+        <span className="text-[15px] font-medium text-secondary">{days === 1 ? 'day' : 'days'}</span>
       </div>
       <Sparkline values={sparkline} />
-      <p className="mt-1.5 font-mono text-[11px] text-muted">Last {sparkline.length} days</p>
+      <p className="mt-1.5 font-mono text-[13px] text-muted">Last {sparkline.length} days</p>
     </Tile>
   )
 }
@@ -355,7 +355,7 @@ function ScoreOverTimeTile({ points }: { points: DashboardSummary['scoreOverTime
         <Label>Score over time</Label>
         {trend !== null ? (
           <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${
               trend >= 0 ? 'text-success' : 'text-warning'
             }`}
             style={{ backgroundColor: trend >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' }}
@@ -439,7 +439,7 @@ function CategoryStrengthTile({ categories }: { categories: CategoryStrength[] }
           </RadarChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-1 text-center font-mono text-[11px] text-muted">
+      <p className="mt-1 text-center font-mono text-[13px] text-muted">
         {categories.length}-category overview
       </p>
     </Tile>
@@ -482,14 +482,14 @@ function RecentActivityTile({ items }: { items: RecentActivityItem[] }) {
             key={item.attemptId}
             className="flex items-center gap-2.5 border-b border-default py-2 last:border-b-0"
           >
-            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent-bg font-mono text-[10px] font-semibold text-accent-text">
+            <div className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent-bg font-mono text-[12px] font-semibold text-accent-text">
               {categoryBadge(item.category)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-primary">{item.category}</p>
-              <p className="font-mono text-[10px] text-secondary">{relativeTime(item.completedAt)}</p>
+              <p className="text-[13px] font-medium text-primary">{item.category}</p>
+              <p className="font-mono text-[12px] text-secondary">{relativeTime(item.completedAt)}</p>
             </div>
-            <span className={`font-mono text-[13px] font-bold ${scoreColor(item.scorePercentage)}`}>
+            <span className={`font-mono text-[14px] font-bold ${scoreColor(item.scorePercentage)}`}>
               {Math.round(item.scorePercentage)}%
             </span>
           </div>
@@ -521,25 +521,25 @@ function CategoryExtremeTile({
         <>
           <div className="mb-2 flex items-center gap-2.5">
             <div
-              className={`flex h-[26px] w-[26px] items-center justify-center rounded-md font-mono text-[10px] font-semibold ${toneText}`}
+              className={`flex h-[26px] w-[26px] items-center justify-center rounded-md font-mono text-[12px] font-semibold ${toneText}`}
               style={{ backgroundColor: toneBg }}
             >
               {categoryBadge(category.category)}
             </div>
-            <p className="text-[13px] font-semibold text-primary">{category.category}</p>
+            <p className="text-[14px] font-semibold text-primary">{category.category}</p>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className={`text-[22px] font-bold leading-none tracking-tight ${toneText}`}>
               {Math.round(category.averageScore)}
-              <span className="text-xs">%</span>
+              <span className="text-[13px]">%</span>
             </span>
-            <span className="font-mono text-[10px] text-muted">
+            <span className="font-mono text-[12px] text-muted">
               {category.attemptCount} {category.attemptCount === 1 ? 'attempt' : 'attempts'}
             </span>
           </div>
         </>
       ) : (
-        <p className="text-[13px] text-muted">Not enough data</p>
+        <p className="text-[14px] text-muted">Not enough data</p>
       )}
     </Tile>
   )
@@ -560,7 +560,7 @@ function EmptyDashboard({
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome{name ? `, ${name}` : ''}</h1>
-          <p className="mt-1 text-[13px] text-secondary">
+          <p className="mt-1 text-[14px] text-secondary">
             Take your first quiz to start tracking your progress.
           </p>
         </div>
@@ -582,14 +582,14 @@ function EmptyDashboard({
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
           </div>
-          <h3 className="mb-1.5 text-[15px] font-semibold text-primary">No data yet</h3>
-          <p className="mb-4 max-w-[280px] text-xs text-secondary">
+          <h3 className="mb-1.5 text-[16px] font-semibold text-primary">No data yet</h3>
+          <p className="mb-4 max-w-[280px] text-[13px] text-secondary">
             Complete your first quiz to see your score over time, category strength, and learning
             trends here.
           </p>
           <Link
             to="/categories"
-            className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white hover:opacity-90"
+            className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[14px] font-medium text-white hover:opacity-90"
           >
             Take your first quiz
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
@@ -615,7 +615,7 @@ function EmptyDashboard({
           <p className="mb-2">
             <Label>Best category</Label>
           </p>
-          <p className="text-[13px] text-muted">Not enough data</p>
+          <p className="text-[14px] text-muted">Not enough data</p>
         </Tile>
       </div>
     </main>
@@ -650,7 +650,7 @@ function RangeTabs({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(option.value)}
-            className={`rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors ${
+            className={`rounded-md px-3 py-1 font-mono text-[13px] font-medium transition-colors ${
               active ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
             }`}
           >
@@ -681,7 +681,7 @@ function FlameIcon({ muted = false }: { muted?: boolean }) {
 function Centered({ children, tone }: { children: React.ReactNode; tone?: 'danger' }) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 sm:px-8">
-      <p className={`text-sm ${tone === 'danger' ? 'text-danger' : 'text-secondary'}`}>{children}</p>
+      <p className={`text-[15px] ${tone === 'danger' ? 'text-danger' : 'text-secondary'}`}>{children}</p>
     </main>
   )
 }

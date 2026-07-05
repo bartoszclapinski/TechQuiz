@@ -15,14 +15,14 @@ export function ResultPage() {
   return (
     <main className="mx-auto max-w-[800px] px-6 py-8 sm:px-9">
       {isLoading ? (
-        <p className="text-sm text-secondary">Loading result…</p>
+        <p className="text-[15px] text-secondary">Loading result…</p>
       ) : isError || !data ? (
-        <div className="text-sm text-secondary">
+        <div className="text-[15px] text-secondary">
           <p className="mb-2 text-danger">Could not load this result.</p>
           <button
             type="button"
             onClick={() => void refetch()}
-            className="rounded-md border border-strong px-3 py-1.5 text-sm font-medium transition-colors hover:bg-elevated"
+            className="rounded-md border border-strong px-3 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
           >
             Retry
           </button>
@@ -50,7 +50,7 @@ function Result({ result }: { result: QuizResult }) {
   return (
     <>
       <div className="mb-2">
-        <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-secondary">Quiz complete</p>
+        <p className="mb-1.5 font-mono text-[13px] uppercase tracking-[0.1em] text-secondary">Quiz complete</p>
         <h1 className="text-2xl font-semibold leading-tight tracking-tight">{result.categoryName}</h1>
       </div>
 
@@ -58,18 +58,18 @@ function Result({ result }: { result: QuizResult }) {
 
       <div className="mb-7 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <MetricCard label="Correct">
-          {result.correctCount} <span className="text-[13px] font-normal text-muted">/ {result.totalCount}</span>
+          {result.correctCount} <span className="text-[14px] font-normal text-muted">/ {result.totalCount}</span>
         </MetricCard>
         <MetricCard label="Time" mono>
           {formatDuration(elapsedSeconds)}
         </MetricCard>
         <MetricCard label="Avg / question" mono>
           {avgSeconds}
-          <span className="text-[12px] text-muted">s</span>
+          <span className="text-[13px] text-muted">s</span>
         </MetricCard>
         <MetricCard label="Best score">
           {best}
-          <span className="text-[12px] text-muted">%</span>
+          <span className="text-[13px] text-muted">%</span>
         </MetricCard>
       </div>
 
@@ -83,7 +83,7 @@ function Result({ result }: { result: QuizResult }) {
         <button
           type="button"
           onClick={() => navigate('/categories')}
-          className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="19" y1="12" x2="5" y2="12" />
@@ -96,7 +96,7 @@ function Result({ result }: { result: QuizResult }) {
           onClick={() => start.mutate({ id: result.categoryId, name: result.categoryName })}
           disabled={start.isPending}
           aria-busy={start.isPending}
-          className="flex items-center gap-2 rounded-lg border border-strong px-5 py-2.5 text-[14px] font-medium transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex items-center gap-2 rounded-lg border border-strong px-5 py-2.5 text-[15px] font-medium transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="1 4 1 10 7 10" />
@@ -129,22 +129,22 @@ function ScoreHero({
       }}
     >
       <div>
-        <p className="mb-1 font-mono text-[12px] uppercase tracking-[0.08em] text-secondary">Your score</p>
+        <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.08em] text-secondary">Your score</p>
         <div className="flex items-baseline gap-1">
           <span className="text-[56px] font-bold leading-none tracking-[-0.04em]">{score}</span>
           <span className="text-2xl font-semibold text-accent-text">%</span>
         </div>
         {delta === null ? (
-          <p className="mt-2 text-[12px] font-medium text-muted">First attempt</p>
+          <p className="mt-2 text-[13px] font-medium text-muted">First attempt</p>
         ) : (
-          <p className={`mt-2 text-[12px] font-medium ${delta >= 0 ? 'text-success' : 'text-danger'}`}>
+          <p className={`mt-2 text-[13px] font-medium ${delta >= 0 ? 'text-success' : 'text-danger'}`}>
             {delta >= 0 ? '+' : ''}
             {delta}% from your last attempt
           </p>
         )}
       </div>
       <span
-        className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium tracking-[0.04em] text-accent-text"
+        className="rounded-full px-3 py-1.5 font-mono text-[13px] font-medium tracking-[0.04em] text-accent-text"
         style={{ backgroundColor: 'rgba(139,92,246,0.18)' }}
       >
         {bandLabel(score)}
@@ -156,7 +156,7 @@ function ScoreHero({
 function MetricCard({ label, mono, children }: { label: string; mono?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-[10px] border border-default bg-surface p-3.5">
-      <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">{label}</p>
+      <p className="mb-1.5 font-mono text-[12px] uppercase tracking-[0.08em] text-muted">{label}</p>
       <p className={`text-[20px] font-semibold tracking-[-0.02em] ${mono ? 'font-mono' : ''}`}>{children}</p>
     </div>
   )
@@ -176,7 +176,7 @@ function ReviewSection({
   return (
     <section className="mb-7">
       <div className="mb-3.5 flex items-center justify-between">
-        <h2 className="text-[14px] font-semibold tracking-[-0.01em]">Review questions</h2>
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em]">Review questions</h2>
         <div className="flex gap-1.5">
           <CountPill className="text-success" bg="rgba(16,185,129,0.1)">
             {correctCount} correct
@@ -200,7 +200,7 @@ function ReviewSection({
           <button
             type="button"
             onClick={() => setShowCorrect((value) => !value)}
-            className="mt-1.5 rounded-lg border border-dashed border-default p-2.5 font-mono text-[12px] text-secondary transition-colors hover:bg-elevated"
+            className="mt-1.5 rounded-lg border border-dashed border-default p-2.5 font-mono text-[13px] text-secondary transition-colors hover:bg-elevated"
           >
             {showCorrect ? 'Hide correct answers' : `Show ${correctCount} more correct answers`}
           </button>
@@ -230,9 +230,9 @@ function ReviewRow({ number, question }: { number: number; question: ResultQuest
         style={correct ? undefined : { borderBottom: expanded ? '1px solid rgba(239,68,68,0.35)' : undefined }}
       >
         <StatusIcon correct={correct} />
-        <span className="min-w-[30px] font-mono text-[11px] text-secondary">Q{number}</span>
+        <span className="min-w-[30px] font-mono text-[13px] text-secondary">Q{number}</span>
         <p
-          className={`flex-1 text-[13px] ${correct ? 'text-secondary' : 'font-medium text-primary'}`}
+          className={`flex-1 text-[14px] ${correct ? 'text-secondary' : 'font-medium text-primary'}`}
         >
           {question.text}
         </p>
@@ -255,7 +255,7 @@ function ReviewRow({ number, question }: { number: number; question: ResultQuest
             {userOption ? (
               <AnswerPill text={userOption.text} tone={correct ? 'success' : 'danger'} />
             ) : (
-              <span className="font-mono text-[12px] text-muted">No answer</span>
+              <span className="font-mono text-[13px] text-muted">No answer</span>
             )}
           </AnswerLine>
           {!correct && correctOption && (
@@ -268,8 +268,8 @@ function ReviewRow({ number, question }: { number: number; question: ResultQuest
               className="mt-1 rounded-r border-l-2 px-3 py-2.5"
               style={{ borderColor: 'var(--accent)', background: 'rgba(139,92,246,0.06)' }}
             >
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
-              <p className="text-[13px] leading-relaxed text-secondary">{question.explanation}</p>
+              <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
+              <p className="text-[14px] leading-relaxed text-secondary">{question.explanation}</p>
             </div>
           )}
         </div>
@@ -281,7 +281,7 @@ function ReviewRow({ number, question }: { number: number; question: ResultQuest
 function AnswerLine({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="min-w-[86px] font-mono text-[10px] uppercase tracking-[0.06em] text-secondary">{label}</span>
+      <span className="min-w-[86px] font-mono text-[12px] uppercase tracking-[0.06em] text-secondary">{label}</span>
       {children}
     </div>
   )
@@ -291,7 +291,7 @@ function AnswerPill({ text, tone }: { text: string; tone: 'success' | 'danger' }
   const color = tone === 'success' ? 'text-success' : 'text-danger'
   const bg = tone === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'
   return (
-    <code className={`rounded px-2 py-[3px] font-mono text-[12px] ${color}`} style={{ backgroundColor: bg }}>
+    <code className={`rounded px-2 py-[3px] font-mono text-[13px] ${color}`} style={{ backgroundColor: bg }}>
       {text}
     </code>
   )
@@ -308,7 +308,7 @@ function CountPill({
 }) {
   return (
     <span
-      className={`rounded-full px-2 py-[3px] font-mono text-[10px] font-medium ${className}`}
+      className={`rounded-full px-2 py-[3px] font-mono text-[12px] font-medium ${className}`}
       style={{ backgroundColor: bg }}
     >
       {children}
