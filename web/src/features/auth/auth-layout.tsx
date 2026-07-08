@@ -22,7 +22,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </header>
 
         <div className="flex flex-1 flex-col justify-center">
-          <div className="mx-auto w-full max-w-[400px] lg:ml-auto lg:mr-0">{children}</div>
+          <div className="mx-auto w-full max-w-[400px] lg:ml-auto lg:mr-8">{children}</div>
         </div>
 
         <footer className="pt-6">
