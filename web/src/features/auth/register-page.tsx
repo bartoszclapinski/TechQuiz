@@ -99,10 +99,10 @@ export function RegisterPage() {
   return (
     <AuthLayout>
       <div className="mb-8">
-        <h1 className="mb-2 text-[28px] font-semibold leading-tight tracking-tight">
+        <h1 className="mb-2 font-display text-[clamp(32px,3vw,42px)] font-extrabold leading-[1.08] tracking-[-0.02em]">
           Create your account.
         </h1>
-        <p className="text-[15px] text-secondary">
+        <p className="text-[16px] text-secondary">
           Start tracking your progress across technical categories.
         </p>
       </div>
@@ -120,7 +120,7 @@ export function RegisterPage() {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-[14px] border border-default bg-elevated px-4 py-3 text-[16px] outline-none transition-shadow focus:border-accent focus:shadow-focus"
           />
           {errors.email ? (
             <p id="email-error" className="mt-1.5 text-[13px] text-danger">
@@ -141,7 +141,7 @@ export function RegisterPage() {
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-[14px] border border-default bg-elevated px-4 py-3 text-[16px] outline-none transition-shadow focus:border-accent focus:shadow-focus"
           />
           {errors.password ? (
             <p id="password-error" className="mt-1.5 text-[13px] text-danger">
@@ -165,7 +165,7 @@ export function RegisterPage() {
             aria-invalid={errors.confirmPassword ? true : undefined}
             aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
             {...register('confirmPassword')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-[14px] border border-default bg-elevated px-4 py-3 text-[16px] outline-none transition-shadow focus:border-accent focus:shadow-focus"
           />
           {errors.confirmPassword ? (
             <p id="confirmPassword-error" className="mt-1.5 text-[13px] text-danger">
@@ -177,7 +177,7 @@ export function RegisterPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-[14px] bg-btn px-4 py-3.5 text-[16px] font-semibold text-white shadow-float transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>

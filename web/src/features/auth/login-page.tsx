@@ -72,8 +72,10 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <div className="mb-8">
-        <h1 className="mb-2 text-[28px] font-semibold leading-tight tracking-tight">Welcome back.</h1>
-        <p className="text-[15px] text-secondary">
+        <h1 className="mb-2 font-display text-[clamp(32px,3vw,42px)] font-extrabold leading-[1.08] tracking-[-0.02em]">
+          Welcome back! 👋
+        </h1>
+        <p className="text-[16px] text-secondary">
           Continue where you left off, or start fresh with a new category.
         </p>
       </div>
@@ -91,7 +93,7 @@ export function LoginPage() {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-[14px] border border-default bg-elevated px-4 py-3 text-[16px] outline-none transition-shadow focus:border-accent focus:shadow-focus"
           />
           {errors.email ? (
             <p id="email-error" className="mt-1.5 text-[13px] text-danger">
@@ -121,7 +123,7 @@ export function LoginPage() {
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-default bg-surface px-3.5 py-2.5 text-[15px] outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full rounded-[14px] border border-default bg-elevated px-4 py-3 text-[16px] outline-none transition-shadow focus:border-accent focus:shadow-focus"
           />
           {errors.password ? (
             <p id="password-error" className="mt-1.5 text-[13px] text-danger">
@@ -133,7 +135,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-[14px] bg-btn px-4 py-3.5 text-[16px] font-semibold text-white shadow-float transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
@@ -149,7 +151,7 @@ export function LoginPage() {
         type="button"
         onClick={onDemo}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-strong bg-transparent px-4 py-2.5 text-[15px] font-medium transition-colors hover:bg-elevated disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] border border-strong bg-transparent px-4 py-3.5 text-[16px] font-semibold transition-colors hover:bg-elevated disabled:opacity-60"
       >
         <svg
           width="14"
