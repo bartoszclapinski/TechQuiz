@@ -3,44 +3,71 @@
 @tailwind utilities;
 
 /*
-  Semantic design tokens (docs/ARCHITECTURE.md — Visual Design System).
-  Dark is the default in :root; the [data-theme="light"] override redefines
-  every token so a single attribute on <html> flips the whole UI.
+  Semantic design tokens — "Momentum" design system (ADR-024).
+  Violet brand + amber gamification accent, dark default. Dark lives in :root;
+  the [data-theme="light"] override redefines every token so a single attribute
+  on <html> flips the whole UI. Values are the handoff tokens, verbatim.
 */
 :root {
-  --bg-base: #020617;
-  --bg-surface: #0f172a;
-  --bg-elevated: #1e293b;
-  --border-default: #1e293b;
-  --border-strong: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #8b5cf6;
-  --accent-bg: rgba(139, 92, 246, 0.15);
+  --bg-base: #17121f;
+  --bg-surface: #221a2e;
+  --bg-elevated: #2a2137;
+  --border-default: #2a2137;
+  --border-strong: #392c4d;
+  --text-primary: #f4f0fa;
+  --text-secondary: #a99fc0;
+  --text-muted: #7d7291;
+  --accent: #a78bfa;
+  --accent-bg: rgba(167, 139, 250, 0.15);
   --accent-text: #c4b5fd;
-  --success: #10b981;
-  --warning: #f59e0b;
+  --success: #22c55e;
+  --warning: #fbbf24;
   --danger: #ef4444;
   --auth-grid-line: rgba(255, 255, 255, 0.018);
+
+  /* Momentum additions */
+  --amber-text: #fbbf24;
+  --amber-bg: rgba(251, 191, 36, 0.15);
+  --brand-fg: #17121f;
+  --track: #17121f;
+  --focus-ring: rgba(167, 139, 250, 0.22);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --hero-glow-1: rgba(251, 191, 36, 0.12);
+  --hero-glow-2: rgba(167, 139, 250, 0.18);
+  --brand: linear-gradient(135deg, #a78bfa, #fbbf24);
+  --btn: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  --card-grad: linear-gradient(150deg, #2a2137, #221a2e);
 }
 
 [data-theme='light'] {
-  --bg-base: #ffffff;
-  --bg-surface: #f8fafc;
-  --bg-elevated: #f1f5f9;
-  --border-default: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --bg-base: #faf8ff;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f5f1fd;
+  --border-default: #ece7f7;
+  --border-strong: #ddd4ee;
+  --text-primary: #241b39;
+  --text-secondary: #6b6280;
+  --text-muted: #9a8fb5;
   --accent: #7c3aed;
-  --accent-bg: #f5f3ff;
+  --accent-bg: #f5f1fd;
   --accent-text: #6d28d9;
-  --success: #059669;
+  --success: #16a34a;
   --warning: #d97706;
   --danger: #dc2626;
   --auth-grid-line: rgba(15, 23, 42, 0.04);
+
+  /* Momentum additions */
+  --amber-text: #d97706;
+  --amber-bg: #fef3c7;
+  --brand-fg: #ffffff;
+  --track: #f1ecfb;
+  --focus-ring: rgba(124, 58, 237, 0.16);
+  --shadow: 0 24px 60px rgba(124, 58, 237, 0.14);
+  --hero-glow-1: rgba(245, 158, 11, 0.16);
+  --hero-glow-2: rgba(124, 58, 237, 0.13);
+  --brand: linear-gradient(135deg, #7c3aed, #f59e0b);
+  --btn: linear-gradient(135deg, #7c3aed, #9333ea);
+  --card-grad: linear-gradient(150deg, #ffffff, #faf8ff);
 }
 
 @layer base {
