@@ -5,6 +5,37 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-08 — Iteracja 4.10: Redesign „Momentum"
+
+**Cel:** wdrożyć nowy system designu z handoffu (`.ai/design/…/TechQuiz Momentum.dc.html`) — violet + amber,
+Bricolage Grotesque, oba motywy. Decyzja: **ADR-024**. Owner dostarczył wysokiej wierności prototyp HTML.
+
+**Dwie decyzje ownera na starcie:** (1) gamifikacja bez pokrycia (XP/poziomy/Skill IQ) — **realne metryki teraz,
+XP jako osobna iteracja backendowa później** (nie fejkujemy proxy); (2) Landing — **robimy, ale na końcu**.
+
+**Podejście token-first:** appka stała na semantycznych tokenach CSS mapowanych przez Tailwind, więc podmiana
+wartości przeskórowała **wszystkie** ekrany naraz (też te spoza mockupu). Dostarczone po jednym PR na slice:
+
+- **4.10.1 (#305)** — fundament: tokeny Momentum (dark+amber / light) + Bricolage + utility Tailwinda
+  (`font-display`, `amber`, `bg-brand/btn/card-grad`, `shadow-float/focus`, `rounded-pill`).
+- **4.10.2 (#307)** — chrome: header (gradientowe logo, nav-pills, gradientowy avatar, `max-w-[1560px]`).
+- **4.10.3 (#309)** — Dashboard bento na realnym `DashboardSummary`: hero „Average score" (glow + trend),
+  Streak, Questions, paski kategorii, słupki tygodnia (z sparkline), recent. Radar → paski (jak mockup).
+- **4.10.4 (#311)** — Categories: karty Momentum nad taksonomią Track→Category, „Soon/Not started" dla pustych.
+- **4.10.5 (#313)** — Quiz: pytanie Bricolage, opcje z gradientowym badge na zaznaczeniu, amber difficulty.
+  **Bez natychmiastowego reveala** poprawnej odpowiedzi — API nie zwraca `IsCorrect` w aktywnym quizie (hard rule #4).
+- **4.10.6 (#315)** — Result: okrągły badge %, kafelki nagród (realne: correct/time/vs-last), review zachowane.
+- **4.10.7 (#317)** — Auth: gradientowe logo, Bricolage, inputy 14px + focus-ring, panel marketingowy (glow,
+  floating card, stat-tiles, testimonial, social-proof).
+- **fix (#319)** — Login był przyklejony do lewej → panel info na lewo, formularz na prawo i wyśrodkowany (feedback ownera).
+- **4.10.8 (#…)** — Landing: publiczny `/`, hero + features + „how it works" + topics + footer. Copy uczciwe
+  (streak/accuracy/progress — realne pojęcia; bez twardych fake liczb XP/Skill IQ).
+
+**Guardrails:** tylko realne dane na ekranach z danymi użytkownika; istniejący `ThemeProvider` (nie localStorage
+z prototypu); wszystkie stany zachowane (review-banner, achievements, empty-state, keyboard w quizie).
+
+---
+
 ## 2026-07-05 — Iteracja 4.8: Taksonomia kategorii (Tracks) + czyszczenie treści
 
 **Cel:** zamienić płaską listę 9 kategorii na dwupoziomową taksonomię **Track → Category (quiz) →
