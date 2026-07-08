@@ -45,66 +45,70 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-base text-primary">
-      <header className="flex items-center gap-4 border-b border-default bg-surface px-4 py-3.5 sm:gap-7 sm:px-6">
-        <NavLink to="/categories" className="flex items-center gap-2">
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
-            T
-          </span>
-          <span className="text-[16px] font-semibold tracking-tight">TechQuiz</span>
-        </NavLink>
+      <header className="border-b border-default bg-surface">
+        <div className="mx-auto flex max-w-[1560px] items-center gap-4 px-4 py-3.5 sm:gap-7 sm:px-6 lg:px-12">
+          <NavLink to="/dashboard" className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand font-display text-[16px] font-extrabold text-brandfg">
+              T
+            </span>
+            <span className="font-display text-[17px] font-bold tracking-tight">TechQuiz</span>
+          </NavLink>
 
-        {/* Desktop nav — hidden on mobile, where the hamburger drawer takes over. */}
-        <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {NAV_ITEMS.map((item) => (
+          {/* Desktop nav — hidden on mobile, where the hamburger drawer takes over. */}
+          <nav className="hidden flex-1 items-center gap-1 md:flex">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `rounded-pill px-[15px] py-[9px] text-[15px] transition-colors ${
+                    isActive
+                      ? 'bg-elevated font-semibold text-primary'
+                      : 'font-medium text-secondary hover:text-primary'
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="flex flex-1 items-center justify-end gap-2.5 md:flex-none">
+            {/* Settings + avatar live in the desktop bar; on mobile they move into the drawer. */}
             <NavLink
-              key={item.to}
-              to={item.to}
+              to="/settings"
+              aria-label="Settings"
+              title="Settings"
               className={({ isActive }) =>
-                `rounded-md px-2.5 py-1.5 text-[14px] font-medium ${
-                  isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+                `hidden h-8 w-8 items-center justify-center rounded-pill transition-colors md:flex ${
+                  isActive ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
                 }`
               }
             >
-              {item.label}
+              <SettingsIcon />
             </NavLink>
-          ))}
-        </nav>
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => void logout()}
+              aria-label="Log out"
+              title="Log out"
+              className="hidden h-[34px] w-[34px] items-center justify-center rounded-pill bg-brand font-display text-[13px] font-bold text-brandfg md:flex"
+            >
+              {user ? initialsFromEmail(user.email) : '?'}
+            </button>
 
-        <div className="flex flex-1 items-center justify-end gap-2.5 md:flex-none">
-          {/* Settings + avatar live in the desktop bar; on mobile they move into the drawer. */}
-          <NavLink
-            to="/settings"
-            aria-label="Settings"
-            title="Settings"
-            className={({ isActive }) =>
-              `hidden h-7 w-7 items-center justify-center rounded-md transition-colors md:flex ${
-                isActive ? 'bg-accent-bg text-accent-text' : 'text-secondary hover:text-primary'
-              }`
-            }
-          >
-            <SettingsIcon />
-          </NavLink>
-          <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => void logout()}
-            aria-label="Log out"
-            title="Log out"
-            className="hidden h-7 w-7 items-center justify-center rounded-full bg-accent-bg text-[13px] font-semibold text-accent-text md:flex"
-          >
-            {user ? initialsFromEmail(user.email) : '?'}
-          </button>
-
-          {/* Hamburger — mobile only. */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-secondary hover:text-primary md:hidden"
-          >
-            <MenuIcon />
-          </button>
+            {/* Hamburger — mobile only. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-md text-secondary hover:text-primary md:hidden"
+            >
+              <MenuIcon />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -146,7 +150,7 @@ function MobileMenu({
       <div className="absolute right-0 top-0 flex h-full w-72 max-w-[82%] flex-col border-l border-default bg-surface">
         <div className="flex items-center justify-between border-b border-default px-4 py-3.5">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-bg text-[13px] font-semibold text-accent-text">
+            <span className="flex h-8 w-8 items-center justify-center rounded-pill bg-brand font-display text-[13px] font-bold text-brandfg">
               {initials}
             </span>
             {email ? (
@@ -171,7 +175,7 @@ function MobileMenu({
               onClick={onClose}
               className={({ isActive }) =>
                 `flex min-h-[44px] items-center rounded-md px-3 text-[16px] font-medium ${
-                  isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+                  isActive ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
                 }`
               }
             >
@@ -183,7 +187,7 @@ function MobileMenu({
             onClick={onClose}
             className={({ isActive }) =>
               `flex min-h-[44px] items-center gap-2 rounded-md px-3 text-[16px] font-medium ${
-                isActive ? 'bg-accent-bg text-primary' : 'text-secondary hover:text-primary'
+                isActive ? 'bg-elevated text-primary' : 'text-secondary hover:text-primary'
               }`
             }
           >
