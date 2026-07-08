@@ -12,9 +12,9 @@ import { ExitQuizDialog } from './exit-quiz-dialog'
 // theme-aware token; the tint background is a literal rgba because the color tokens carry no alpha
 // channel, so Tailwind opacity modifiers (bg-warning/10) are silently dropped on them.
 const DIFFICULTY_META = {
-  [Difficulty.Easy]: { label: 'Easy', text: 'text-success', bg: 'rgba(16,185,129,0.1)' },
-  [Difficulty.Medium]: { label: 'Medium', text: 'text-warning', bg: 'rgba(245,158,11,0.1)' },
-  [Difficulty.Hard]: { label: 'Hard', text: 'text-danger', bg: 'rgba(239,68,68,0.1)' },
+  [Difficulty.Easy]: { label: 'Easy', text: 'text-success', bg: 'rgba(34,197,94,0.14)' },
+  [Difficulty.Medium]: { label: 'Medium', text: 'text-amber-text', bg: 'var(--amber-bg)' },
+  [Difficulty.Hard]: { label: 'Hard', text: 'text-danger', bg: 'rgba(239,68,68,0.14)' },
 } satisfies Record<DifficultyValue, { label: string; text: string; bg: string }>
 
 export function QuizPage() {
@@ -116,44 +116,46 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
 
   return (
     <div className="flex min-h-screen flex-col bg-base text-primary">
-      <header className="flex items-center justify-between gap-4 border-b border-default px-6 py-3">
-        <div className="flex flex-1 items-center gap-3">
-          <span className="whitespace-nowrap font-mono text-[13px] font-medium text-secondary">
-            {session.categoryName} · {currentIndex + 1} of {total}
+      <header className="border-b border-default bg-surface">
+        <div className="mx-auto flex max-w-[900px] items-center gap-4 px-5 py-3.5 sm:px-8">
+          <span className="whitespace-nowrap font-mono text-[13px] font-semibold text-secondary">
+            {session.categoryName} · {currentIndex + 1} / {total}
           </span>
-          <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-elevated">
+          <div className="h-[7px] flex-1 overflow-hidden rounded-pill bg-track">
             <div
-              className="h-full rounded-full bg-accent transition-[width] duration-300"
+              className="h-full rounded-pill bg-brand transition-[width] duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
+          <button
+            type="button"
+            onClick={() => setExitOpen(true)}
+            aria-label="Exit quiz"
+            className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] border border-strong text-secondary transition-colors hover:bg-elevated hover:text-primary"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setExitOpen(true)}
-          aria-label="Exit quiz"
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-default text-secondary transition-colors hover:bg-elevated"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[600px]">
-          <div className="mb-6">
+      <div className="flex flex-1 flex-col items-center justify-center px-5 py-12 sm:px-8">
+        <div className="w-full max-w-[660px]">
+          <div className="mb-7">
             <span
-              className={`mb-3.5 inline-block rounded-full px-2 py-[3px] font-mono text-[12px] font-medium uppercase tracking-[0.04em] ${difficulty.text}`}
+              className={`mb-5 inline-block rounded-pill px-2.5 py-[5px] font-mono text-[11px] font-semibold uppercase tracking-[0.08em] ${difficulty.text}`}
               style={{ backgroundColor: difficulty.bg }}
             >
               {difficulty.label}
             </span>
-            <h2 className="text-[22px] font-semibold leading-[1.3]">{question.text}</h2>
+            <h2 className="font-display text-[clamp(24px,2.6vw,34px)] font-extrabold leading-[1.25] tracking-[-0.01em]">
+              {question.text}
+            </h2>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {question.options.map((option, index) => {
               const selected = selectedOptionId === option.id
               return (
@@ -162,15 +164,15 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
                   type="button"
                   onClick={() => selectAnswer(question.id, option.id)}
                   aria-pressed={selected}
-                  className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-[18px] py-3.5 text-left text-[15px] transition-colors ${
+                  className={`flex items-center gap-4 rounded-[16px] border bg-surface px-5 py-4 text-left text-[16px] transition-all ${
                     selected
-                      ? 'border-accent shadow-[0_0_0_3px_rgba(139,92,246,0.15)]'
+                      ? 'border-accent shadow-focus'
                       : 'border-default hover:border-strong'
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-[13px] font-semibold ${
-                      selected ? 'bg-accent text-white' : 'bg-base text-muted'
+                    className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] font-mono text-[14px] font-bold ${
+                      selected ? 'bg-btn text-white' : 'bg-elevated text-muted'
                     }`}
                   >
                     {index + 1}
@@ -181,16 +183,16 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
             })}
           </div>
 
-          <div className="mt-8 flex items-center justify-end gap-4 border-t border-default pt-5 sm:justify-between">
+          <div className="mt-7 flex items-center justify-end gap-4 border-t border-default pt-6 sm:justify-between">
             {/* Keyboard tip is desktop-only guidance — phones have no 1-4/Enter shortcuts. */}
-            <p className="hidden font-mono text-[13px] text-secondary sm:block">
-              Tip: press <Kbd>1-4</Kbd> to select, <Kbd>Enter</Kbd> to continue
+            <p className="hidden font-mono text-[13px] text-muted sm:block">
+              Press <Kbd>1-4</Kbd> to select, <Kbd>Enter</Kbd> to continue
             </p>
             <button
               type="button"
               onClick={handleAdvance}
               disabled={!selectedOptionId || isCompleting}
-              className="flex items-center gap-1.5 rounded-lg bg-accent px-[18px] py-2.5 text-[14px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-pill bg-btn px-6 py-3 text-[15px] font-semibold text-white shadow-float transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isLast ? 'Submit quiz' : 'Next'}
               {!isLast && (
