@@ -20,7 +20,7 @@ export function AuthHero() {
         style={{ background: 'radial-gradient(circle, var(--hero-glow-2), transparent 62%)' }}
       />
 
-      <div className="relative z-10 mr-auto flex h-full max-w-[520px] flex-col justify-center p-12 lg:pl-16">
+      <div className="relative z-10 mr-auto flex h-full max-w-[520px] flex-col justify-center p-12 lg:pl-20">
         <p className="mb-4 font-mono text-[13px] uppercase tracking-[0.14em] text-muted">
           Sharpen your skills
         </p>
