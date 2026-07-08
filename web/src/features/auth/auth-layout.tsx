@@ -2,15 +2,14 @@ import type { ReactNode } from 'react'
 import { ThemeToggle } from '../../components/ui/theme-toggle'
 import { AuthHero } from './auth-hero'
 
-// Split-screen frame shared by Login and Register: the decorative AuthHero on the left and a form
-// column on the right (logo + theme-toggle header, the page's form as children, a footer). The form
-// is centered within its column so it sits near the middle gutter rather than hugging an edge. The
-// hero collapses below lg so the form takes the full width on narrow screens.
+// Split-screen frame shared by Login and Register: a form column on the left (logo + theme-toggle
+// header, the page's form as children, a footer) and the decorative AuthHero on the right. Both
+// content blocks are nudged toward the middle gutter (the form right-aligned in its column, the hero
+// left-aligned in its) so the two halves read together rather than hugging the outer edges. Centered
+// on mobile, where the hero collapses and the form takes the full width.
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-screen bg-base lg:grid-cols-2">
-      <AuthHero />
-
       <div className="relative flex flex-col p-8 sm:p-12">
         <header className="mb-12 flex items-center justify-between lg:mb-16">
           <div className="flex items-center gap-2.5">
@@ -23,13 +22,15 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </header>
 
         <div className="flex flex-1 flex-col justify-center">
-          <div className="mx-auto w-full max-w-[400px]">{children}</div>
+          <div className="mx-auto w-full max-w-[400px] lg:ml-auto lg:mr-0">{children}</div>
         </div>
 
         <footer className="pt-6">
           <p className="font-mono text-[13px] text-muted">© 2026 TechQuiz · v0.1.0</p>
         </footer>
       </div>
+
+      <AuthHero />
     </div>
   )
 }
