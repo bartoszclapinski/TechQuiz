@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from './use-auth'
 import { AuthLayout } from './auth-layout'
@@ -172,10 +172,8 @@ export function LoginPage() {
       </button>
 
       <p className="mt-7 text-center text-[14px] text-secondary">
-        Don't have an account?{' '}
-        <Link to="/register" className="font-medium text-accent-text hover:underline">
-          Create one
-        </Link>
+        Public sign-ups are paused during the demo — use{' '}
+        <span className="font-medium text-primary">Continue as demo</span> above to explore.
       </p>
     </AuthLayout>
   )

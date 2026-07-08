@@ -9,7 +9,10 @@ namespace TechQuiz.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public sealed class AuthController(IMediator mediator, IWebHostEnvironment environment) : ControllerBase
+public sealed class AuthController(
+    IMediator mediator,
+    IWebHostEnvironment environment,
+    IConfiguration configuration) : ControllerBase
 {
     // The refresh token rides in an HttpOnly cookie so it can't be read back from storage by
     // browser JS — the SPA holds only the access token, in memory. Scoped to the refresh
@@ -34,6 +37,17 @@ public sealed class AuthController(IMediator mediator, IWebHostEnvironment envir
         [FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
     {
+        // Self-registration is gated by config (Auth:RegistrationEnabled, default false) — closed on
+        // the live demo until there is a privacy policy / GDPR story, open in Development for testing
+        // (iteration 4.11). The gate lives here so it short-circuits before any user is created.
+        if (!configuration.GetValue("Auth:RegistrationEnabled", false))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Registration closed",
+                detail: "Public registration is currently disabled. Use the demo account to explore TechQuiz.");
+        }
+
         var tokens = await mediator.Send(
             new RegisterCommand(request.Email, request.Password), cancellationToken);
         SetRefreshCookie(tokens);

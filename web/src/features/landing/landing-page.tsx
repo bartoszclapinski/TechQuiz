@@ -55,7 +55,7 @@ export function LandingPage() {
             Sign in
           </Link>
           <Link
-            to="/register"
+            to="/login"
             className="rounded-pill bg-btn px-5 py-3 text-[15px] font-semibold text-white shadow-float hover:opacity-90"
           >
             Get started
@@ -93,7 +93,7 @@ export function LandingPage() {
             </p>
             <div className="flex flex-wrap items-center gap-3.5">
               <Link
-                to="/register"
+                to="/login"
                 className="rounded-pill bg-btn px-8 py-4 text-[17px] font-semibold text-white shadow-float hover:opacity-90"
               >
                 Get started free
