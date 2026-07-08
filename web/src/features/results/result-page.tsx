@@ -12,24 +12,33 @@ export function ResultPage() {
     return <Navigate to="/categories" replace />
   }
 
-  return (
-    <main className="mx-auto max-w-[800px] px-6 py-8 sm:px-9">
-      {isLoading ? (
+  if (isLoading) {
+    return (
+      <main className="mx-auto max-w-[720px] px-4 py-8 sm:px-6">
         <p className="text-[15px] text-secondary">Loading result…</p>
-      ) : isError || !data ? (
+      </main>
+    )
+  }
+  if (isError || !data) {
+    return (
+      <main className="mx-auto max-w-[720px] px-4 py-8 sm:px-6">
         <div className="text-[15px] text-secondary">
           <p className="mb-2 text-danger">Could not load this result.</p>
           <button
             type="button"
             onClick={() => void refetch()}
-            className="rounded-md border border-strong px-3 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
+            className="rounded-pill border border-strong px-4 py-1.5 text-[15px] font-medium transition-colors hover:bg-elevated"
           >
             Retry
           </button>
         </div>
-      ) : (
-        <Result result={data} />
-      )}
+      </main>
+    )
+  }
+
+  return (
+    <main>
+      <Result result={data} />
     </main>
   )
 }
@@ -45,119 +54,134 @@ function Result({ result }: { result: QuizResult }) {
     0,
     Math.round((new Date(result.completedAt).getTime() - new Date(result.startedAt).getTime()) / 1000),
   )
-  const avgSeconds = result.totalCount > 0 ? Math.round(elapsedSeconds / result.totalCount) : 0
+  const delta =
+    result.previousPercentage === null ? null : Math.round(result.percentage - result.previousPercentage)
 
   return (
-    <>
-      <div className="mb-2">
-        <p className="mb-1.5 font-mono text-[13px] uppercase tracking-[0.1em] text-secondary">Quiz complete</p>
-        <h1 className="text-2xl font-semibold leading-tight tracking-tight">{result.categoryName}</h1>
-      </div>
-
-      <ScoreHero score={score} previousPercentage={result.previousPercentage} percentage={result.percentage} />
-
-      <div className="mb-7 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <MetricCard label="Correct">
-          {result.correctCount} <span className="text-[14px] font-normal text-muted">/ {result.totalCount}</span>
-        </MetricCard>
-        <MetricCard label="Time" mono>
-          {formatDuration(elapsedSeconds)}
-        </MetricCard>
-        <MetricCard label="Avg / question" mono>
-          {avgSeconds}
-          <span className="text-[13px] text-muted">s</span>
-        </MetricCard>
-        <MetricCard label="Best score">
-          {best}
-          <span className="text-[13px] text-muted">%</span>
-        </MetricCard>
-      </div>
-
-      <ReviewSection
-        questions={result.questions}
-        correctCount={result.correctCount}
-        wrongCount={wrongCount}
+    <div className="relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-[-160px] h-[520px] w-[820px] -translate-x-1/2 rounded-full"
+        style={{ background: 'radial-gradient(circle, var(--hero-glow-2), transparent 65%)' }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[8%] top-[-100px] h-[380px] w-[380px] rounded-full"
+        style={{ background: 'radial-gradient(circle, var(--hero-glow-1), transparent 62%)' }}
       />
 
-      <div className="flex gap-2.5 border-t border-default pt-5">
-        <button
-          type="button"
-          onClick={() => navigate('/categories')}
-          className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-opacity hover:opacity-90"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Back to categories
-        </button>
-        <button
-          type="button"
-          onClick={() => start.mutate({ id: result.categoryId, name: result.categoryName })}
-          disabled={start.isPending}
-          aria-busy={start.isPending}
-          className="flex items-center gap-2 rounded-lg border border-strong px-5 py-2.5 text-[15px] font-medium transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="1 4 1 10 7 10" />
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-          </svg>
-          {start.isPending ? 'Starting…' : 'Try again'}
-        </button>
+      <div className="relative mx-auto flex max-w-[680px] flex-col items-center px-4 pt-10 text-center sm:px-6">
+        <span className="mb-6 inline-flex items-center gap-2 rounded-pill bg-amber-bg px-4 py-2 font-mono text-[13px] font-semibold text-amber-text">
+          {bandLabel(score)}
+        </span>
+        <CircularScore score={score} correct={result.correctCount} total={result.totalCount} />
+        <h1 className="mt-7 font-display text-[clamp(30px,3.4vw,44px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
+          Quiz complete! 🎉
+        </h1>
+        <p className="mt-2 text-[17px] text-secondary">
+          {delta === null ? (
+            <>
+              First run on <b className="text-primary">{result.categoryName}</b>.
+            </>
+          ) : delta >= 0 ? (
+            <>
+              Great run on <b className="text-primary">{result.categoryName}</b> — up {delta}% from last
+              time.
+            </>
+          ) : (
+            <>
+              Nice work on <b className="text-primary">{result.categoryName}</b>.
+            </>
+          )}
+        </p>
+
+        <div className="mt-7 grid w-full grid-cols-3 gap-3">
+          <RewardTile value={`${result.correctCount}/${result.totalCount}`} label="Correct" tone="amber" />
+          <RewardTile value={formatDuration(elapsedSeconds)} label="Time" mono />
+          <RewardTile
+            value={delta === null ? `${best}%` : `${delta >= 0 ? '+' : ''}${delta}%`}
+            label={delta === null ? 'Best score' : 'vs last'}
+            tone={delta !== null && delta >= 0 ? 'green' : 'default'}
+          />
+        </div>
       </div>
-    </>
+
+      <div className="relative mx-auto mt-9 max-w-[720px] px-4 sm:px-6">
+        <ReviewSection
+          questions={result.questions}
+          correctCount={result.correctCount}
+          wrongCount={wrongCount}
+        />
+
+        <div className="flex flex-wrap justify-center gap-3 border-t border-default pt-6">
+          <button
+            type="button"
+            onClick={() => start.mutate({ id: result.categoryId, name: result.categoryName })}
+            disabled={start.isPending}
+            aria-busy={start.isPending}
+            className="flex items-center gap-2 rounded-pill border border-strong px-6 py-3 text-[15px] font-semibold transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+            {start.isPending ? 'Starting…' : 'Try again'}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 rounded-pill bg-btn px-7 py-3 text-[15px] font-semibold text-white shadow-float transition-opacity hover:opacity-90"
+          >
+            Back to dashboard
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
-function ScoreHero({
-  score,
-  percentage,
-  previousPercentage,
-}: {
-  score: number
-  percentage: number
-  previousPercentage: number | null
-}) {
-  const delta = previousPercentage === null ? null : Math.round(percentage - previousPercentage)
-
+// Big circular score badge — the celebration centrepiece (surface disc floating over the glows).
+function CircularScore({ score, correct, total }: { score: number; correct: number; total: number }) {
   return (
     <div
-      className="mb-4 mt-5 flex items-center justify-between rounded-[14px] border px-8 py-7"
-      style={{
-        borderColor: 'rgba(139,92,246,0.2)',
-        background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.02))',
-      }}
+      className="flex flex-col items-center justify-center rounded-full border border-default bg-surface shadow-float"
+      style={{ width: 'clamp(150px,20vw,190px)', height: 'clamp(150px,20vw,190px)' }}
     >
-      <div>
-        <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.08em] text-secondary">Your score</p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-[56px] font-bold leading-none tracking-[-0.04em]">{score}</span>
-          <span className="text-2xl font-semibold text-accent-text">%</span>
-        </div>
-        {delta === null ? (
-          <p className="mt-2 text-[13px] font-medium text-muted">First attempt</p>
-        ) : (
-          <p className={`mt-2 text-[13px] font-medium ${delta >= 0 ? 'text-success' : 'text-danger'}`}>
-            {delta >= 0 ? '+' : ''}
-            {delta}% from your last attempt
-          </p>
-        )}
-      </div>
       <span
-        className="rounded-full px-3 py-1.5 font-mono text-[13px] font-medium tracking-[0.04em] text-accent-text"
-        style={{ backgroundColor: 'rgba(139,92,246,0.18)' }}
+        className="font-display font-extrabold leading-none tracking-[-0.03em] text-primary"
+        style={{ fontSize: 'clamp(46px,6vw,64px)' }}
       >
-        {bandLabel(score)}
+        {score}%
+      </span>
+      <span className="mt-1.5 font-mono text-[13px] text-muted">
+        {correct} / {total} correct
       </span>
     </div>
   )
 }
 
-function MetricCard({ label, mono, children }: { label: string; mono?: boolean; children: React.ReactNode }) {
+function RewardTile({
+  value,
+  label,
+  tone = 'default',
+  mono = false,
+}: {
+  value: string
+  label: string
+  tone?: 'default' | 'amber' | 'green'
+  mono?: boolean
+}) {
+  const color = tone === 'amber' ? 'text-amber-text' : tone === 'green' ? 'text-success' : 'text-primary'
   return (
-    <div className="rounded-[10px] border border-default bg-surface p-3.5">
-      <p className="mb-1.5 font-mono text-[12px] uppercase tracking-[0.08em] text-muted">{label}</p>
-      <p className={`text-[20px] font-semibold tracking-[-0.02em] ${mono ? 'font-mono' : ''}`}>{children}</p>
+    <div className="rounded-[16px] border border-default bg-surface p-4">
+      <div className={`text-[22px] font-extrabold ${mono ? 'font-mono' : 'font-display'} ${color}`}>
+        {value}
+      </div>
+      <div className="mt-1 font-mono text-[12px] uppercase tracking-[0.08em] text-muted">{label}</div>
     </div>
   )
 }
@@ -178,7 +202,7 @@ function ReviewSection({
       <div className="mb-3.5 flex items-center justify-between">
         <h2 className="text-[15px] font-semibold tracking-[-0.01em]">Review questions</h2>
         <div className="flex gap-1.5">
-          <CountPill className="text-success" bg="rgba(16,185,129,0.1)">
+          <CountPill className="text-success" bg="rgba(34,197,94,0.12)">
             {correctCount} correct
           </CountPill>
           {wrongCount > 0 && (
@@ -266,7 +290,7 @@ function ReviewRow({ number, question }: { number: number; question: ResultQuest
           {question.explanation && (
             <div
               className="mt-1 rounded-r border-l-2 px-3 py-2.5"
-              style={{ borderColor: 'var(--accent)', background: 'rgba(139,92,246,0.06)' }}
+              style={{ borderColor: 'var(--accent)', background: 'var(--accent-bg)' }}
             >
               <p className="mb-1 font-mono text-[13px] uppercase tracking-[0.06em] text-secondary">Explanation</p>
               <p className="text-[14px] leading-relaxed text-secondary">{question.explanation}</p>
@@ -289,7 +313,7 @@ function AnswerLine({ label, children }: { label: string; children: React.ReactN
 
 function AnswerPill({ text, tone }: { text: string; tone: 'success' | 'danger' }) {
   const color = tone === 'success' ? 'text-success' : 'text-danger'
-  const bg = tone === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'
+  const bg = tone === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)'
   return (
     <code className={`rounded px-2 py-[3px] font-mono text-[13px] ${color}`} style={{ backgroundColor: bg }}>
       {text}
@@ -320,7 +344,7 @@ function StatusIcon({ correct }: { correct: boolean }) {
   return (
     <span
       className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
-      style={{ backgroundColor: correct ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}
+      style={{ backgroundColor: correct ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.1)' }}
     >
       {correct ? (
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="3">
