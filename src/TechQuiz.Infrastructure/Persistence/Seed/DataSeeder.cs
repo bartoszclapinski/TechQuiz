@@ -11,6 +11,9 @@ namespace TechQuiz.Infrastructure.Persistence.Seed;
 /// Populates the database with a minimum-viable starting state: the Track → Category → Quiz
 /// taxonomy (ADR-023) plus a demo user. Each resource has its own existence check, so the seeder
 /// is both safely re-runnable (no duplicates) and self-healing across partial failures.
+/// The one exception is the demo user's quiz history: it is <em>refreshed</em> on every run (wiped
+/// and regenerated with dates relative to now) so the demo dashboard always reads "live" rather than
+/// going stale as time passes.
 /// </summary>
 public sealed class DataSeeder(
     AppDbContext db,
@@ -28,6 +31,7 @@ public sealed class DataSeeder(
         await SeedFrontEndTrackAsync(cancellationToken);
         await SeedEngineeringTrackAsync(cancellationToken);
         await SeedDemoUserAsync(cancellationToken);
+        await SeedDemoHistoryAsync(cancellationToken);
     }
 
     private async Task SeedDotNetTrackAsync(CancellationToken cancellationToken)
@@ -324,5 +328,127 @@ public sealed class DataSeeder(
         }
 
         logger.LogInformation("Seeded demo user {Email}", demoUser.Email);
+    }
+
+    /// <summary>
+    /// Gives the shared demo account a realistic, always-fresh quiz history so the dashboard, history,
+    /// category progress and result screens have content to show. Unlike the rest of the seeder this is
+    /// deliberately <em>not</em> idempotent: it wipes the demo user's prior attempts and regenerates them
+    /// with dates relative to <c>now</c> on every run, so a returning visitor never lands on a stale
+    /// dashboard (streak decayed to 0, empty weekly bars). The wipe also self-cleans whatever a previous
+    /// visitor did on the demo account. Only the demo user is touched — real accounts are never wiped.
+    /// </summary>
+    private async Task SeedDemoHistoryAsync(CancellationToken cancellationToken)
+    {
+        var demoUser = await userManager.FindByEmailAsync(DemoUserEmail);
+        if (demoUser is null)
+        {
+            return;
+        }
+
+        var userId = demoUser.Id;
+
+        // Owned answers load with their attempts and cascade-delete with them.
+        var existing = await db.QuizAttempts
+            .Where(a => a.UserId == userId)
+            .ToListAsync(cancellationToken);
+        if (existing.Count > 0)
+        {
+            db.QuizAttempts.RemoveRange(existing);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        var quizzes = await db.Quizzes
+            .Include(q => q.Questions)
+            .ThenInclude(question => question.Options)
+            .ToListAsync(cancellationToken);
+
+        // Spread the history across up to eight distinct categories so category-strength and recent
+        // activity read varied. Stable ordering keeps the selection deterministic across runs.
+        var selected = quizzes
+            .Where(q => q.Questions.Count > 0)
+            .OrderBy(q => q.CategoryId)
+            .Take(8)
+            .ToList();
+        if (selected.Count == 0)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var attempts = new List<QuizAttempt>();
+        var plan = BuildDemoHistoryPlan();
+
+        for (var i = 0; i < plan.Count; i++)
+        {
+            var (dayOffset, targetScore) = plan[i];
+            var quiz = selected[i % selected.Count];
+            var questions = quiz.Questions.ToList();
+            var total = questions.Count;
+
+            var day = now.AddDays(-dayOffset);
+            // Late-evening study session; stagger start times so same-day attempts don't collide.
+            var startedAt = new DateTimeOffset(day.Year, day.Month, day.Day, 19, 0, 0, TimeSpan.Zero)
+                .AddMinutes(i * 7 % 45);
+            var attempt = QuizAttempt.Start(Guid.NewGuid(), userId, quiz.Id, startedAt);
+
+            var correctTarget = Math.Clamp(
+                (int)Math.Round(targetScore / 100.0 * total, MidpointRounding.AwayFromZero), 0, total);
+            var correctCount = 0;
+            for (var qi = 0; qi < total; qi++)
+            {
+                var question = questions[qi];
+                var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                var pickCorrect = qi < correctTarget && correctOption is not null;
+                var chosen = pickCorrect
+                    ? correctOption
+                    : question.Options.FirstOrDefault(o => !o.IsCorrect) ?? correctOption;
+                if (pickCorrect)
+                {
+                    correctCount++;
+                }
+
+                attempt.SubmitAnswer(question.Id, chosen?.Id, startedAt.AddSeconds(15 + qi * 8));
+            }
+
+            var percentage = total == 0 ? 0 : Math.Round(correctCount * 100.0 / total, 1);
+            attempt.Complete(startedAt.AddMinutes(4).AddSeconds(20), percentage);
+            attempts.Add(attempt);
+        }
+
+        db.QuizAttempts.AddRange(attempts);
+        await db.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Refreshed demo history — {Count} attempts across {Categories} categories for {Email}",
+            attempts.Count, selected.Count, DemoUserEmail);
+    }
+
+    /// <summary>
+    /// Deterministic (day-offset, target-score%) schedule for the demo history: twelve consecutive
+    /// days ending today build a ~12-day streak, scores trend gently upward for a positive dashboard
+    /// trend, and a handful of extra/older sessions add texture and fill the 14-day activity sparkline.
+    /// </summary>
+    private static IReadOnlyList<(int DayOffset, double TargetScore)> BuildDemoHistoryPlan()
+    {
+        var plan = new List<(int, double)>();
+
+        // Twelve-day streak (offsets 11..0), scores rising from ~62% to ~90%.
+        for (var dayOffset = 11; dayOffset >= 0; dayOffset--)
+        {
+            var target = Math.Min(94, 62 + (11 - dayOffset) * 2.5);
+            plan.Add((dayOffset, target));
+        }
+
+        // Extra same-day sessions and a couple of older ones (still inside the 14-day window).
+        plan.Add((8, 71));
+        plan.Add((6, 79));
+        plan.Add((4, 85));
+        plan.Add((2, 90));
+        plan.Add((1, 92));
+        plan.Add((13, 57));
+        plan.Add((9, 66));
+
+        return plan;
     }
 }

@@ -58,6 +58,42 @@ public sealed class DataSeederTests(PostgresContainerFixture fixture) : Integrat
         demoUserCount.Should().Be(1);
     }
 
+    [Fact]
+    public async Task SeedAsync_SeedsCompletedDemoQuizHistory()
+    {
+        await RunSeedAsync();
+
+        await using var db = CreateDbContext();
+        var demoUser = await db.Users.FirstAsync(u => u.Email == DataSeeder.DemoUserEmail);
+        var attempts = await db.QuizAttempts.Where(a => a.UserId == demoUser.Id).ToListAsync();
+
+        attempts.Should().NotBeEmpty();
+        attempts.Should().OnlyContain(a => a.CompletedAt != null && a.ScorePercentage != null);
+        // Spread across several categories so the dashboard's category-strength has variety.
+        attempts.Select(a => a.QuizId).Distinct().Count().Should().BeGreaterThan(1);
+    }
+
+    [Fact]
+    public async Task SeedAsync_RefreshesDemoHistory_WithoutAccumulatingAcrossRuns()
+    {
+        await RunSeedAsync();
+        int firstCount;
+        Guid demoUserId;
+        await using (var db = CreateDbContext())
+        {
+            demoUserId = (await db.Users.FirstAsync(u => u.Email == DataSeeder.DemoUserEmail)).Id;
+            firstCount = await db.QuizAttempts.CountAsync(a => a.UserId == demoUserId);
+        }
+
+        firstCount.Should().BeGreaterThan(0);
+
+        await RunSeedAsync(); // second run wipes and regenerates — count must not double
+
+        await using var db2 = CreateDbContext();
+        var secondCount = await db2.QuizAttempts.CountAsync(a => a.UserId == demoUserId);
+        secondCount.Should().Be(firstCount);
+    }
+
     private async Task RunSeedAsync()
     {
         using var scope = Fixture.Services.CreateScope();
