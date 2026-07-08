@@ -1,88 +1,106 @@
-// Decorative showcase panel on the right half of the auth split-screen. Static sample data —
-// it sells the product visually for the portfolio demo and is hidden below the lg breakpoint.
-// The gradient blobs and card boxShadow below use literal accent-hued rgba (--accent #8b5cf6,
-// indigo #6366f1): the design tokens carry no alpha channel, so these decorations can't derive
-// from them and won't track a future --accent change. Acceptable for a static showcase panel.
-const SUPPORTING = [
-  { code: 'ASP', label: 'ASP.NET Core', pct: 72 },
-  { code: 'EF', label: 'Entity Framework', pct: 94 },
-  { code: 'SQL', label: 'SQL Basics', pct: 65 },
+// Decorative showcase panel on the right half of the auth split-screen (Momentum handoff). Static
+// sample data — it sells the product visually for the portfolio demo and is hidden below lg. The
+// gradient glows and avatar swatches use literal hues because the design tokens carry no alpha
+// channel; acceptable for a static showcase panel.
+const STATS = [
+  { value: '🔥 12', label: 'day streak' },
+  { value: '182', label: 'Skill IQ' },
+  { value: '84%', label: 'accuracy' },
 ]
 
 export function AuthHero() {
   return (
-    <div className="relative hidden overflow-hidden bg-surface lg:block">
+    <div className="relative hidden overflow-hidden bg-elevated lg:block">
       <div
-        className="pointer-events-none absolute -right-32 -top-32 h-[540px] w-[540px]"
-        style={{
-          background:
-            'radial-gradient(circle at center, rgba(139,92,246,0.30) 0%, rgba(139,92,246,0.07) 35%, transparent 70%)',
-        }}
+        className="pointer-events-none absolute -right-40 -top-40 h-[640px] w-[640px]"
+        style={{ background: 'radial-gradient(circle, var(--hero-glow-1), transparent 62%)' }}
       />
       <div
-        className="pointer-events-none absolute -bottom-44 -left-20 h-[460px] w-[460px]"
-        style={{
-          background:
-            'radial-gradient(circle at center, rgba(99,102,241,0.20) 0%, rgba(99,102,241,0.03) 40%, transparent 70%)',
-        }}
+        className="pointer-events-none absolute -bottom-52 -left-44 h-[640px] w-[640px]"
+        style={{ background: 'radial-gradient(circle, var(--hero-glow-2), transparent 62%)' }}
       />
-      <div className="auth-grid pointer-events-none absolute inset-0" />
 
-      <div className="relative z-10 flex h-full flex-col p-12">
-        <div className="mb-10">
-          <p className="mb-3 font-mono text-[13px] uppercase tracking-[0.14em] text-muted">
-            Sharpen your skills
-          </p>
-          <h2 className="max-w-[380px] text-3xl font-bold leading-tight tracking-tight">
-            AI-generated quizzes that adapt to how you learn.
-          </h2>
-        </div>
+      <div className="relative z-10 mx-auto flex h-full max-w-[520px] flex-col justify-center p-12">
+        <p className="mb-4 font-mono text-[13px] uppercase tracking-[0.14em] text-muted">
+          Sharpen your skills
+        </p>
+        <h2 className="mb-3 font-display text-[clamp(30px,2.8vw,44px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
+          AI-generated quizzes that adapt to how you learn.
+        </h2>
+        <p className="mb-8 text-[16px] leading-[1.6] text-secondary">
+          Pick up exactly where you left off. Your progress, streaks and Skill&nbsp;IQ are waiting.
+        </p>
 
-        <div
-          className="auth-float-hero mb-3.5 rounded-2xl border border-default bg-elevated p-6"
-          style={{ boxShadow: '0 0 0 1px rgba(139,92,246,0.18)' }}
-        >
-          <div className="mb-3.5 flex items-center justify-between">
+        {/* Highest-score card — gentle float. */}
+        <div className="auth-float-hero mb-3.5 rounded-[20px] border border-default bg-surface p-6 shadow-float">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-accent-bg font-mono text-base font-bold text-accent-text">
-                C#
+              <div className="flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-brand font-display text-[17px] font-extrabold text-brandfg">
+                EF
               </div>
               <div>
-                <p className="mb-0.5 font-mono text-[13px] uppercase tracking-[0.08em] text-accent-text">
-                  Last session
+                <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-accent-text">
+                  Highest score
                 </p>
-                <p className="text-[17px] font-semibold">C# Advanced</p>
+                <p className="font-display text-[17px] font-bold">Entity Framework</p>
               </div>
             </div>
-            <span className="font-mono text-[22px] font-bold tracking-tight">87%</span>
+            <span className="font-mono text-[22px] font-bold tracking-tight">94%</span>
           </div>
-          <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-surface">
-            <div className="h-full rounded-full bg-accent" style={{ width: '87%' }} />
-          </div>
-          <div className="flex justify-between font-mono text-[13px] text-secondary">
-            <span>13 / 15 correct</span>
-            <span>4 min 12 s</span>
+          <div className="h-[9px] overflow-hidden rounded-pill bg-track">
+            <div className="h-full rounded-pill bg-brand" style={{ width: '94%' }} />
           </div>
         </div>
 
-        <div className="auth-float-stack flex flex-col gap-2">
-          {SUPPORTING.map((row) => (
+        {/* Stat tiles. */}
+        <div className="auth-float-stack mb-6 flex gap-3">
+          {STATS.map((stat) => (
             <div
-              key={row.code}
-              className="flex items-center gap-3 rounded-[10px] border border-default bg-elevated px-4 py-3"
+              key={stat.label}
+              className="flex-1 rounded-[16px] border border-default bg-surface px-4 py-4"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-bg font-mono text-[12px] font-semibold text-accent-text">
-                {row.code}
-              </div>
-              <p className="flex-1 text-[14px] font-medium">{row.label}</p>
-              <div className="h-1 w-20 overflow-hidden rounded-full bg-surface">
-                <div className="h-full rounded-full bg-accent" style={{ width: `${row.pct}%` }} />
-              </div>
-              <span className="min-w-[26px] text-right font-mono text-[13px] font-medium text-secondary">
-                {row.pct}%
-              </span>
+              <div className="font-display text-[24px] font-extrabold">{stat.value}</div>
+              <div className="mt-0.5 text-[13px] text-muted">{stat.label}</div>
             </div>
           ))}
+        </div>
+
+        {/* Testimonial. */}
+        <div className="mb-6 rounded-[18px] border border-default bg-surface px-6 py-5">
+          <p className="mb-3.5 text-[16px] italic leading-[1.6]">
+            “I went from guessing to genuinely understanding EF Core in three weeks. The daily streak
+            is weirdly addictive.”
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-pill bg-brand font-display text-[13px] font-bold text-brandfg">
+              MK
+            </div>
+            <div>
+              <p className="text-[14px] font-semibold">Marta K.</p>
+              <p className="font-mono text-[12px] text-muted">Backend developer</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Social proof. */}
+        <div className="flex items-center gap-3">
+          <div className="flex">
+            {[
+              'linear-gradient(135deg,#a78bfa,#7c3aed)',
+              'linear-gradient(135deg,#fbbf24,#f59e0b)',
+              'linear-gradient(135deg,#6366f1,#a78bfa)',
+              'linear-gradient(135deg,#f472b6,#fbbf24)',
+            ].map((bg, index) => (
+              <span
+                key={index}
+                className="h-[30px] w-[30px] rounded-pill border-2 border-elevated"
+                style={{ background: bg, marginLeft: index === 0 ? 0 : -10 }}
+              />
+            ))}
+          </div>
+          <span className="text-[14px] text-secondary">
+            Join <b className="text-primary">1,200+</b> developers leveling up
+          </span>
         </div>
       </div>
     </div>

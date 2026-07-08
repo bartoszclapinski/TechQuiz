@@ -11,16 +11,16 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="relative flex flex-col p-8 sm:p-12">
         <header className="mb-12 flex items-center justify-between lg:mb-16">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-lg font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-brand font-display text-[18px] font-extrabold text-brandfg">
               T
             </div>
-            <span className="text-lg font-semibold tracking-tight">TechQuiz</span>
+            <span className="font-display text-[18px] font-bold tracking-tight">TechQuiz</span>
           </div>
           <ThemeToggle />
         </header>
 
         <div className="flex flex-1 flex-col justify-center">
-          <div className="w-full max-w-[360px]">{children}</div>
+          <div className="w-full max-w-[400px]">{children}</div>
         </div>
 
         <footer className="pt-6">
