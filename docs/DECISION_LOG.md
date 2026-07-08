@@ -657,3 +657,36 @@ Course-attribution sentences are removed from all category descriptions and ques
 - **Presentation-only grouping** (group flat categories in the frontend, no schema change). Rejected: the split into finer subcategories needs real per-subcategory quizzes and question counts — that is data, not layout.
 - **Self-referencing `Category.ParentId`.** One table modelling both groups and quizzes muddies the aggregate (a "group" row has no quiz). A dedicated `Track` keeps Track → Category → Quiz a clean, readable hierarchy.
 - **Keep flat, just clean descriptions.** Fixes the attribution problem but not the two structural ones. Rejected as half a solution.
+
+
+## ADR-024: "Momentum" Visual Redesign — Violet + Amber Design System
+
+**Status:** Accepted
+**Date:** 2026-07-08
+
+Supersedes the *Visual Design System* section of `docs/ARCHITECTURE.md` (colors, typography, component treatments). Does not change any decision about behavior, data, or architecture. ADR-016 (code blocks stay dark) still holds — it is orthogonal to the palette.
+
+### Context
+The MVP shipped a cool slate palette (`--bg-base: #020617`) with Geist for both body and headings and no gamification-specific accent. The app is live and functional, but reads as generic. A full high-fidelity redesign — codenamed **Momentum** — was produced as a design handoff (`.ai/design/…/TechQuiz Momentum.dc.html` + README). It is warm and motivating: a violet brand paired with an **amber accent reserved for gamification signals** (streaks, XP, percentages), shipping light and dark themes across six core screens (Landing, Login, Categories, Quiz, Result, Dashboard).
+
+The redesign leans on gamification surfaces — XP, levels, "Skill IQ" — that **have no backend**. `DashboardSummary` already exposes streak, average score (accuracy), per-category strength, an activity sparkline, and recent activity; it does **not** expose XP, levels, or a Skill-IQ metric.
+
+### Decision
+Adopt the Momentum design system as the app's visual language.
+
+1. **Token-first.** The app is already built on CSS-variable semantic tokens mapped through Tailwind, so re-pointing the token *values* reskins every screen — including screens outside the six mocked (Generate, Pool, Review, Challenges, Settings) — in one change. The existing token *names* are kept and re-pointed; new tokens (amber pair, brand/button/card gradients, focus ring, hero glows, progress track, second border, third text tier) are added alongside. Typography adds **Bricolage Grotesque** (display / headings / big numbers) over the existing Geist (body) and JetBrains Mono (mono/metadata).
+2. **Real data only.** XP, levels, and Skill IQ are **omitted** from the redesign; their tiles are replaced with metrics we actually have (streak, accuracy, questions answered, category strength). A true gamification layer (XP/levels/Skill IQ) is deferred to a dedicated backend iteration (Phase 4.2) rather than faked with client-side proxies.
+3. **Taxonomy-aware.** The mocked Categories screen shows a flat nine-tile grid; the real app is Track → Category (ADR-023). The redesigned Categories screen keeps the Momentum card treatment but renders our two-level taxonomy, not the flat grid.
+4. **Existing theme provider.** The prototype's `localStorage` theme/screen persistence is throwaway; the app keeps its `ThemeProvider` (sets `data-theme` on `<html>`) and router.
+5. **Phased delivery.** Iteration 4.10, one PR per slice: (1) token + font foundation, (2) shared chrome, (3–7) Dashboard → Categories → Quiz → Result → Auth, (8) new Landing page last.
+
+### Consequences
+- **Whole-app reskin in one PR.** Re-pointing tokens changes the look of every screen at once, before any per-screen rebuild — high visual leverage, and revertible (revert restores the old palette).
+- **New display font.** One extra Google Fonts family (Bricolage Grotesque); Geist/JetBrains weights are broadened.
+- **Net-new Landing route.** A public marketing screen is added (last slice); default entry stays login → dashboard until it lands.
+- **Honest gamification.** No invented numbers on screen; the redesign shows only backed metrics until the gamification backend exists.
+
+### Alternatives Rejected
+- **Proxy XP/Skill IQ from existing data** (derive XP from answer counts, rescale accuracy into a "Skill IQ"). Rejected: the numbers would be arbitrary and read as fake on a portfolio piece.
+- **Build the gamification backend first, then redesign.** Rejected as sequencing: it blocks all visual improvement behind a large Domain/Application feature. The look ships now on real data; XP follows as its own iteration.
+- **Copy the prototype's HTML/runtime directly.** Rejected — the handoff explicitly marks its `<x-dc>`/`Component` runtime as throwaway; screens are rebuilt as React + Tailwind on our tokens.

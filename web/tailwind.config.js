@@ -19,6 +19,12 @@ export default {
           bg: 'var(--accent-bg)',
           text: 'var(--accent-text)',
         },
+        amber: {
+          text: 'var(--amber-text)',
+          bg: 'var(--amber-bg)',
+        },
+        brandfg: 'var(--brand-fg)',
+        track: 'var(--track)',
         success: 'var(--success)',
         warning: 'var(--warning)',
         danger: 'var(--danger)',
@@ -28,7 +34,20 @@ export default {
         default: 'var(--border-default)',
         strong: 'var(--border-strong)',
       },
+      backgroundImage: {
+        brand: 'var(--brand)',
+        btn: 'var(--btn)',
+        'card-grad': 'var(--card-grad)',
+      },
+      boxShadow: {
+        float: 'var(--shadow)',
+        focus: '0 0 0 3px var(--focus-ring)',
+      },
+      borderRadius: {
+        pill: '999px',
+      },
       fontFamily: {
+        display: ['"Bricolage Grotesque"', 'Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
