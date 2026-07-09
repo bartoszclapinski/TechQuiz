@@ -13,7 +13,8 @@ public sealed record DashboardSummaryDto(
     IReadOnlyList<CategoryStrengthDto> CategoryStrength,
     int TotalQuestionsAnswered,
     double? AverageScore,
-    IReadOnlyList<RecentActivityItemDto> RecentActivity);
+    IReadOnlyList<RecentActivityItemDto> RecentActivity,
+    GamificationDto Gamification);
 
 /// <summary>One point on the score-over-time line — a completed attempt's score at its completion.</summary>
 public sealed record ScorePointDto(DateTimeOffset CompletedAt, double ScorePercentage);

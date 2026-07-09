@@ -59,6 +59,7 @@ internal static class QuizResultProjection
             score.Percentage,
             bestPercentage,
             previousPercentage,
+            Gamification.XpForAttempt(score.CorrectCount),
             byDifficulty,
             questionResults);
     }

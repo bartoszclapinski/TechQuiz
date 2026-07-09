@@ -14,5 +14,6 @@ public sealed record QuizResultDto(
     double Percentage,
     double BestPercentage,
     double? PreviousPercentage,
+    int XpEarned,
     IReadOnlyDictionary<Difficulty, DifficultyBreakdownDto> ByDifficulty,
     IReadOnlyList<QuestionResultDto> Questions);
