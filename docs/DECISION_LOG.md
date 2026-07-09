@@ -690,3 +690,35 @@ Adopt the Momentum design system as the app's visual language.
 - **Proxy XP/Skill IQ from existing data** (derive XP from answer counts, rescale accuracy into a "Skill IQ"). Rejected: the numbers would be arbitrary and read as fake on a portfolio piece.
 - **Build the gamification backend first, then redesign.** Rejected as sequencing: it blocks all visual improvement behind a large Domain/Application feature. The look ships now on real data; XP follows as its own iteration.
 - **Copy the prototype's HTML/runtime directly.** Rejected — the handoff explicitly marks its `<x-dc>`/`Component` runtime as throwaway; screens are rebuilt as React + Tailwind on our tokens.
+
+
+## ADR-025: Gamification — XP, Levels, and Skill IQ Derived from Existing Attempts
+
+**Status:** Accepted
+**Date:** 2026-07-09
+
+Additive; introduces the gamification layer the Momentum redesign (ADR-024) left slots for. Does not contradict a prior ADR.
+
+### Context
+The Momentum redesign deliberately shipped with XP / levels / "Skill IQ" omitted because they had no backend — the dashboard hero showed average score instead, and the mockup's invented numbers were dropped. Those signals are the point of a "keep-your-streak" learning app, so this ADR defines them for real. The constraint: do it **without inventing arbitrary numbers** and without heavy machinery.
+
+### Decision
+Compute XP, level, and Skill IQ **derive-on-read from the completed attempts we already store** — the same pattern as `AchievementCalculator` (nothing persisted; state is a function of existing data). No schema change, no migration.
+
+Pure math lives in the Domain (`Gamification`, TDD in `Domain.Tests`), orchestrated in the Application layer over `CompletedAttemptRow`.
+
+- **XP.** Per completed attempt: `correctCount × 10`, where `correctCount = round(scorePercentage/100 × answerCount)`. Total XP is the sum over all completed attempts. (Difficulty-weighted XP is a future refinement — the read row doesn't carry per-question difficulty; noted, not built.)
+- **Level.** XP to advance from level *L* to *L+1* is `100 + (L−1)×50` (100, 150, 200, …), applied cumulatively. `Gamification.LevelFor(totalXp)` returns `(Level, XpIntoLevel, XpForNextLevel)` — the exact shape the "Level 7 · 640/800 XP" bar needs.
+- **Skill IQ.** A single 0–250 metric: `round(clamp(avgScore, 0..100) × 1.6 + min(quizCount × 3, 75))` — accuracy dominates, volume gives a capped bump. The weekly delta ("▲ 14 this week") is `SkillIq(all) − SkillIq(excluding the last 7 days)`. A tier label (Rising / Intermediate / Advanced / Expert) replaces the mockup's **"Top 18%"** percentile, which is dropped: with essentially one demo population a percentile would be fiction.
+
+Surfaces wired: Dashboard (Skill IQ + weekly delta + level/XP bar), Result (XP earned this attempt), Quiz (potential XP for the attempt). The pre-login auth marketing panel keeps its static showcase number — it is marketing, not the signed-in user's data.
+
+### Consequences
+- **No schema change.** All three derive from `CompletedAttemptRow` (score %, answer count, completed date) already read for the dashboard, so the dashboard handler gains the gamification block without an extra query. The Result value is computed in `CompleteQuizCommandHandler` from the score it already has.
+- **Tunable, centralised.** The rates (10 XP/correct, the level curve, the Skill IQ coefficients) live in one Domain type; changing the feel is a one-file edit with unit tests, not a data migration.
+- **Honest.** Every number on screen is a deterministic function of what the user actually did. No percentile fiction, no persisted counters that can drift from the attempts.
+
+### Alternatives Rejected
+- **Persist XP/level/SkillIQ columns** (award-on-completion, stored counters). Rejected: introduces drift (a stored total that disagrees with the attempts), a migration, and backfill — for no gain over deriving from attempts we already read.
+- **Difficulty-weighted XP now.** Rejected for this iteration: the dashboard read row carries answer count and score, not per-question difficulty; adding it means widening the projection/query. Deferred as a refinement behind the same `Gamification` seam.
+- **Keep the "Top X%" percentile.** Rejected: no real user population to rank against; a fabricated percentile is exactly the kind of invented number ADR-024 set out to avoid.
