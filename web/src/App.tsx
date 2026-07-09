@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LandingPage } from './features/landing/landing-page'
 import { LoginPage } from './features/auth/login-page'
-import { RegisterPage } from './features/auth/register-page'
 import { RequireAuth } from './features/auth/require-auth'
 import { AppShell } from './components/app-shell'
 import { CategoriesPage } from './features/categories/categories-page'
@@ -24,7 +23,9 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Public registration is closed during the demo (iteration 4.11) — the API rejects it too.
+            Keep the path as a redirect so any stale link/bookmark lands on sign-in. */}
+        <Route path="/register" element={<Navigate to="/login" replace />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
