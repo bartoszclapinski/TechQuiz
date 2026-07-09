@@ -5,6 +5,30 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-09 — Iteracja 4.11: Demo hardening (historia demo + zamknięcie rejestracji)
+
+**Cel:** żywe demo ma być samo-tłumaczące i bezpieczne do zostawienia otwartego.
+
+**Kontekst (owner):** (1) świeżo zalogowany gość trafiał na pusty dashboard — słabe na portfolio;
+(2) owner nie chce, żeby ktoś się rejestrował, bo nie ma jeszcze polityki prywatności/RODO ani sposobu
+na zwrot/usunięcie danych użytkownika. Dwie decyzje: świeżość demo = **odśwież przy każdym starcie**;
+rejestracja = **endpoint 403 + ukryte UI**.
+
+- **4.11.1 (#331)** — `DataSeeder.SeedDemoHistoryAsync`: ~19 ukończonych podejść w 8 kategoriach przez
+  ostatnie ~14 dni (streak ~12, wyniki lekko rosnące, spójne odpowiedzi). **Nie-idempotentne z rozmysłem** —
+  kasuje podejścia demo i tworzy od nowa z datami względem „teraz" przy każdym boocie, więc demo nigdy się
+  nie starzeje i konto samo się sprząta. Ruszany tylko demo user. Testy: seeduje ukończoną historię +
+  odświeżenie nie kumuluje podejść.
+- **4.11.2 (#333)** — flaga `Auth:RegistrationEnabled` (bazowo **false** → Staging/live zamknięte; **true**
+  w `appsettings.Development` → lokalnie i testy integracyjne dalej rejestrują). `/api/auth/register` zwraca
+  403 ProblemDetails zanim powstanie jakikolwiek user. Web: `/register` → redirect na `/login`, link „Create
+  one" zastąpiony notką „demo only", CTA Landingu → `/login`. Odwracalne flagą, gdy powstanie polityka prywatności.
+
+**Weryfikacja na żywo:** `POST /api/auth/register` → 403 „Registration closed"; demo login → `/api/dashboard`
+zwraca `currentStreakDays:12` + wypełniony sparkline + rosnący `scoreOverTime`. ✅
+
+---
+
 ## 2026-07-08 — Iteracja 4.10: Redesign „Momentum"
 
 **Cel:** wdrożyć nowy system designu z handoffu (`.ai/design/…/TechQuiz Momentum.dc.html`) — violet + amber,
