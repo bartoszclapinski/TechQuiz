@@ -23,9 +23,11 @@ public sealed class GetDashboardSummaryQueryHandler(
 
         var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
-        // Streak and the sparkline are all-time "state as of now" — the range filter never touches them.
+        // Streak, sparkline and gamification are all-time "state as of now" — the range filter never
+        // touches them (XP/level/Skill IQ reflect everything the user has ever done, like the streak).
         var streak = ComputeStreak(rows, today);
         var sparkline = ComputeSparkline(rows, today);
+        var gamification = GamificationCalculator.Calculate(rows, today);
 
         // Every other tile is scoped to the selected range.
         var scoped = FilterByRange(rows, request.Range, today);
@@ -39,7 +41,8 @@ public sealed class GetDashboardSummaryQueryHandler(
                 CategoryStrength: [],
                 TotalQuestionsAnswered: 0,
                 AverageScore: null,
-                RecentActivity: []);
+                RecentActivity: [],
+                Gamification: gamification);
         }
 
         var scoreOverTime = scoped
@@ -66,7 +69,8 @@ public sealed class GetDashboardSummaryQueryHandler(
             CategoryStrength: categoryStrength,
             TotalQuestionsAnswered: scoped.Sum(r => r.AnswerCount),
             AverageScore: scoped.Average(r => r.ScorePercentage),
-            RecentActivity: recentActivity);
+            RecentActivity: recentActivity,
+            Gamification: gamification);
     }
 
     // Date-based, UTC cutoff (consistent with streak/sparkline): an attempt is in range when its
