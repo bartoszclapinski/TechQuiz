@@ -16,7 +16,9 @@
   --border-strong: #392c4d;
   --text-primary: #f4f0fa;
   --text-secondary: #a99fc0;
-  --text-muted: #7d7291;
+  /* Lightened from the handoff #7d7291 (3.7:1 on surface) to clear WCAG AA 4.5:1 for small
+     captions/micro-labels in both surfaces (a11y, iteration 4.4 / ADR-026). */
+  --text-muted: #948aac;
   --accent: #a78bfa;
   --accent-bg: rgba(167, 139, 250, 0.15);
   --accent-text: #c4b5fd;
@@ -47,7 +49,8 @@
   --border-strong: #ddd4ee;
   --text-primary: #241b39;
   --text-secondary: #6b6280;
-  --text-muted: #9a8fb5;
+  /* Darkened from the handoff #9a8fb5 (2.9:1, fails AA) to clear 4.5:1 (a11y 4.4 / ADR-026). */
+  --text-muted: #736a88;
   --accent: #7c3aed;
   --accent-bg: #f5f1fd;
   --accent-text: #6d28d9;
@@ -57,7 +60,9 @@
   --auth-grid-line: rgba(15, 23, 42, 0.04);
 
   /* Momentum additions */
-  --amber-text: #d97706;
+  /* Darkened from the handoff #d97706 (3.2:1 on white / fails on amber-bg) to clear AA 4.5:1
+     for amber percentage values in both placements (a11y 4.4 / ADR-026). */
+  --amber-text: #a85400;
   --amber-bg: #fef3c7;
   --brand-fg: #ffffff;
   --track: #f1ecfb;
