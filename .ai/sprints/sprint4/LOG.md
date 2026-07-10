@@ -5,6 +5,24 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-10 — Iteracja 4.5: Performance (bundle)
+
+**Cel:** zmniejszyć initial bundle (Render free tier + cold starty bolą). Cała appka szła jako jeden
+~591 kB chunk (CI ostrzegał >500 kB), bo wszystkie strony były importowane eager w `App.tsx`.
+
+- **4.5.1 (#353)** — **route-based code splitting**: każda strona autoryzowana jako `React.lazy` +
+  `Suspense` wokół Outletu w `AppShell` (obie ścieżki — z chrome i focused runner quiz/review). Landing,
+  Login i layouty zostają eager (entry points). Główny chunk **591 → 381 kB (175 → 115 kB gzip)**;
+  każda strona to osobny chunk na żądanie (dashboard 21, quiz 39, code-challenge 22, result 10 kB…).
+  Ostrzeżenie >500 kB zniknęło.
+- **4.5.2 (#355)** — usunięty martwy `recharts` (wykresy zastąpione przy redesignie/gamifikacji; już
+  wytree-shakowany, ale wisiał w `package.json`).
+
+**Uwaga:** Monaco ładuje core runtime'owo (loader `@monaco-editor/react`) — nigdy nie był w bundlu.
+Vendor-chunk splitting rozważony i pominięty (marginalny dla portfolio; splitting tras i tak usunął ostrzeżenie).
+
+---
+
 ## 2026-07-10 — Iteracja 4.4: Audyt dostępności (a11y, WCAG AA)
 
 **Cel:** doprowadzić appkę po redesignie Momentum do solidnego poziomu WCAG 2.1 AA (nie-opcjonalne wg roadmapy).
