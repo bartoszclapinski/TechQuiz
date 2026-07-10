@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useMatch } from 'react-router-dom'
 import { useAuth } from '../features/auth/use-auth'
 import { ThemeToggle } from './ui/theme-toggle'
+
+// Fallback shown while a lazily-loaded route chunk is fetched (perf, iteration 4.5). Kept minimal so
+// it's near-invisible on a warm cache; the shell chrome stays mounted around it.
+function PageLoading() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center text-[15px] text-secondary" role="status">
+      Loading…
+    </div>
+  )
+}
 
 function initialsFromEmail(email: string): string {
   const local = email.split('@')[0] ?? ''
@@ -40,7 +50,11 @@ export function AppShell() {
   }, [menuOpen])
 
   if (onQuizRoute || onReviewRunRoute) {
-    return <Outlet />
+    return (
+      <Suspense fallback={<PageLoading />}>
+        <Outlet />
+      </Suspense>
+    )
   }
 
   return (
@@ -130,7 +144,9 @@ export function AppShell() {
 
       {/* Skip-link target. tabIndex -1 lets the link move focus here without adding a tab stop. */}
       <div id="main-content" tabIndex={-1} className="outline-none">
-        <Outlet />
+        <Suspense fallback={<PageLoading />}>
+          <Outlet />
+        </Suspense>
       </div>
     </div>
   )
