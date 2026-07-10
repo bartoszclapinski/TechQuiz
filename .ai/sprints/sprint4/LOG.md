@@ -5,6 +5,26 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-10 — Iteracja 4.4: Audyt dostępności (a11y, WCAG AA)
+
+**Cel:** doprowadzić appkę po redesignie Momentum do solidnego poziomu WCAG 2.1 AA (nie-opcjonalne wg roadmapy).
+
+- **4.4.1 (#345)** — **focus klawiatury**: globalny `:focus-visible` (akcentowy outline) — custom-stylowane
+  buttony/pille/karty-buttony gubiły domyślny focus. + **skip-link** „Skip to content" i focusowalny `#main-content`.
+- **4.4.2 (#347)** — **kontrast**: audyt całej palety (policzone ratio). Trzy tokeny nie przechodziły AA dla
+  małych tekstów → podbite z zachowaniem odcienia: dark muted `#7d7291→#948aac`, light muted `#9a8fb5→#736a88`,
+  light amber `#d97706→#a85400`. **ADR-026** (bo ADR-024 mówił „tokeny verbatim"). Wyjątek: gradient przycisku
+  (biały tekst, large/bold → próg 3:1, spełnia).
+- **4.4.3 (#349)** — **semantyka/ARIA** (z pełnego audytu komponentów subagentem): weekly-bary miały wartość
+  tylko w `title` → `role=img` + aria-label per-dzień; brak `<h1>` na runnerach quiz/review → pytanie jako `<h1>`;
+  dekoracyjne emoji (features Landingu, kafle review/empty dashboardu) → `aria-hidden`; przeskoki nagłówków
+  (karty categories/history/empty h3→h2); `role=progressbar` na pasku quizu.
+
+**Audyt potwierdził brak problemów** w: nazwach kontrolek icon-only, klikalnych nie-semantycznych elementach,
+obrazkach/awatarach (brak `<img>`, wszystko inline SVG `aria-hidden` / inicjały).
+
+---
+
 ## 2026-07-10 — Iteracja 4.2: Gamifikacja (XP / poziomy / Skill IQ)
 
 **Cel:** ożywić metryki, na które redesign Momentum zostawił miejsca (XP, poziom, Skill IQ) — realnie,
