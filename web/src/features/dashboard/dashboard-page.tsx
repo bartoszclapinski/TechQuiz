@@ -248,12 +248,19 @@ function WeeklyActivityCard({ sparkline }: { sparkline: number[] }) {
   return (
     <Card className="p-6">
       <Kicker>Weekly activity</Kicker>
-      <div className="mb-3.5 mt-5 flex h-[150px] items-end gap-2.5">
+      <div
+        role="img"
+        aria-label={`Quizzes completed per day over the last 7 days — ${week
+          .map((value, index) => `${labels[index]}: ${value}`)
+          .join(', ')}`}
+        className="mb-3.5 mt-5 flex h-[150px] items-end gap-2.5"
+      >
         {week.map((value, index) => {
           const height = value === 0 ? 4 : Math.max(12, Math.round((value / max) * 100))
           return (
             <div key={index} className="flex h-full flex-1 flex-col justify-end">
               <div
+                aria-hidden="true"
                 className={`rounded-lg ${value > 0 ? 'bg-brand' : 'bg-elevated'}`}
                 style={{ height: `${height}%` }}
                 title={`${value} ${value === 1 ? 'quiz' : 'quizzes'}`}
@@ -421,7 +428,10 @@ function DailyReviewBanner() {
   return (
     <div className="mb-3.5 flex flex-col gap-3 rounded-[18px] border border-strong bg-card-grad px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3.5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[13px] bg-amber-bg text-[20px]">
+        <span
+          aria-hidden="true"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[13px] bg-amber-bg text-[20px]"
+        >
           🔁
         </span>
         <div>
@@ -510,10 +520,13 @@ function EmptyDashboard({
       <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-[22px] border border-strong bg-card-grad px-6 py-12 text-center sm:col-span-2 lg:col-span-2">
           <HeroGlow />
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[15px] bg-amber-bg text-[26px]">
+          <div
+            aria-hidden="true"
+            className="mb-4 flex h-14 w-14 items-center justify-center rounded-[15px] bg-amber-bg text-[26px]"
+          >
             📈
           </div>
-          <h3 className="mb-1.5 font-display text-[20px] font-bold text-primary">No data yet</h3>
+          <h2 className="mb-1.5 font-display text-[20px] font-bold text-primary">No data yet</h2>
           <p className="mb-5 max-w-[300px] text-[14px] text-secondary">
             Complete your first quiz to see your score over time, category strength, and streaks here.
           </p>

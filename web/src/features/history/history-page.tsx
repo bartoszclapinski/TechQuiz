@@ -154,7 +154,7 @@ function EmptyHistory({ hasFilter }: { hasFilter: boolean }) {
   }
   return (
     <div className="rounded-xl border border-default bg-surface px-6 py-10 text-center">
-      <h3 className="mb-1.5 text-[16px] font-semibold text-primary">No attempts yet</h3>
+      <h2 className="mb-1.5 text-[16px] font-semibold text-primary">No attempts yet</h2>
       <p className="mb-4 text-[13px] text-secondary">
         Complete a quiz and it’ll show up here.
       </p>

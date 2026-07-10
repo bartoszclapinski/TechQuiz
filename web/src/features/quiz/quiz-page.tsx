@@ -121,7 +121,14 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
           <span className="whitespace-nowrap font-mono text-[13px] font-semibold text-secondary">
             {session.categoryName} · {currentIndex + 1} / {total}
           </span>
-          <div className="h-[7px] flex-1 overflow-hidden rounded-pill bg-track">
+          <div
+            className="h-[7px] flex-1 overflow-hidden rounded-pill bg-track"
+            role="progressbar"
+            aria-label="Quiz progress"
+            aria-valuenow={currentIndex + 1}
+            aria-valuemin={1}
+            aria-valuemax={total}
+          >
             <div
               className="h-full rounded-pill bg-brand transition-[width] duration-300"
               style={{ width: `${progress}%` }}
@@ -157,9 +164,9 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
             >
               {difficulty.label}
             </span>
-            <h2 className="font-display text-[clamp(24px,2.6vw,34px)] font-extrabold leading-[1.25] tracking-[-0.01em]">
+            <h1 className="font-display text-[clamp(24px,2.6vw,34px)] font-extrabold leading-[1.25] tracking-[-0.01em]">
               {question.text}
-            </h2>
+            </h1>
           </div>
 
           <div className="flex flex-col gap-2.5">
