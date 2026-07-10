@@ -127,6 +127,13 @@ function QuizRunner({ attemptId, session }: { attemptId: string; session: QuizRu
               style={{ width: `${progress}%` }}
             />
           </div>
+          {/* Potential XP on offer for this quiz — 10 per correct answer (ADR-025). */}
+          <span
+            title="XP you can earn — 10 per correct answer"
+            className="hidden whitespace-nowrap rounded-pill bg-amber-bg px-3 py-1.5 font-mono text-[12px] font-semibold text-amber-text sm:inline"
+          >
+            +{total * 10} XP
+          </span>
           <button
             type="button"
             onClick={() => setExitOpen(true)}

@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AchievementsSection } from '../achievements/achievements-section'
 import { useAuth } from '../auth/use-auth'
 import { useDailyReview } from '../review/use-daily-review'
 import { useReviewStats } from '../review/use-review-stats'
 import { useDashboard } from './use-dashboard'
-import type { CategoryStrength, DashboardRange, DashboardSummary, RecentActivityItem } from './api'
+import type {
+  CategoryStrength,
+  DashboardRange,
+  DashboardSummary,
+  Gamification,
+  RecentActivityItem,
+} from './api'
 
 export function DashboardPage() {
   const [range, setRange] = useState<DashboardRange>('all')
@@ -68,13 +73,9 @@ function PopulatedDashboard({
 
       {/* Top bento: a wide score hero (spanning two columns) beside streak + volume. */}
       <div className="mb-3.5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <HeroScoreCard
-          average={Math.round(summary.averageScore ?? 0)}
-          total={summary.totalQuestionsAnswered}
-          points={summary.scoreOverTime}
-        />
+        <SkillIqHero gamification={summary.gamification} />
         <StreakCard days={summary.currentStreakDays} sparkline={summary.activitySparkline} />
-        <QuestionsCard total={summary.totalQuestionsAnswered} />
+        <AccuracyCard average={summary.averageScore} total={summary.totalQuestionsAnswered} />
       </div>
 
       {/* Bottom bento: three equal cards. */}
@@ -121,89 +122,40 @@ function HeroGlow() {
   )
 }
 
-function HeroScoreCard({
-  average,
-  total,
-  points,
-}: {
-  average: number
-  total: number
-  points: DashboardSummary['scoreOverTime']
-}) {
-  const data = points.map((point) => ({
-    label: dateLabel(point.completedAt),
-    score: Math.round(point.scorePercentage),
-  }))
-  const trend =
-    points.length >= 2
-      ? Math.round(points[points.length - 1].scorePercentage - points[0].scorePercentage)
-      : null
+function SkillIqHero({ gamification: g }: { gamification: Gamification }) {
+  const levelPct =
+    g.xpForNextLevel > 0 ? Math.round((g.xpIntoLevel / g.xpForNextLevel) * 100) : 0
+  const delta = g.skillIqWeeklyDelta
 
   return (
     <div className="relative overflow-hidden rounded-[22px] border border-strong bg-card-grad p-6 sm:col-span-2 lg:col-span-2">
       <HeroGlow />
-      <Kicker tone="amber">Average score</Kicker>
+      <Kicker tone="amber">Skill IQ</Kicker>
       <div className="mt-4 flex items-baseline gap-3">
-        <span className="font-display text-[clamp(48px,6vw,72px)] font-extrabold leading-[0.9] tracking-[-0.03em] text-primary">
-          {average}
-          <span className="text-[0.42em] text-secondary">%</span>
+        <span className="font-display text-[clamp(56px,6vw,84px)] font-extrabold leading-[0.9] tracking-[-0.03em] text-primary">
+          {g.skillIq}
         </span>
-        {trend !== null ? (
+        {delta !== 0 ? (
           <span
             className="text-[15px] font-semibold"
-            style={{ color: trend >= 0 ? '#4ade80' : 'var(--warning)' }}
+            style={{ color: delta > 0 ? '#4ade80' : 'var(--warning)' }}
           >
-            {trend >= 0 ? '▲' : '▼'} {Math.abs(trend)}% this range
+            {delta > 0 ? '▲' : '▼'} {Math.abs(delta)} this week
           </span>
         ) : null}
       </div>
-      <p className="mt-2 text-[15px] text-secondary">across {total} questions answered</p>
-      {data.length >= 2 ? (
-        <div className="mt-4">
-          <ResponsiveContainer width="100%" height={110}>
-            <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                domain={[0, 100]}
-                tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
-                tickLine={false}
-                axisLine={false}
-                width={40}
-              />
-              <Tooltip
-                cursor={{ stroke: 'var(--border-strong)' }}
-                contentStyle={{
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
-                labelStyle={{ color: 'var(--text-secondary)' }}
-                itemStyle={{ color: 'var(--text-primary)' }}
-                formatter={(value) => [`${value}%`, 'Score']}
-              />
-              <Area
-                type="monotone"
-                dataKey="score"
-                stroke="var(--accent)"
-                strokeWidth={2}
-                fill="url(#scoreGrad)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      ) : null}
+      <p className="mt-2 text-[15px] text-secondary">
+        {g.tier} · {g.totalXp.toLocaleString()} XP total
+      </p>
+      <div className="mb-2 mt-6 flex justify-between text-[14px] text-secondary">
+        <span className="font-medium">Level {g.level}</span>
+        <span>
+          {g.xpIntoLevel} / {g.xpForNextLevel} XP to level {g.level + 1}
+        </span>
+      </div>
+      <div className="h-3 overflow-hidden rounded-pill bg-track">
+        <div className="h-full rounded-pill bg-brand" style={{ width: `${levelPct}%` }} />
+      </div>
     </div>
   )
 }
@@ -226,16 +178,17 @@ function StreakCard({ days, sparkline }: { days: number; sparkline: number[] }) 
   )
 }
 
-function QuestionsCard({ total }: { total: number }) {
+function AccuracyCard({ average, total }: { average: number | null; total: number }) {
   return (
     <Card className="p-6">
-      <Kicker>Questions</Kicker>
-      <div className="mt-3.5 flex items-baseline gap-2">
+      <Kicker>Accuracy</Kicker>
+      <div className="mt-3.5 flex items-baseline gap-1">
         <span className="font-display text-[clamp(38px,4vw,52px)] font-extrabold leading-[0.9] text-primary">
-          {total}
+          {average === null ? '—' : Math.round(average)}
         </span>
+        {average !== null ? <span className="text-[19px] text-secondary">%</span> : null}
       </div>
-      <p className="mt-3.5 text-[14px] text-secondary">answered this range</p>
+      <p className="mt-3.5 text-[14px] text-secondary">across {total} questions</p>
     </Card>
   )
 }
@@ -583,7 +536,7 @@ function EmptyDashboard({
           </span>
         </Card>
         <Card className="p-6 opacity-50">
-          <Kicker>Questions</Kicker>
+          <Kicker>Accuracy</Kicker>
           <span className="mt-3.5 block font-display text-[clamp(38px,4vw,52px)] font-extrabold leading-[0.9] text-muted">
             —
           </span>
@@ -661,10 +614,6 @@ function firstName(email: string | undefined): string {
   const local = email.split('@')[0] ?? ''
   const head = local.split(/[._-]+/)[0] ?? ''
   return head ? head.charAt(0).toUpperCase() + head.slice(1) : ''
-}
-
-function dateLabel(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 // Weekday initials for the last `count` days, oldest → newest (newest = today).

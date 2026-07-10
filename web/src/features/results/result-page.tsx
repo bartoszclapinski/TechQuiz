@@ -96,7 +96,7 @@ function Result({ result }: { result: QuizResult }) {
         </p>
 
         <div className="mt-7 grid w-full grid-cols-3 gap-3">
-          <RewardTile value={`${result.correctCount}/${result.totalCount}`} label="Correct" tone="amber" />
+          <RewardTile value={`+${result.xpEarned}`} label="XP earned" tone="amber" />
           <RewardTile value={formatDuration(elapsedSeconds)} label="Time" mono />
           <RewardTile
             value={delta === null ? `${best}%` : `${delta >= 0 ? '+' : ''}${delta}%`}

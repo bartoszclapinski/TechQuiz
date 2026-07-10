@@ -37,6 +37,8 @@ export type QuizResult = {
   bestPercentage: number
   // Null on the first completed attempt for this quiz — there is nothing prior to compare against.
   previousPercentage: number | null
+  // XP earned for this attempt (correct answers × 10) — ADR-025.
+  xpEarned: number
   // Keys are numeric Difficulty values serialized as strings (the API has no string-enum converter).
   byDifficulty: Record<string, DifficultyBreakdown>
   questions: ResultQuestion[]
