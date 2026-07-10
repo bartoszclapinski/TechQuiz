@@ -45,6 +45,13 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-base text-primary">
+      {/* Skip link — first tab stop, visually hidden until focused, jumps past the nav to the page. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-[15px] focus:font-medium focus:text-primary focus:shadow-float"
+      >
+        Skip to content
+      </a>
       <header className="border-b border-default bg-surface">
         <div className="mx-auto flex max-w-[1560px] items-center gap-4 px-4 py-3.5 sm:gap-7 sm:px-6 lg:px-12">
           <NavLink to="/dashboard" className="flex items-center gap-2.5">
@@ -121,7 +128,10 @@ export function AppShell() {
         />
       ) : null}
 
-      <Outlet />
+      {/* Skip-link target. tabIndex -1 lets the link move focus here without adding a tab stop. */}
+      <div id="main-content" tabIndex={-1} className="outline-none">
+        <Outlet />
+      </div>
     </div>
   )
 }
