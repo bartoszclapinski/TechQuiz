@@ -5,6 +5,31 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-10 — Iteracja 4.2: Gamifikacja (XP / poziomy / Skill IQ)
+
+**Cel:** ożywić metryki, na które redesign Momentum zostawił miejsca (XP, poziom, Skill IQ) — realnie,
+z danych które już mamy. Decyzja: **ADR-025**. Owner: „skończmy całość i pójdźmy z gamifikacją; Skill IQ
+w panelu logowania zostaw aż skończymy".
+
+**Podejście derive-on-read** (jak `AchievementCalculator`): zero zmian schematu, zero persystowanych
+liczników — wszystko funkcją ukończonych podejść, więc nie może się rozjechać z danymi.
+
+- **4.2.1 (#337)** — Domain: `Gamification` (czysta matematyka, 24 testy). XP = `correctCount×10`;
+  krzywa poziomu `100+(L-1)×50` → poziom + postęp; Skill IQ = `clamp(avg,0..100)×1.6 + min(quizCount×3,75)`
+  (0..250); tier zamiast fikcyjnego percentyla „Top X%".
+- **4.2.2 (#339)** — Application: `GamificationCalculator` nad `CompletedAttemptRow` → `GamificationDto`
+  (totalXp, level, xpIntoLevel, xpForNextLevel, skillIq, weeklyDelta, tier). Dodany do `DashboardSummaryDto`
+  jako blok **all-time** (jak streak — filtr zakresu go nie tyka), liczony w handlerze z podejść, które i tak
+  czyta. `QuizResultDto` zyskuje `XpEarned`. correctCount odtwarzany z `round(score% × answerCount)`.
+- **4.2.3 (#341)** — Web: Dashboard hero = **Skill IQ** (wartość + delta tygodnia + tier + pasek Level/XP),
+  obok karta **Accuracy**; wykres score-over-time usunięty (nie ma go w mockupie, znika Recharts z tego ekranu).
+  Result: kafelek **XP earned**. Quiz: amber pill **potencjalnego XP** (pytania×10) w górnym pasku.
+
+**Weryfikacja na żywo (demo):** `/api/dashboard` → `skillIq:181` (Advanced), `level:9`, `totalXp:2370`,
+`skillIqWeeklyDelta:48`. ✅ Skill IQ w panelu logowania (marketing pre-login) świadomie zostaje statyczny.
+
+---
+
 ## 2026-07-09 — Iteracja 4.11: Demo hardening (historia demo + zamknięcie rejestracji)
 
 **Cel:** żywe demo ma być samo-tłumaczące i bezpieczne do zostawienia otwartego.
