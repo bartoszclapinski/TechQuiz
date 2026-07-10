@@ -722,3 +722,35 @@ Surfaces wired: Dashboard (Skill IQ + weekly delta + level/XP bar), Result (XP e
 - **Persist XP/level/SkillIQ columns** (award-on-completion, stored counters). Rejected: introduces drift (a stored total that disagrees with the attempts), a migration, and backfill — for no gain over deriving from attempts we already read.
 - **Difficulty-weighted XP now.** Rejected for this iteration: the dashboard read row carries answer count and score, not per-question difficulty; adding it means widening the projection/query. Deferred as a refinement behind the same `Gamification` seam.
 - **Keep the "Top X%" percentile.** Rejected: no real user population to rank against; a fabricated percentile is exactly the kind of invented number ADR-024 set out to avoid.
+
+
+## ADR-026: Accessibility Contrast Adjustments to Three Momentum Tokens
+
+**Status:** Accepted
+**Date:** 2026-07-10
+
+Amends **ADR-024** (which said the Momentum tokens are used verbatim) for three colour tokens. Recorded rather than edited silently (hard rule #5): the handoff values are intentional, but three fail WCAG 2.1 AA for small text and the accessibility pass (iteration 4.4) must fix that.
+
+### Context
+A contrast audit of the Momentum palette against WCAG AA (4.5:1 for normal text, 3:1 for large/UI) found three tokens used for small captions / metric values fall short:
+
+| Token | Handoff | Ratio (worst placement) | Verdict |
+|---|---|---|---|
+| dark `--text-muted` | `#7d7291` | 3.7:1 on `--surface` | fails small text |
+| light `--text-muted` | `#9a8fb5` | 2.9:1 on `--bg` | fails |
+| light `--amber-text` | `#d97706` | 2.9:1 on `--amber-bg` | fails |
+
+These carry real content — mono micro-labels, timestamps, "Not started" captions, and the amber percentage values on category bars and pills — at 11–14px, so the 4.5:1 threshold applies.
+
+### Decision
+Adjust the three values to the nearest hue-preserving colour that clears 4.5:1 on its hardest background:
+
+- dark `--text-muted`: `#7d7291` → **`#948aac`** (4.8:1 on surface, 5.3:1 on base)
+- light `--text-muted`: `#9a8fb5` → **`#736a88`** (4.8:1 on base, 5.1:1 on surface)
+- light `--amber-text`: `#d97706` → **`#a85400`** (5.3:1 on white, 4.8:1 on amber-bg)
+
+All other Momentum tokens are unchanged. The brand button gradient (white text) stays as-is: its text is large/bold (≥14px semibold), where the 3:1 threshold applies and the gradient meets it.
+
+### Consequences
+- **Global, token-level.** One-file change; every muted caption and amber value across the app (both themes) becomes legible without touching component code.
+- **Minimal visual drift.** The muted greys shift one step (slightly lighter in dark, slightly darker in light); the light amber goes marginally more burnt-orange. The design reads the same; only borderline text gets legible.
