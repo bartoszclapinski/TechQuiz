@@ -1,6 +1,8 @@
 # TechQuiz
 
-> A multi-user platform for testing technical knowledge — with AI-generated questions, spaced repetition, and progress tracking.
+> A multi-user platform for testing technical knowledge — with AI-generated questions, spaced repetition, and gamified progress (XP, streaks, Skill IQ).
+
+**▶ Live demo: [techquiz-web.onrender.com](https://techquiz-web.onrender.com)** — click **Continue as demo** to explore the full flow, no sign-up needed. The demo account comes pre-loaded with quiz history. First load can take ~30–50 s while the free Render instance wakes from sleep.
 
 <table>
   <tr>
@@ -10,18 +12,20 @@
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/result-dark.png" alt="Result screen" /><br/><sub><b>Result</b></sub></td>
-    <td align="center"><img src="docs/screenshots/dashboard-dark.png" alt="Dashboard screen" /><br/><sub><b>Dashboard</b> <i>(Phase 2)</i></sub></td>
-    <td align="center"><img src="docs/screenshots/quiz-code-dark.png" alt="Code question screen" /><br/><sub><b>Code questions</b> <i>(Phase 3)</i></sub></td>
+    <td align="center"><img src="docs/screenshots/dashboard-dark.png" alt="Dashboard screen" /><br/><sub><b>Dashboard</b></sub></td>
+    <td align="center"><img src="docs/screenshots/quiz-code-dark.png" alt="Code question screen" /><br/><sub><b>Code questions</b></sub></td>
   </tr>
 </table>
 
-<sub>Screenshots are rendered from the design mockups in <a href="docs/mockups/"><code>docs/mockups/</code></a>. Re-generate with <code>pnpm capture-mockups</code>.</sub>
+<sub>These screenshots are rendered from the early design mockups in <a href="docs/mockups/"><code>docs/mockups/</code></a>. The live app now uses the newer <b>"Momentum"</b> redesign — see the <a href="https://techquiz-web.onrender.com">live demo</a> for the current look.</sub>
 
 ---
 
-TechQuiz is a personal learning platform inspired by Pluralsight Skill IQ. Users test their knowledge across .NET, ASP.NET Core, SQL, design patterns, and other technical topics. AI generates new questions on demand using each user's own API key, and all generated questions are saved to a shared public pool to grow the question bank for everyone.
+TechQuiz is a personal learning platform inspired by Pluralsight Skill IQ. Users test their knowledge across .NET, databases, front-end, and engineering practices, track progress over time, and keep the momentum going with XP, daily streaks and a derived Skill IQ. AI generates new questions on demand using each user's own API key, and all generated questions are saved to a shared public pool to grow the question bank for everyone.
 
-This is a portfolio project demonstrating Clean Architecture, multi-provider AI integration, full-stack .NET development, and modern frontend practices.
+The interface is a warm, dual-theme design system ("Momentum" — violet brand with an amber gamification accent) built to look good from mobile up to UHD. This is a portfolio project demonstrating Clean Architecture, multi-provider AI integration, full-stack .NET development, and modern frontend practices.
+
+> **Note:** public sign-up is currently closed (no privacy policy yet) — use the demo account. The app is live on Render + Neon; see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ---
 
@@ -41,9 +45,10 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 - Vite 8
 - TanStack Query (Phase 1+)
 - React Router v6 (Phase 1+)
-- Tailwind CSS v3
-- Monaco Editor (Phase 3 — for code questions)
-- Recharts (Phase 2 — for progress dashboards)
+- Tailwind CSS v3 with CSS-variable theming (dual light/dark)
+- Bricolage Grotesque / Geist / JetBrains Mono type system
+- Monaco Editor (for code questions)
+- Route-based code splitting (React.lazy)
 
 **AI Integration**
 - Multi-provider abstraction (OpenAI, Anthropic Claude, extensible)
@@ -59,32 +64,30 @@ This is a portfolio project demonstrating Clean Architecture, multi-provider AI 
 
 ## Features
 
-### Implemented in MVP (Phase 1)
-- Multi-user authentication with JWT
-- Quiz flow: select category → answer questions → see results (test mode)
-- Backend domain logic developed with TDD
-- 269 seed questions across 9 categories (C#/.NET, ASP.NET Core, EF Core, ADO.NET, SQL, Unit Testing, Design Patterns, Front-End, Engineering Practices)
-- Demo user with historical quiz attempts for development
+### Core quiz platform (Phase 1)
+- Multi-user authentication with JWT (memory-only access token + HttpOnly refresh cookie)
+- Quiz flow: pick a topic → answer → see results with per-question review and explanations
+- Backend domain + application logic developed with TDD
+- 269 seed questions organised as a **Track → Category → Quiz** taxonomy — 4 tracks (.NET, Databases, Front-End, Engineering Practices) over 18 categories
 
-### Coming in Phase 2
-- Progress dashboard with bento grid layout
-- Historical attempt tracking with filters
-- Spaced repetition (SM-2 simplified) for review mode
-- Per-category statistics and streak counters
+### Dashboard & review (Phase 2)
+- Progress dashboard as a bento grid (streak, accuracy, category strength, weekly activity, recent attempts)
+- Historical attempt tracking with filters and per-attempt review
+- Spaced repetition (simplified SM-2) daily-review mode with its own stats
+- Achievement badges
 
-### Coming in Phase 3
-- AI question generator with multi-provider support
-- Encrypted per-user API key vault
-- Public AI-generated question pool with community moderation
-- Code questions with Monaco Editor (output prediction, bug finding, fill-in)
-- AI evaluator for code responses with feedback
+### AI & code questions (Phase 3)
+- AI question generator with a multi-provider abstraction (OpenAI, Anthropic Claude, extensible)
+- Encrypted per-user API key vault (ASP.NET Core Data Protection)
+- Public AI-generated question pool for community reuse
+- Code questions with Monaco Editor
 
-### Coming in Phase 4
-- Gamification (XP, levels, badges, streaks)
-- Email confirmation and password reset
-- Production deployment to Render + Neon (staging live; see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md))
-- Full CI/CD pipeline with automated testing
-- README polish with screenshots and demo GIF
+### Polish & production (Phase 4)
+- **Live** on Render + Neon with GitHub Actions CI (build + test on every PR)
+- "Momentum" visual redesign — dual-theme design system, mobile → UHD
+- **Gamification**: XP, levels, daily streaks, and a derived Skill IQ (all computed from your attempts)
+- Accessibility pass (keyboard focus, skip link, WCAG AA contrast, semantics/ARIA)
+- Demo account seeded with a fresh, self-refreshing quiz history; public registration gated behind a config flag
 
 ---
 
@@ -148,14 +151,14 @@ pnpm dev    # http://localhost:5173 with HMR
 
 ### Demo credentials
 
-A demo user is seeded automatically on first run (when the categories table is empty), along with all 269 questions:
+A demo user is seeded automatically on startup, along with all 269 questions across the four tracks:
 
 ```
 Email:    demo@techquiz.local
 Password: DemoPass123!
 ```
 
-Sign in with these to skip registration and explore the full quiz flow. Re-seeding is a no-op on a non-empty database — to start fresh, run `docker compose down -v`.
+Public registration is closed (see the note up top), so the demo account is the way in — the login screen also has a **Continue as demo** button. The demo account's quiz history is **refreshed on every startup** (dates relative to now), so the dashboard always shows a populated, current-looking state. Category/question seeding is idempotent; to reset everything locally, run `docker compose down -v`.
 
 ---
 
