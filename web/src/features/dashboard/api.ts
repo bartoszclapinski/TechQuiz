@@ -22,6 +22,17 @@ export type RecentActivityItem = {
   completedAt: string
 }
 
+// Mirrors the API's GamificationDto (ADR-025) — all-time XP / level / Skill IQ derived on read.
+export type Gamification = {
+  totalXp: number
+  level: number
+  xpIntoLevel: number
+  xpForNextLevel: number
+  skillIq: number
+  skillIqWeeklyDelta: number
+  tier: string
+}
+
 export type DashboardSummary = {
   currentStreakDays: number
   activitySparkline: number[]
@@ -30,6 +41,7 @@ export type DashboardSummary = {
   totalQuestionsAnswered: number
   averageScore: number | null
   recentActivity: RecentActivityItem[]
+  gamification: Gamification
 }
 
 // Mirrors the API's DashboardRange enum (bound case-insensitively by name on the query string).
