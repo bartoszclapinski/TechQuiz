@@ -81,6 +81,15 @@
   h3 {
     letter-spacing: -0.02em;
   }
+
+  /* Visible keyboard focus for every interactive element (a11y, iteration 4.4). The Momentum
+     redesign's custom-styled buttons, pill links and card-buttons otherwise fall back to an
+     inconsistent, often-invisible UA outline over their own backgrounds. Only shows for keyboard
+     focus (:focus-visible), so mouse clicks stay ring-free. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 /* Auth hero decoration: a faint 40px grid that adapts to the theme, plus gentle float
