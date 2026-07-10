@@ -149,7 +149,10 @@ export function LandingPage() {
         <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
           {FEATURES.map((feature) => (
             <div key={feature.title} className="rounded-[22px] border border-default bg-surface p-8">
-              <div className="mb-5 flex h-[50px] w-[50px] items-center justify-center rounded-[14px] bg-amber-bg text-[24px]">
+              <div
+                aria-hidden="true"
+                className="mb-5 flex h-[50px] w-[50px] items-center justify-center rounded-[14px] bg-amber-bg text-[24px]"
+              >
                 {feature.icon}
               </div>
               <h3 className="mb-2 font-display text-[21px] font-bold">{feature.title}</h3>

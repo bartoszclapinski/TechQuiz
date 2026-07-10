@@ -157,7 +157,7 @@ function TrackTile({ track, onOpen }: { track: Track; onOpen: () => void }) {
         <IconTile code={track.iconCode} />
         <Pill>{topicCount} topics</Pill>
       </div>
-      <h3 className="mb-1 font-display text-[19px] font-bold">{track.name}</h3>
+      <h2 className="mb-1 font-display text-[19px] font-bold">{track.name}</h2>
       <p className="mb-4 text-[14px] leading-[1.5] text-secondary">{track.description}</p>
       <p className="font-mono text-[12px] text-muted">{questionCount} questions →</p>
     </button>
@@ -175,7 +175,7 @@ function PracticalChallengesTile({ onOpen }: { onOpen: () => void }) {
         <IconTile code={'</>'} muted />
         <Pill muted>hands-on</Pill>
       </div>
-      <h3 className="mb-1 font-display text-[19px] font-bold">Practical Challenges</h3>
+      <h2 className="mb-1 font-display text-[19px] font-bold">Practical Challenges</h2>
       <p className="mb-4 text-[14px] leading-[1.5] text-secondary">
         Write and run code against automated tests instead of picking an answer.
       </p>
@@ -205,7 +205,7 @@ function CategoryCard({
           <IconTile code={category.iconCode} muted />
           <Pill muted>Soon</Pill>
         </div>
-        <h3 className="mb-1 font-display text-[19px] font-bold text-secondary">{category.name}</h3>
+        <h2 className="mb-1 font-display text-[19px] font-bold text-secondary">{category.name}</h2>
         <p className="mb-4 text-[14px] leading-[1.5] text-muted">{category.description}</p>
         <p className="font-mono text-[12px] text-muted">Not started</p>
       </div>
@@ -224,7 +224,7 @@ function CategoryCard({
         <IconTile code={category.iconCode} />
         <Pill>{starting ? 'Starting…' : `${category.questionCount} q`}</Pill>
       </div>
-      <h3 className="mb-1 font-display text-[19px] font-bold">{category.name}</h3>
+      <h2 className="mb-1 font-display text-[19px] font-bold">{category.name}</h2>
       <p className="mb-4 text-[14px] leading-[1.5] text-secondary">{category.description}</p>
       {score > 0 ? (
         <div className="flex items-center gap-2.5">

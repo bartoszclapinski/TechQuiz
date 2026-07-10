@@ -163,7 +163,7 @@ function ReviewRunner({
             >
               {difficulty.label}
             </span>
-            <h2 className="text-[22px] font-semibold leading-[1.3]">{question.text}</h2>
+            <h1 className="text-[22px] font-semibold leading-[1.3]">{question.text}</h1>
           </div>
 
           <div className="flex flex-col gap-2">
