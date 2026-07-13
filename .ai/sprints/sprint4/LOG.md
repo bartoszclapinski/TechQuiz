@@ -5,6 +5,29 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-07-13 — Iteracja 4.7: Final polish (domknięcie Phase 4)
+
+**Cel:** ostatnie szlify portfolio-facing po redesignie/gamifikacji/a11y/perf. Trzy slice'y, PR na slice.
+
+- **4.7.1 (#359)** — **SEO / social meta**: `index.html` dostaje meta description, Open Graph + Twitter
+  card, `theme-color` i opisowy `<title>` — udostępniony link demo ładnie się podgląda i czyta jak
+  realny produkt.
+- **4.7.2 (#361)** — **README refresh**: banner z live URL + „Continue as demo", intro pod Momentum +
+  gamifikację, tech-stack (bez recharts, + system typograficzny i code-splitting), sekcja Features pod
+  faktycznie dostarczone Phase 2/3/4, nota o zamkniętej rejestracji i samo-odświeżającej się historii demo.
+- **4.7.3 (#363)** — **a11y tail polish**: dekoracyjne glify w tekście (👋 👏 🎉 🔥 → ✓) owinięte w
+  `aria-hidden` (landing/login/dashboard/result/categories/generate), żeby SR je pomijał. Ikony ✓/✗
+  per-test w code-challenge dostają alternatywę tekstową (`role=img` + aria-label Passed/Failed) — kolor
+  był jedynym sygnałem, co łamało WCAG 1.4.1. `role=progressbar` z value/min/max na pasku Level/XP oraz
+  na `ProgressBar` kategorii. Stany loading/error/empty potwierdzone jako spójne po redesignie (wspólny
+  `text-[15px] text-secondary`, wyśrodkowane) — bez dodatkowego refaktoru.
+
+**Weryfikacja:** `pnpm build` + `pnpm lint` czyste na każdym slice; główny chunk bez zmian (381/115 kB gzip).
+**Phase 4 zamknięta** — roadmap dostarczona (deploy 4.6, mobile 4.1, redesign 4.10, demo 4.11, gamifikacja
+4.2, a11y 4.4, perf 4.5, final 4.7).
+
+---
+
 ## 2026-07-10 — Iteracja 4.5: Performance (bundle)
 
 **Cel:** zmniejszyć initial bundle (Render free tier + cold starty bolą). Cała appka szła jako jeden
