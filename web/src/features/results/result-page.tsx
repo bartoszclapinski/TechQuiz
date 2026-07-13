@@ -76,7 +76,7 @@ function Result({ result }: { result: QuizResult }) {
         </span>
         <CircularScore score={score} correct={result.correctCount} total={result.totalCount} />
         <h1 className="mt-7 font-display text-[clamp(30px,3.4vw,44px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-          Quiz complete! 🎉
+          Quiz complete! <span aria-hidden="true">🎉</span>
         </h1>
         <p className="mt-2 text-[17px] text-secondary">
           {delta === null ? (

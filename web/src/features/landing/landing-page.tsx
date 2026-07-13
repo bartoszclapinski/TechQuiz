@@ -78,7 +78,7 @@ export function LandingPage() {
         <div className="relative mx-auto grid max-w-[1560px] items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:gap-20 lg:px-16 lg:py-24">
           <div>
             <span className="mb-7 inline-flex items-center gap-2 rounded-pill bg-amber-bg px-4 py-2 text-[14px] font-semibold text-amber-text">
-              🔥 Keep your streak going
+              <span aria-hidden="true">🔥</span> Keep your streak going
             </span>
             <h1 className="mb-6 font-display text-[clamp(44px,6vw,80px)] font-extrabold leading-[1.0] tracking-[-0.025em]">
               Level up your

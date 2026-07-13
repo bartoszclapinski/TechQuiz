@@ -52,7 +52,7 @@ function PopulatedDashboard({
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-[clamp(28px,3vw,40px)] font-extrabold leading-[1.05] tracking-[-0.02em]">
-            Nice work{name ? `, ${name}` : ''} 👏
+            Nice work{name ? `, ${name}` : ''} <span aria-hidden="true">👏</span>
           </h1>
           {lastAttempt ? (
             <p className="mt-1.5 text-[16px] text-secondary">
@@ -153,7 +153,14 @@ function SkillIqHero({ gamification: g }: { gamification: Gamification }) {
           {g.xpIntoLevel} / {g.xpForNextLevel} XP to level {g.level + 1}
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-pill bg-track">
+      <div
+        className="h-3 overflow-hidden rounded-pill bg-track"
+        role="progressbar"
+        aria-label={`Level ${g.level} progress`}
+        aria-valuenow={g.xpIntoLevel}
+        aria-valuemin={0}
+        aria-valuemax={g.xpForNextLevel}
+      >
         <div className="h-full rounded-pill bg-brand" style={{ width: `${levelPct}%` }} />
       </div>
     </div>
@@ -164,7 +171,9 @@ function StreakCard({ days, sparkline }: { days: number; sparkline: number[] }) 
   const activeDays = sparkline.filter((value) => value > 0).length
   return (
     <Card className="p-6">
-      <Kicker>Streak 🔥</Kicker>
+      <Kicker>
+        Streak <span aria-hidden="true">🔥</span>
+      </Kicker>
       <div className="mt-3.5 flex items-baseline gap-2">
         <span className="font-display text-[clamp(38px,4vw,52px)] font-extrabold leading-[0.9] text-primary">
           {days}
@@ -200,7 +209,7 @@ function CategoryProgressCard({ categories }: { categories: CategoryStrength[] }
       <div className="mb-5 flex items-center justify-between">
         <Kicker>Category progress</Kicker>
         <Link to="/categories" className="text-[14px] text-accent hover:underline">
-          All →
+          All <span aria-hidden="true">→</span>
         </Link>
       </div>
       {rows.length === 0 ? (
@@ -233,9 +242,17 @@ function CategoryProgressCard({ categories }: { categories: CategoryStrength[] }
 }
 
 function ProgressBar({ pct }: { pct: number }) {
+  const clamped = Math.max(0, Math.min(100, pct))
   return (
-    <div className="h-2 overflow-hidden rounded-pill bg-track">
-      <div className="h-full rounded-pill bg-brand" style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
+    <div
+      className="h-2 overflow-hidden rounded-pill bg-track"
+      role="progressbar"
+      aria-label="Category score"
+      aria-valuenow={clamped}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <div className="h-full rounded-pill bg-brand" style={{ width: `${clamped}%` }} />
     </div>
   )
 }
@@ -287,7 +304,7 @@ function RecentAttemptsCard({ items }: { items: RecentActivityItem[] }) {
       <div className="mb-5 flex items-center justify-between">
         <Kicker>Recent attempts</Kicker>
         <Link to="/history" className="text-[14px] text-accent hover:underline">
-          History →
+          History <span aria-hidden="true">→</span>
         </Link>
       </div>
       {rows.length === 0 ? (
@@ -508,7 +525,7 @@ function EmptyDashboard({
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-[clamp(28px,3vw,40px)] font-extrabold leading-[1.05] tracking-[-0.02em]">
-            Welcome{name ? `, ${name}` : ''} 👋
+            Welcome{name ? `, ${name}` : ''} <span aria-hidden="true">👋</span>
           </h1>
           <p className="mt-1.5 text-[16px] text-secondary">
             Take your first quiz to start your climb.
@@ -543,7 +560,9 @@ function EmptyDashboard({
         </div>
 
         <Card className="p-6 opacity-50">
-          <Kicker>Streak 🔥</Kicker>
+          <Kicker>
+            Streak <span aria-hidden="true">🔥</span>
+          </Kicker>
           <span className="mt-3.5 block font-display text-[clamp(38px,4vw,52px)] font-extrabold leading-[0.9] text-muted">
             —
           </span>

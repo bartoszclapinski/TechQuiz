@@ -270,8 +270,12 @@ function Verdict({ result }: { result: CodeChallengeGradeResult }) {
             key={testCase.orderIndex}
             className="flex items-center gap-2 text-[13px] text-secondary"
           >
-            <span className={testCase.passed ? 'text-success' : 'text-danger'}>
-              {testCase.passed ? '✓' : '✗'}
+            <span
+              role="img"
+              aria-label={testCase.passed ? 'Passed' : 'Failed'}
+              className={testCase.passed ? 'text-success' : 'text-danger'}
+            >
+              <span aria-hidden="true">{testCase.passed ? '✓' : '✗'}</span>
             </span>
             <span>Test {testCase.orderIndex + 1}</span>
             {!testCase.passed ? (

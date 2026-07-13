@@ -73,7 +73,7 @@ export function LoginPage() {
     <AuthLayout>
       <div className="mb-8">
         <h1 className="mb-2 font-display text-[clamp(32px,3vw,42px)] font-extrabold leading-[1.08] tracking-[-0.02em]">
-          Welcome back! 👋
+          Welcome back! <span aria-hidden="true">👋</span>
         </h1>
         <p className="text-[16px] text-secondary">
           Continue where you left off, or start fresh with a new category.
