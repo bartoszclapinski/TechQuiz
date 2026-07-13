@@ -244,7 +244,7 @@ function DraftPreview({ result }: { result: GenerateResult }) {
               <div className="flex justify-end">
                 {isPublished ? (
                   <span className="rounded-md px-2.5 py-1.5 text-[13px] font-medium text-success">
-                    Published ✓
+                    Published <span aria-hidden="true">✓</span>
                   </span>
                 ) : (
                   <button

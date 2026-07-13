@@ -159,7 +159,9 @@ function TrackTile({ track, onOpen }: { track: Track; onOpen: () => void }) {
       </div>
       <h2 className="mb-1 font-display text-[19px] font-bold">{track.name}</h2>
       <p className="mb-4 text-[14px] leading-[1.5] text-secondary">{track.description}</p>
-      <p className="font-mono text-[12px] text-muted">{questionCount} questions →</p>
+      <p className="font-mono text-[12px] text-muted">
+        {questionCount} questions <span aria-hidden="true">→</span>
+      </p>
     </button>
   )
 }
@@ -179,7 +181,9 @@ function PracticalChallengesTile({ onOpen }: { onOpen: () => void }) {
       <p className="mb-4 text-[14px] leading-[1.5] text-secondary">
         Write and run code against automated tests instead of picking an answer.
       </p>
-      <p className="font-mono text-[12px] text-muted">Open editor →</p>
+      <p className="font-mono text-[12px] text-muted">
+        Open editor <span aria-hidden="true">→</span>
+      </p>
     </button>
   )
 }
