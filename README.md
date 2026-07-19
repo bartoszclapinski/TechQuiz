@@ -4,20 +4,11 @@
 
 **▶ Live demo: [techquiz-web.onrender.com](https://techquiz-web.onrender.com)** — click **Continue as demo** to explore the full flow, no sign-up needed. The demo account comes pre-loaded with quiz history. First load can take ~30–50 s while the free Render instance wakes from sleep.
 
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/login-dark.png" alt="Login screen" /><br/><sub><b>Login</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/categories-dark.png" alt="Categories screen" /><br/><sub><b>Categories</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/quiz-dark.png" alt="Quiz screen" /><br/><sub><b>Quiz — multiple choice</b></sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/result-dark.png" alt="Result screen" /><br/><sub><b>Result</b></sub></td>
-    <td align="center"><img src="docs/screenshots/dashboard-dark.png" alt="Dashboard screen" /><br/><sub><b>Dashboard</b></sub></td>
-    <td align="center"><img src="docs/screenshots/quiz-code-dark.png" alt="Code question screen" /><br/><sub><b>Code questions</b></sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/media/techquiz-demo.gif" width="800" alt="TechQuiz walkthrough — signing in with the demo account, browsing tracks, picking a category, answering a quiz question, seeing the score, and an overview of the Clean Architecture layers" />
+</p>
 
-<sub>These screenshots are rendered from the early design mockups in <a href="docs/mockups/"><code>docs/mockups/</code></a>. The live app now uses the newer <b>"Momentum"</b> redesign — see the <a href="https://techquiz-web.onrender.com">live demo</a> for the current look.</sub>
+<p align="center"><sub>Recorded from the live app. The full-length version plays on the <a href="https://techquiz-web.onrender.com/#demo">landing page</a>.</sub></p>
 
 ---
 
