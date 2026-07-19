@@ -45,6 +45,9 @@ export function LandingPage() {
           <a href="#features" className="text-[15px] font-medium text-secondary hover:text-primary">
             Features
           </a>
+          <a href="#demo" className="text-[15px] font-medium text-secondary hover:text-primary">
+            Demo
+          </a>
           <a href="#how" className="text-[15px] font-medium text-secondary hover:text-primary">
             How it works
           </a>
@@ -135,6 +138,32 @@ export function LandingPage() {
           <span className="rounded-pill border border-default bg-elevated px-4 py-2 font-mono text-[14px] text-muted">
             +11 more
           </span>
+        </div>
+      </section>
+
+      {/* Product walkthrough video. Deliberately not autoplaying: it runs well past five
+          seconds, and WCAG 2.2.2 would then require a pause control. Click-to-play with
+          preload="none" also keeps the landing page's first load cheap. */}
+      <section id="demo" className="mx-auto max-w-[1560px] px-6 pb-20 lg:px-16">
+        <h2 className="mb-2.5 max-w-[640px] font-display text-[clamp(28px,3vw,42px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
+          See it in action.
+        </h2>
+        <p className="mb-8 max-w-[560px] text-[clamp(15px,1.2vw,18px)] text-secondary">
+          A 44-second walkthrough: signing in with the demo account, browsing tracks, taking a quiz,
+          reviewing your score — and a look under the hood at the architecture.
+        </p>
+        <div className="mx-auto max-w-[1100px] overflow-hidden rounded-[22px] border border-default bg-surface shadow-float">
+          <video
+            className="block aspect-video w-full"
+            controls
+            preload="none"
+            playsInline
+            poster="/media/techquiz-poster.png"
+          >
+            <source src="/media/techquiz-walkthrough.mp4" type="video/mp4" />
+            Your browser can’t play embedded video —{' '}
+            <a href="/media/techquiz-walkthrough.mp4">download the walkthrough</a> instead.
+          </video>
         </div>
       </section>
 
