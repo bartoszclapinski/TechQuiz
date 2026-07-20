@@ -75,3 +75,11 @@ TestResults/
 # Claude Code (user-specific permissions/state — settings.json shared, *.local.json ignored)
 .claude/settings.local.json
 .claude/*.local.json
+
+# Walkthrough animation — track the scene sources and render scripts, not the
+# design tool's leftovers or the render artifacts (see .ai/animation/README.md).
+.ai/animation/*.zip
+.ai/animation/**/uploads/
+.ai/animation/**/.thumbnail
+.ai/animation/master.mp4
+.ai/animation/out/
