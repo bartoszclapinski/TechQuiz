@@ -75,6 +75,7 @@ TestResults/
 # Claude Code (user-specific permissions/state — settings.json shared, *.local.json ignored)
 .claude/settings.local.json
 .claude/*.local.json
+.claude/*.lock
 
 # Design-tool bundles — track the sources, not the export archives or the
 # render artifacts (see .ai/animation/README.md and .ai/design/README.md).
