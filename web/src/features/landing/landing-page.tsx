@@ -240,7 +240,7 @@ export function LandingPage() {
             </span>
             <span className="font-display text-[15px] font-bold">TechQuiz</span>
           </div>
-          <span className="ml-auto font-mono text-[13px] text-muted">© 2026 TechQuiz · v0.1.0</span>
+          <span className="ml-auto font-mono text-[13px] text-muted">© 2026 TechQuiz · v1.0.0</span>
         </div>
       </footer>
     </div>
