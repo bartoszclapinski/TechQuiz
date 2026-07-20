@@ -91,11 +91,20 @@ its own services + secrets.
 
 ## Versioning policy
 
-- Pre-1.0: this project starts on `0.1.0` after the first feature merge. Anything before that is `0.0.0` (no release yet).
-- `1.0.0` is cut after Phase 1 (MVP) completes — first version with a complete user-facing feature set.
-- `2.0.0` is reserved for breaking changes to the public API or data model migrations that can't be backward-compatible.
+- **`1.0.0`** was tagged once all four roadmap phases shipped and the app went live. Its notes are
+  hand-written, because letting semantic-release cut the first release would have folded the entire repo
+  history into one unreadable changelog.
+- From `1.0.0` onward, versions are cut automatically from Conventional Commits: `feat` → minor,
+  `fix`/`perf`/`refactor` → patch. `docs`, `test`, `chore`, `ci`, `build` and `style` don't trigger a
+  release, so those merges finish as a green no-op run.
+- `2.0.0` is reserved for breaking changes to the public API or data-model migrations that can't be
+  backward-compatible.
 
-The CHANGELOG and Git tags are the single source of truth for what's in each version.
+**There is no `CHANGELOG.md`, deliberately.** `@semantic-release/git` would have to push the regenerated
+file straight to `master`, which branch protection rejects (`GH006`) — and working around that means
+handing a bot the right to bypass protection, which hard rule #2 forbids. Release notes live on the
+[Releases](https://github.com/bartoszclapinski/TechQuiz/releases) page instead, and **Git tags plus those
+releases are the single source of truth** for what's in each version.
 
 ## Commitlint configuration
 
