@@ -429,14 +429,18 @@ The following recurring patterns are used across multiple screens. Documenting t
 
 ---
 
-## Deployment (Phase 4)
+## Deployment
 
-Target platforms under consideration:
-- **Railway** — simplest .NET + PostgreSQL hosting with free tier
-- **Render** — similar to Railway, generous free tier
-- **Azure App Service + Azure Database for PostgreSQL** — most enterprise-relevant for portfolio
+**Live on [Render](https://techquiz-web.onrender.com) + [Neon](https://neon.tech).** Two Docker web
+services (the .NET API and the nginx-served SPA, each built from its own Dockerfile) are declared in the
+version-controlled [`render.yaml`](../render.yaml) blueprint; Render auto-builds and redeploys on every
+push to `master`. PostgreSQL is a Neon managed instance.
 
-Final decision will be made before Phase 4 implementation.
+Render was chosen over the earlier Azure App Service plan in **ADR-022** — Azure's free tier can't run
+custom containers, and its managed Postgres isn't free, which would have ended the portfolio demo once
+student credit ran out. The full runbook lives in [`DEPLOYMENT.md`](DEPLOYMENT.md).
+
+Free instances sleep after ~15 minutes idle, so the first request can take 30–50 seconds.
 
 CI/CD pipeline (GitHub Actions):
 1. On every PR: build + run all tests

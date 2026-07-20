@@ -2,7 +2,7 @@
 
 This file is the entry point for AI coding assistants (Claude Code, Cursor, Copilot Workspace) working on this repository. It captures the minimum context required to be useful here without re-reading every doc.
 
-If you're an AI agent: read this file fully, then continue with `docs/ARCHITECTURE.md` and the current iteration file in `.ai/sprints/`. Do not skip those.
+If you're an AI agent: read this file fully, then continue with `docs/ARCHITECTURE.md` and the relevant iteration file in `.ai/sprints/`. Do not skip those.
 
 If you're a human: this file is also a useful single-page summary of how the project operates.
 
@@ -17,16 +17,19 @@ The project is built as a portfolio piece demonstrating:
 - React + TypeScript frontend with dual-theme (dark/light) design system
 - Multi-user auth (Identity + JWT)
 - AI integration via provider abstraction (Phase 3)
-- Real CI/CD pipeline with staging deployment to Azure
+- Real CI/CD pipeline with a live deployment on Render + Neon
 
-Current phase: **Phase 1 (MVP)** — see `.ai/sprints/sprint1/` for active work. Iteration 1.3 (Persistence) is next; 1.1 (Domain TDD) and 1.2 (Application layer) are merged.
+Current status: **all four phases are delivered and the app is live** at
+[techquiz-web.onrender.com](https://techquiz-web.onrender.com). No planned iteration remains — further work
+is off-plan (ad-hoc polish, content expansion, or a new initiative), so don't assume a "next iteration"
+exists; ask the owner what to pick up.
 
-The roadmap has four phases (see `docs/DECISION_LOG.md` ADR-013):
+The roadmap's four phases (see `docs/DECISION_LOG.md` ADR-013) — all `done`:
 - Phase 0 — Foundation (setup, auth scaffolding, Docker, CI)
 - Phase 1 — MVP (full quiz flow with hardcoded seed questions)
 - Phase 2 — Dashboard with bento grid + spaced repetition
 - Phase 3 — AI integration + code questions
-- Phase 4 — Polish + production deployment
+- Phase 4 — Polish + deployment (incl. the "Momentum" redesign, gamification, a11y and performance passes)
 
 ---
 
@@ -41,7 +44,7 @@ The roadmap has four phases (see `docs/DECISION_LOG.md` ADR-013):
 | Mediator | MediatR |
 | Validation | FluentValidation |
 | Auth | ASP.NET Identity + JWT bearer + refresh tokens |
-| Logging | Serilog (Console + Seq in dev, Application Insights in staging) |
+| Logging | Serilog (Console + Seq in dev, Console in the deployed environment) |
 | Backend tests | xUnit + NSubstitute + Testcontainers (PostgreSQL) |
 | Frontend runtime | Node.js 20 |
 | Frontend tooling | Vite, pnpm 9 |
@@ -50,11 +53,11 @@ The roadmap has four phases (see `docs/DECISION_LOG.md` ADR-013):
 | Routing | React Router v6 |
 | Data fetching | TanStack Query (React Query) |
 | Forms | react-hook-form + zod |
-| Charts | Recharts (Phase 2+) |
+| Charts | none — dashboard visuals are hand-rolled CSS/SVG bars (Recharts was dropped in 4.5) |
 | Editor (Phase 3+) | Monaco Editor |
 | Containerization | Docker + docker-compose |
 | CI/CD | GitHub Actions + semantic-release |
-| Host (staging) | Azure App Service (Linux) + Azure Database for PostgreSQL |
+| Host (live) | Render (Docker web services, `render.yaml`) + Neon managed PostgreSQL — see ADR-022 |
 
 Exact versions: see `*.csproj` files and `web/package.json`. This table is a quick reference, not authoritative.
 
@@ -90,7 +93,9 @@ TechQuiz/
 │
 ├── docs/                           ← portfolio-facing documentation
 │   ├── ARCHITECTURE.md             ← system architecture + component patterns
-│   ├── DECISION_LOG.md             ← ADRs (17 entries — read these to understand "why")
+│   ├── DECISION_LOG.md             ← ADRs (26 entries — read these to understand "why")
+│   ├── DEPLOYMENT.md               ← Render + Neon runbook
+│   ├── media/                      ← rendered walkthrough GIF used by the README
 │   ├── CI_CD.md                    ← CI/CD pipeline description
 │   ├── mockups/                    ← UI mockups as standalone .html files
 │   └── postman/                    ← Postman collection for API testing
@@ -108,7 +113,8 @@ TechQuiz/
     ├── workflows/
     │   ├── ci.yml                  ← build + test + lint on PR
     │   ├── release.yml             ← semantic-release on merge to master
-    │   └── deploy-staging.yml      ← deploy to Azure App Service
+    │   └── api-smoke.yml           ← smoke-checks the deployed API
+    │                                 (no deploy workflow: Render auto-builds on push to master)
     ├── BRANCH_PROTECTION.md        ← branch protection rules (manual GitHub setup)
     └── PULL_REQUEST_TEMPLATE.md
 ```
@@ -119,10 +125,10 @@ TechQuiz/
 
 Every non-trivial decision is documented. Before introducing a new pattern, library, or convention, check whether it's already decided:
 
-- **`docs/DECISION_LOG.md`** — 17 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
+- **`docs/DECISION_LOG.md`** — 26 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
 - **`docs/ARCHITECTURE.md`** — system structure, component patterns (code blocks, status pills, metric cards, etc.), and visual design system
 - **`docs/CI_CD.md`** — pipeline behavior, deploy strategy, branch protection rationale
-- **`.ai/sprints/sprintN/X.Y-*.md`** — current iteration's goal, definition of done, and ordered task list
+- **`.ai/sprints/sprintN/X.Y-*.md`** — each iteration's goal, definition of done, and ordered task list, plus `LOG.md` per sprint
 
 If a question isn't answered in these files, ask the project owner before improvising.
 
@@ -156,12 +162,15 @@ PR title must follow the same format — it becomes the squash commit message an
 
 ### Iteration workflow
 
-1. Open the current iteration file in `.ai/sprints/sprintN/X.Y-*.md`
+Every planned iteration is `done`, so there is no "current" one to pick up — confirm the goal with the
+owner before starting. Work still ships the same way, and anything sizeable gets its own iteration file:
+
+1. Open (or write) the iteration file in `.ai/sprints/sprintN/X.Y-*.md` and read its goal + DoD
 2. Tasks are ordered. Work through them sequentially unless dependencies allow parallelism
 3. After each meaningful chunk: commit with conventional commit message, push, open PR
 4. PR triggers CI. When green, squash-merge
 5. When all DoD checkboxes are met, update iteration status to `done` in the file's frontmatter
-6. Move to the next iteration file
+6. Record what happened in `.ai/sprints/sprintN/LOG.md` (Polish, newest entry first)
 
 ### Issue tracking
 
@@ -213,7 +222,7 @@ These rules are non-negotiable. Violating any of them should fail review.
 4. **Never expose `IsCorrect` on options through the API when serving an active quiz.** Doing so reveals answers to the client. The `QuestionDto` returned during a quiz must omit this field.
 5. **Never silently change an ADR.** If a previously-recorded decision needs to change, append a new ADR explaining why and mark the old one as superseded. Editing in place loses history.
 6. **Never add a library without justification.** Before introducing a new dependency, check whether existing stack solves the problem. If a new dep is needed, mention it in the PR description.
-7. **Never skip the iteration file.** Before starting work, read the current iteration's goal and DoD. Don't work from memory or guesses about "what's next".
+7. **Never skip the iteration file.** Before starting work, read the relevant iteration's goal and DoD. Don't work from memory or guesses about "what's next" — and since the roadmap is complete, confirm the goal with the owner rather than inventing the next iteration.
 
 ---
 
@@ -234,7 +243,7 @@ These are strong defaults — deviate only with explicit justification.
 
 ### Adding a new feature
 
-1. Find which iteration the feature belongs to in `.ai/sprints/`
+1. Agree the goal with the owner, then find or create the iteration file in `.ai/sprints/`
 2. Read the iteration's goal and DoD
 3. Branch: `feat/short-description`
 4. Implement following the iteration's task list
@@ -319,8 +328,9 @@ Things that have bitten before or are easy to get wrong:
 - **JWT in localStorage is a vulnerability.** This project uses memory-only JWT + HttpOnly refresh cookie. Don't "simplify" by moving JWT to localStorage.
 - **Code blocks stay dark in light mode.** This is intentional (see ADR-016). Syntax highlighting reads better on dark, and dev tools train the eye to expect dark code regions. Don't "fix" this.
 - **Quiz screen hides the topbar.** The `<AppShell>` component is route-aware and renders only the `<Outlet />` on `/quiz/:id` routes. Don't add the shell to the quiz route in routing config.
-- **Demo user credentials are seeded only when categories table is empty.** Re-running seed on a non-empty DB is a no-op. To re-seed, drop the database (`docker compose down -v`) and start fresh.
-- **Azure App Service free tier sleeps after 20 minutes.** First request to staging after idle can take 30 seconds. This is acceptable for portfolio demos; communicate it in the README so reviewers aren't confused.
+- **The seeder is idempotent per resource, with one deliberate exception.** Tracks, categories, questions and the demo user each have their own existence check, so re-running is safe. The demo account's *quiz history* is the exception: it is wiped and regenerated on every boot with dates relative to now, so the live demo never shows a stale dashboard. Only the demo user is touched. To reset content locally, `docker compose down -v`.
+- **Public registration is closed** behind `Auth:RegistrationEnabled` (`false` in base appsettings so the live API returns 403; `true` in `appsettings.Development.json` so local work and integration tests still register). Reversible via the flag once a privacy policy exists.
+- **Render free instances sleep after ~15 minutes.** The first request after idle can take 30–50 seconds. This is acceptable for portfolio demos; the README says so up front, so reviewers aren't confused.
 
 ---
 

@@ -185,8 +185,10 @@ TechQuiz/
 │
 ├── docs/
 │   ├── ARCHITECTURE.md                  # System architecture + component patterns
-│   ├── DECISION_LOG.md                  # 17 ADRs covering tech + scope + UI decisions
+│   ├── DECISION_LOG.md                  # 26 ADRs covering tech + scope + UI decisions
 │   ├── CI_CD.md                         # Pipeline behavior + deploy strategy
+│   ├── DEPLOYMENT.md                    # Render + Neon runbook
+│   ├── media/                           # Walkthrough GIF used above
 │   └── mockups/                         # Standalone HTML mockups, dark + light themes
 │
 ├── .ai/                                 # Operational docs for AI assistants
@@ -194,7 +196,7 @@ TechQuiz/
 │   └── sprints/sprintN/                 # Per-phase iteration plans + LOG.md
 │
 └── .github/
-    ├── workflows/                       # ci.yml + release.yml
+    ├── workflows/                       # ci.yml + release.yml + api-smoke.yml
     ├── BRANCH_PROTECTION.md             # Required protection rules (master)
     └── PULL_REQUEST_TEMPLATE.md
 ```
