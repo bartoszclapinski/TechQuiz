@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Geist',system-ui,sans-serif;background:#17121f}
+  a{color:inherit}
+  ::selection{background:rgba(167,139,250,.3)}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes flb{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+</style>
+</helmet>
+
+<div style="{{ shellStyle }}">
+
+  <div style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 20px;background:var(--surface,#221a2e);border-bottom:1px solid var(--border,#2a2137)">
+    <span style="font:600 10px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--text3,#7d7291);margin-right:auto">TechQuiz · Momentum</span>
+    <div style="display:flex;gap:4px;background:var(--bg,#17121f);border:1px solid var(--border,#2a2137);border-radius:999px;padding:4px">
+      <button onClick="{{ setLanding }}" style="{{ tabLanding }}">Landing</button>
+      <button onClick="{{ setLogin }}" style="{{ tabLogin }}">Login</button>
+      <button onClick="{{ setCategories }}" style="{{ tabCategories }}">Categories</button>
+      <button onClick="{{ setQuiz }}" style="{{ tabQuiz }}">Quiz</button>
+      <button onClick="{{ setResult }}" style="{{ tabResult }}">Result</button>
+      <button onClick="{{ setDashboard }}" style="{{ tabDashboard }}">Dashboard</button>
+    </div>
+    <button onClick="{{ toggleTheme }}" style="margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--bg,#17121f);border:1px solid var(--border,#2a2137);color:var(--text2,#a99fc0);padding:8px 14px;border-radius:999px;font:500 13px 'Geist';cursor:pointer">{{ themeIcon }} {{ themeLabel }}</button>
+  </div>
+
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <header style="max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:32px;padding:26px clamp(24px,4vw,72px)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div style="width:36px;height:36px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:11px;display:flex;align-items:center;justify-content:center;font:800 19px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">T</div>
+        <span style="font:700 20px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">TechQuiz</span>
+      </div>
+      <nav style="display:flex;gap:28px;margin-left:12px">
+        <a style="font:500 15px 'Geist';color:var(--text2,#a99fc0);text-decoration:none">Features</a>
+        <a style="font:500 15px 'Geist';color:var(--text2,#a99fc0);text-decoration:none">Categories</a>
+        <a style="font:500 15px 'Geist';color:var(--text2,#a99fc0);text-decoration:none">How it works</a>
+      </nav>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+        <a onClick="{{ setLogin }}" style="font:500 15px 'Geist';color:var(--text,#f4f0fa);text-decoration:none;cursor:pointer">Sign in</a>
+        <button onClick="{{ setLogin }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:12px 22px;border-radius:999px;font:600 15px 'Geist';cursor:pointer;box-shadow:0 8px 20px rgba(124,58,237,.22)">Get started</button>
+      </div>
+    </header>
+
+    <section style="position:relative;overflow:hidden">
+      <div style="position:absolute;top:-320px;right:-160px;width:1000px;height:1000px;background:radial-gradient(circle,var(--heroglow1,rgba(251,191,36,.12)),transparent 60%);pointer-events:none"></div>
+      <div style="position:absolute;bottom:-420px;left:-260px;width:1000px;height:1000px;background:radial-gradient(circle,var(--heroglow2,rgba(167,139,250,.16)),transparent 60%);pointer-events:none"></div>
+      <div style="position:relative;max-width:1560px;margin:0 auto;padding:clamp(48px,7vw,110px) clamp(24px,4vw,72px) clamp(56px,7vw,120px);display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:clamp(40px,5vw,88px);align-items:center">
+        <div>
+          <span style="display:inline-flex;align-items:center;gap:7px;font:600 14px 'Geist';color:var(--ambertext,#fbbf24);background:var(--amberbg,rgba(251,191,36,.15));padding:8px 16px;border-radius:999px;margin-bottom:28px">🔥 Keep your streak going</span>
+          <h1 style="font:800 clamp(44px,6vw,80px)/1.0 'Bricolage Grotesque';letter-spacing:-.025em;color:var(--text,#f4f0fa);margin:0 0 24px">Level up your<br>.NET skills,<br>one quiz a day.</h1>
+          <p style="font-size:clamp(17px,1.4vw,21px);line-height:1.6;color:var(--text2,#a99fc0);margin:0 0 38px;max-width:520px">Earn XP, build streaks and watch your Skill&nbsp;IQ climb across C#, ASP.NET&nbsp;Core, EF&nbsp;Core and SQL — with AI-generated questions and spaced repetition.</p>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <button onClick="{{ setDashboard }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:16px 30px;border-radius:999px;font:600 17px 'Geist';cursor:pointer;box-shadow:0 12px 28px rgba(124,58,237,.28)">Start earning XP</button>
+            <button onClick="{{ setLogin }}" style="background:var(--surface,#221a2e);color:var(--text,#f4f0fa);border:1px solid var(--border2,#392c4d);padding:16px 28px;border-radius:999px;font:600 17px 'Geist';cursor:pointer">Try the demo</button>
+          </div>
+          <div style="display:flex;gap:32px;margin-top:44px">
+            <div><div style="font:800 30px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">269</div><div style="font-size:14px;color:var(--text3,#7d7291)">questions</div></div>
+            <div><div style="font:800 30px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">9</div><div style="font-size:14px;color:var(--text3,#7d7291)">categories</div></div>
+            <div><div style="font:800 30px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">100%</div><div style="font-size:14px;color:var(--text3,#7d7291)">free forever</div></div>
+          </div>
+        </div>
+        <div style="justify-self:center;width:100%;max-width:480px;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:26px;padding:30px;box-shadow:var(--shadow,0 20px 50px rgba(0,0,0,.4));animation:fl 8s ease-in-out infinite">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:52px;height:52px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:15px;display:flex;align-items:center;justify-content:center;font:800 20px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">C#</div>
+              <div><p style="font:600 13px 'Geist';color:var(--accent,#a78bfa);margin:0 0 2px">Daily goal</p><p style="font:700 19px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0">C# Advanced</p></div>
+            </div>
+            <span style="font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24);background:var(--amberbg,rgba(251,191,36,.15));padding:6px 12px;border-radius:999px">+120 XP</span>
+          </div>
+          <div style="height:12px;background:var(--track,#17121f);border-radius:999px;overflow:hidden;margin-bottom:12px"><div style="height:100%;width:87%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text2,#a99fc0);margin-bottom:22px"><span style="font-weight:500">13 / 15 correct</span><span>Level 7 · 87%</span></div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;background:var(--elevated,#2a2137);border-radius:14px;padding:14px"><div style="font:800 22px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">12</div><div style="font-size:12px;color:var(--text3,#7d7291)">day streak</div></div>
+            <div style="flex:1;background:var(--elevated,#2a2137);border-radius:14px;padding:14px"><div style="font:800 22px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">182</div><div style="font-size:12px;color:var(--text3,#7d7291)">Skill IQ</div></div>
+            <div style="flex:1;background:var(--elevated,#2a2137);border-radius:14px;padding:14px"><div style="font:800 22px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">84%</div><div style="font-size:12px;color:var(--text3,#7d7291)">accuracy</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1560px;margin:0 auto;padding:0 clamp(24px,4vw,72px) clamp(40px,4vw,64px)">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding-top:clamp(28px,3vw,44px);border-top:1px solid var(--border,#2a2137)">
+        <span style="font:500 15px 'Geist';color:var(--text2,#a99fc0);margin-right:8px">Topics you can master</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--brandfg2,#fbbf24);background:var(--chip,#2a2137);border:1px solid var(--border2,#392c4d);padding:8px 15px;border-radius:999px">C#</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">ASP.NET Core</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">EF Core</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">SQL</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">Design Patterns</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">Unit Testing</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">Git</span>
+        <span style="font:500 14px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--chip,#2a2137);border:1px solid var(--border,#2a2137);padding:8px 15px;border-radius:999px">+2 more</span>
+      </div>
+    </section>
+
+    <section style="max-width:1560px;margin:0 auto;padding:clamp(16px,2vw,32px) clamp(24px,4vw,72px) clamp(56px,6vw,96px)">
+      <h2 style="font:800 clamp(28px,3vw,42px)/1.1 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 10px;max-width:640px">Everything you need to actually retain what you learn.</h2>
+      <p style="font-size:clamp(15px,1.2vw,18px);color:var(--text2,#a99fc0);margin:0 0 clamp(28px,3vw,48px);max-width:560px">Not another flashcard app — a feedback loop built for developers.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(16px,1.6vw,24px)">
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:30px">
+          <div style="width:50px;height:50px;background:var(--amberbg,rgba(251,191,36,.15));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px">✨</div>
+          <h3 style="font:700 21px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 8px">AI-generated questions</h3>
+          <p style="font-size:15px;line-height:1.6;color:var(--text2,#a99fc0);margin:0">Bring your own key and generate fresh questions on any topic. Every one is saved to a shared pool for the community.</p>
+        </div>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:30px">
+          <div style="width:50px;height:50px;background:var(--amberbg,rgba(251,191,36,.15));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px">🔁</div>
+          <h3 style="font:700 21px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 8px">Spaced repetition</h3>
+          <p style="font-size:15px;line-height:1.6;color:var(--text2,#a99fc0);margin:0">A simplified SM-2 schedule resurfaces exactly what you're about to forget, so review time is never wasted.</p>
+        </div>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:30px">
+          <div style="width:50px;height:50px;background:var(--amberbg,rgba(251,191,36,.15));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px">📈</div>
+          <h3 style="font:700 21px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 8px">Progress that motivates</h3>
+          <p style="font-size:15px;line-height:1.6;color:var(--text2,#a99fc0);margin:0">XP, levels, streaks and a Skill IQ that ranks you against other learners keep the momentum going.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1560px;margin:0 auto;padding:0 clamp(24px,4vw,72px) clamp(60px,7vw,110px)">
+      <div style="background:var(--cardgrad,linear-gradient(150deg,#2a2137,#221a2e));border:1px solid var(--border2,#392c4d);border-radius:28px;padding:clamp(36px,4vw,64px);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-120px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,var(--heroglow1,rgba(251,191,36,.12)),transparent 62%)"></div>
+        <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:44px;align-items:center">
+          <div>
+            <h2 style="font:800 clamp(30px,3.2vw,46px)/1.08 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 16px">Ready when you are.</h2>
+            <p style="font-size:clamp(16px,1.3vw,19px);color:var(--text2,#a99fc0);margin:0 0 30px;max-width:440px">Sign in with the demo account and take your first quiz in under a minute — no setup, no card required.</p>
+            <button onClick="{{ setLogin }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:16px 32px;border-radius:999px;font:600 17px 'Geist';cursor:pointer;box-shadow:0 12px 28px rgba(124,58,237,.3)">Get started free</button>
+          </div>
+          <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:16px">
+            <li style="display:flex;gap:16px;align-items:flex-start"><span style="flex:none;width:34px;height:34px;border-radius:999px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));color:var(--brandfg,#17121f);font:800 15px 'Bricolage Grotesque';display:flex;align-items:center;justify-content:center">1</span><div><p style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 2px">Pick a category</p><p style="font-size:14px;color:var(--text2,#a99fc0);margin:0">Nine topics, from C# basics to Clean Architecture.</p></div></li>
+            <li style="display:flex;gap:16px;align-items:flex-start"><span style="flex:none;width:34px;height:34px;border-radius:999px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));color:var(--brandfg,#17121f);font:800 15px 'Bricolage Grotesque';display:flex;align-items:center;justify-content:center">2</span><div><p style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 2px">Answer & learn</p><p style="font-size:14px;color:var(--text2,#a99fc0);margin:0">Instant feedback and explanations after every question.</p></div></li>
+            <li style="display:flex;gap:16px;align-items:flex-start"><span style="flex:none;width:34px;height:34px;border-radius:999px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));color:var(--brandfg,#17121f);font:800 15px 'Bricolage Grotesque';display:flex;align-items:center;justify-content:center">3</span><div><p style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 2px">Track your climb</p><p style="font-size:14px;color:var(--text2,#a99fc0);margin:0">Watch XP, streaks and Skill IQ grow on your dashboard.</p></div></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <footer style="border-top:1px solid var(--border,#2a2137)"><div style="max-width:1560px;margin:0 auto;padding:32px clamp(24px,4vw,72px);display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:8px;display:flex;align-items:center;justify-content:center;font:800 13px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">T</div><span style="font:700 15px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">TechQuiz</span></div><span style="font:400 13px 'JetBrains Mono';color:var(--text3,#7d7291);margin-left:auto">© 2026 TechQuiz · v0.1.0</span></div></footer>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));min-height:calc(100vh - 57px)">
+    <div style="display:flex;flex-direction:column;padding:clamp(28px,3vw,52px) clamp(32px,4vw,64px)">
+      <div onClick="{{ setLanding }}" style="display:flex;align-items:center;gap:11px;cursor:pointer">
+        <div style="width:36px;height:36px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:11px;display:flex;align-items:center;justify-content:center;font:800 19px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">T</div>
+        <span style="font:700 20px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">TechQuiz</span>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 0">
+      <div style="max-width:400px;width:100%">
+        <h1 style="font:800 clamp(32px,3vw,42px)/1.08 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 10px">Welcome back! 👋</h1>
+        <p style="font-size:16px;line-height:1.6;color:var(--text2,#a99fc0);margin:0 0 34px">Your 12-day streak is waiting. Let's keep it alive.</p>
+        <label style="display:block;font-size:14px;font-weight:600;color:var(--text,#f4f0fa);margin-bottom:8px">Email</label>
+        <input value="bartosz@example.com" style="width:100%;background:var(--elevated,#2a2137);border:1px solid var(--border,#2a2137);color:var(--text,#f4f0fa);padding:15px 17px;border-radius:14px;font:400 16px 'Geist';margin-bottom:18px;outline:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="font-size:14px;font-weight:600;color:var(--text,#f4f0fa)">Password</label><a style="font-size:14px;color:var(--text2,#a99fc0);text-decoration:none;cursor:pointer">Forgot?</a></div>
+        <input type="password" value="••••••••••" style="width:100%;background:var(--elevated,#2a2137);border:1px solid var(--accent,#a78bfa);color:var(--text,#f4f0fa);padding:15px 17px;border-radius:14px;font:400 16px 'Geist';box-shadow:0 0 0 3px var(--focusring,rgba(167,139,250,.2));outline:none;margin-bottom:26px">
+        <button onClick="{{ setDashboard }}" style="width:100%;background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:16px;border-radius:14px;font:600 16px 'Geist';cursor:pointer;box-shadow:0 12px 26px rgba(124,58,237,.26);margin-bottom:14px">Sign in</button>
+        <button onClick="{{ setDashboard }}" style="width:100%;background:var(--surface,#221a2e);color:var(--text,#f4f0fa);border:1px solid var(--border2,#392c4d);padding:16px;border-radius:14px;font:600 16px 'Geist';cursor:pointer">Continue as demo</button>
+        <p style="font-size:15px;color:var(--text2,#a99fc0);text-align:center;margin:28px 0 0">Don't have an account? <a onClick="{{ setDashboard }}" style="color:var(--accent,#a78bfa);text-decoration:none;font-weight:600;cursor:pointer">Create one</a></p>
+      </div>
+      </div>
+      <span style="font:400 12px 'JetBrains Mono';color:var(--text3,#7d7291)">© 2026 TechQuiz · v0.1.0</span>
+    </div>
+    <div style="position:relative;overflow:hidden;background:var(--elevated,#2a2137);display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,4vw,80px)">
+      <div style="position:absolute;top:-160px;right:-160px;width:640px;height:640px;background:radial-gradient(circle,var(--heroglow1,rgba(251,191,36,.14)),transparent 62%)"></div>
+      <div style="position:absolute;bottom:-220px;left:-180px;width:640px;height:640px;background:radial-gradient(circle,var(--heroglow2,rgba(167,139,250,.16)),transparent 62%)"></div>
+      <div style="position:relative;max-width:520px;width:100%;margin:0 auto">
+        <p style="font:600 13px 'JetBrains Mono';text-transform:uppercase;letter-spacing:.14em;color:var(--text3,#7d7291);margin:0 0 16px">Sharpen your skills</p>
+        <h2 style="font:800 clamp(30px,2.8vw,44px)/1.1 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 12px">AI-generated quizzes that adapt to how you learn.</h2>
+        <p style="font-size:16px;line-height:1.6;color:var(--text2,#a99fc0);margin:0 0 30px">Pick up exactly where you left off. Your progress, streaks and Skill&nbsp;IQ are waiting.</p>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:20px;padding:24px;box-shadow:var(--shadow,0 20px 50px rgba(0,0,0,.4));animation:fl 8s ease-in-out infinite;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px"><div style="width:46px;height:46px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 17px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">EF</div><div><p style="font:600 12px 'Geist';color:var(--accent,#a78bfa);margin:0">Highest score</p><p style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0">Entity Framework</p></div></div><span style="font:800 22px 'JetBrains Mono';color:var(--text,#f4f0fa)">94%</span></div>
+          <div style="height:9px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:94%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-bottom:24px">
+          <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:16px 18px;animation:flb 6.5s ease-in-out infinite"><div style="font:800 24px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">🔥 12</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">day streak</div></div>
+          <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:16px 18px;animation:flb 7.5s ease-in-out infinite"><div style="font:800 24px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">182</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">Skill IQ</div></div>
+          <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:16px 18px;animation:flb 8.5s ease-in-out infinite"><div style="font:800 24px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">84%</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">accuracy</div></div>
+        </div>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:18px;padding:22px 24px;margin-bottom:24px">
+          <p style="font-size:16px;line-height:1.6;color:var(--text,#f4f0fa);margin:0 0 14px;font-style:italic">“I went from guessing to genuinely understanding EF Core in three weeks. The daily streak is weirdly addictive.”</p>
+          <div style="display:flex;align-items:center;gap:11px"><div style="width:36px;height:36px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px;display:flex;align-items:center;justify-content:center;font:700 13px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">MK</div><div><p style="font-size:14px;font-weight:600;color:var(--text,#f4f0fa);margin:0">Marta K.</p><p style="font:400 12px 'JetBrains Mono';color:var(--text3,#7d7291);margin:0">Backend developer</p></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex"><span style="width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border:2px solid var(--elevated,#2a2137)"></span><span style="width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid var(--elevated,#2a2137);margin-left:-10px"></span><span style="width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#a78bfa);border:2px solid var(--elevated,#2a2137);margin-left:-10px"></span><span style="width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,#f472b6,#fbbf24);border:2px solid var(--elevated,#2a2137);margin-left:-10px"></span></div>
+          <span style="font-size:14px;color:var(--text2,#a99fc0)">Join <b style="color:var(--text,#f4f0fa)">1,200+</b> developers leveling up</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <header style="border-bottom:1px solid var(--border,#2a2137);background:var(--surface,#221a2e)"><div style="max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:28px;padding:16px clamp(20px,3vw,48px)">
+      <div onClick="{{ setLanding }}" style="display:flex;align-items:center;gap:10px;cursor:pointer"><div style="width:32px;height:32px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 16px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">T</div><span style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">TechQuiz</span></div>
+      <nav style="display:flex;gap:4px;flex:1">
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Categories</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Review</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Generate</a>
+        <a style="padding:9px 15px;border-radius:999px;background:var(--elevated,#2a2137);color:var(--text,#f4f0fa);font:600 15px 'Geist';text-decoration:none;cursor:pointer">Dashboard</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">History</a>
+      </nav>
+      <div style="width:34px;height:34px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px;display:flex;align-items:center;justify-content:center;font:700 13px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">BC</div>
+    </div></header>
+
+    <main style="max-width:1560px;margin:0 auto;padding:clamp(28px,3vw,48px) clamp(20px,3vw,48px)">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:clamp(22px,2.4vw,36px)">
+        <div><h1 style="font:800 clamp(28px,3vw,40px)/1.05 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 6px">Nice work today 👏</h1><p style="font-size:16px;color:var(--text2,#a99fc0);margin:0">You're 3 quizzes from a new personal best.</p></div>
+        <button style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:14px 24px;border-radius:999px;font:600 16px 'Geist';cursor:pointer;box-shadow:0 10px 24px rgba(124,58,237,.24)">Start today's review · 8 due</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:clamp(14px,1.4vw,20px);margin-bottom:clamp(14px,1.4vw,20px)">
+        <div style="grid-column:span 2;min-width:280px;background:var(--cardgrad,linear-gradient(150deg,#2a2137,#221a2e));border:1px solid var(--border2,#392c4d);border-radius:22px;padding:clamp(22px,2vw,30px);position:relative;overflow:hidden">
+          <div style="position:absolute;top:-70px;right:-40px;width:240px;height:240px;background:radial-gradient(circle,var(--heroglow1,rgba(251,191,36,.14)),transparent 64%)"></div>
+          <p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--ambertext,#fbbf24);margin:0 0 18px">SKILL IQ</p>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="font:800 clamp(56px,6vw,84px)/0.9 'Bricolage Grotesque';letter-spacing:-.03em;color:var(--text,#f4f0fa)">182</span><span style="font:600 17px 'Geist';color:#4ade80">▲ 14 this week</span></div>
+          <p style="font-size:15px;color:var(--text2,#a99fc0);margin:12px 0 26px">Top 18% of .NET learners this month</p>
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--text2,#a99fc0);margin-bottom:8px"><span style="font-weight:500">Level 7</span><span>640 / 800 XP to level 8</span></div>
+          <div style="height:12px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:80%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div>
+        </div>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:clamp(20px,1.8vw,26px)"><p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--text3,#7d7291);margin:0 0 14px">STREAK 🔥</p><div style="display:flex;align-items:baseline;gap:7px"><span style="font:800 clamp(38px,4vw,52px)/0.9 'Bricolage Grotesque';color:var(--text,#f4f0fa)">12</span><span style="font-size:15px;color:var(--text2,#a99fc0)">days</span></div><p style="font-size:14px;color:var(--ambertext,#fbbf24);margin:14px 0 0">Best: 21 days</p></div>
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:clamp(20px,1.8vw,26px)"><p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--text3,#7d7291);margin:0 0 14px">ACCURACY</p><div style="display:flex;align-items:baseline;gap:4px"><span style="font:800 clamp(38px,4vw,52px)/0.9 'Bricolage Grotesque';color:var(--text,#f4f0fa)">84</span><span style="font-size:19px;color:var(--text2,#a99fc0)">%</span></div><p style="font-size:14px;color:var(--text2,#a99fc0);margin:14px 0 0">418 / 497 correct</p></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(14px,1.4vw,20px)">
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:clamp(22px,2vw,28px)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px"><p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--text3,#7d7291);margin:0">CATEGORY PROGRESS</p><a style="font-size:14px;color:var(--accent,#a78bfa);text-decoration:none;cursor:pointer">All 9 →</a></div>
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;gap:14px"><div style="width:38px;height:38px;background:var(--elevated,#2a2137);border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px 'JetBrains Mono';color:var(--accent,#a78bfa)">C#</div><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa)">C# Basics</span><span style="font:600 14px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">87%</span></div><div style="height:8px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:87%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div></div></div>
+            <div style="display:flex;align-items:center;gap:14px"><div style="width:38px;height:38px;background:var(--elevated,#2a2137);border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 10px 'JetBrains Mono';color:var(--accent,#a78bfa)">ASP</div><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa)">ASP.NET Core</span><span style="font:600 14px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">72%</span></div><div style="height:8px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:72%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div></div></div>
+            <div style="display:flex;align-items:center;gap:14px"><div style="width:38px;height:38px;background:var(--elevated,#2a2137);border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px 'JetBrains Mono';color:var(--accent,#a78bfa)">EF</div><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa)">EF Core</span><span style="font:600 14px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">94%</span></div><div style="height:8px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:94%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div></div></div>
+            <div style="display:flex;align-items:center;gap:14px"><div style="width:38px;height:38px;background:var(--elevated,#2a2137);border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 12px 'JetBrains Mono';color:var(--accent,#a78bfa)">SQL</div><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa)">SQL</span><span style="font:600 14px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">65%</span></div><div style="height:8px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:65%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div></div></div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:clamp(22px,2vw,28px)">
+          <p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--text3,#7d7291);margin:0 0 20px">WEEKLY ACTIVITY</p>
+          <div style="display:flex;gap:10px;align-items:flex-end;height:150px;margin-bottom:14px">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:45%;background:var(--elevated,#2a2137);border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:62%;background:var(--elevated,#2a2137);border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:38%;background:var(--elevated,#2a2137);border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:78%;background:var(--brand,linear-gradient(180deg,#a78bfa,#fbbf24));border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:55%;background:var(--elevated,#2a2137);border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:90%;background:var(--brand,linear-gradient(180deg,#a78bfa,#fbbf24));border-radius:8px"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:100%;background:var(--brand,linear-gradient(180deg,#a78bfa,#fbbf24));border-radius:8px"></div></div>
+          </div>
+          <div style="display:flex;gap:10px;font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)"><span style="flex:1;text-align:center">M</span><span style="flex:1;text-align:center">T</span><span style="flex:1;text-align:center">W</span><span style="flex:1;text-align:center">T</span><span style="flex:1;text-align:center">F</span><span style="flex:1;text-align:center">S</span><span style="flex:1;text-align:center">S</span></div>
+        </div>
+
+        <div style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:22px;padding:clamp(22px,2vw,28px)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px"><p style="font:600 11px 'JetBrains Mono';letter-spacing:.12em;color:var(--text3,#7d7291);margin:0">RECENT ATTEMPTS</p><a style="font-size:14px;color:var(--accent,#a78bfa);text-decoration:none;cursor:pointer">History →</a></div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--border,#2a2137)"><div style="width:36px;height:36px;background:var(--elevated,#2a2137);border-radius:10px;display:flex;align-items:center;justify-content:center;font:700 12px 'JetBrains Mono';color:var(--accent,#a78bfa)">C#</div><div style="flex:1"><p style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa);margin:0">C# Advanced</p><p style="font:400 12px 'JetBrains Mono';color:var(--text3,#7d7291);margin:2px 0 0">Today · 4m 12s</p></div><span style="font:800 18px 'Bricolage Grotesque';color:#4ade80">87%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--border,#2a2137)"><div style="width:36px;height:36px;background:var(--elevated,#2a2137);border-radius:10px;display:flex;align-items:center;justify-content:center;font:700 13px 'JetBrains Mono';color:var(--accent,#a78bfa)">EF</div><div style="flex:1"><p style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa);margin:0">Entity Framework</p><p style="font:400 12px 'JetBrains Mono';color:var(--text3,#7d7291);margin:2px 0 0">Yesterday · 6m 03s</p></div><span style="font:800 18px 'Bricolage Grotesque';color:#4ade80">94%</span></div>
+            <div style="display:flex;align-items:center;gap:14px"><div style="width:36px;height:36px;background:var(--elevated,#2a2137);border-radius:10px;display:flex;align-items:center;justify-content:center;font:700 12px 'JetBrains Mono';color:var(--accent,#a78bfa)">SQL</div><div style="flex:1"><p style="font-size:15px;font-weight:500;color:var(--text,#f4f0fa);margin:0">SQL Basics</p><p style="font:400 12px 'JetBrains Mono';color:var(--text3,#7d7291);margin:2px 0 0">2 days ago · 5m 41s</p></div><span style="font:800 18px 'Bricolage Grotesque';color:var(--ambertext,#fbbf24)">65%</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isCategories }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <header style="border-bottom:1px solid var(--border,#2a2137);background:var(--surface,#221a2e)"><div style="max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:28px;padding:16px clamp(20px,3vw,48px)">
+      <div onClick="{{ setLanding }}" style="display:flex;align-items:center;gap:10px;cursor:pointer"><div style="width:32px;height:32px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 16px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">T</div><span style="font:700 17px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">TechQuiz</span></div>
+      <nav style="display:flex;gap:4px;flex:1">
+        <a style="padding:9px 15px;border-radius:999px;background:var(--elevated,#2a2137);color:var(--text,#f4f0fa);font:600 15px 'Geist';text-decoration:none;cursor:pointer">Categories</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Review</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Generate</a>
+        <a onClick="{{ setDashboard }}" style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">Dashboard</a>
+        <a style="padding:9px 15px;border-radius:999px;color:var(--text2,#a99fc0);font:500 15px 'Geist';text-decoration:none;cursor:pointer">History</a>
+      </nav>
+      <div style="width:34px;height:34px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px;display:flex;align-items:center;justify-content:center;font:700 13px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">BC</div>
+    </div></header>
+    <main style="max-width:1560px;margin:0 auto;padding:clamp(28px,3vw,48px) clamp(20px,3vw,48px)">
+      <div style="margin-bottom:clamp(22px,2.4vw,34px)"><h1 style="font:800 clamp(28px,3vw,40px)/1.05 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 6px">Pick a category</h1><p style="font-size:16px;color:var(--text2,#a99fc0);margin:0">9 topics · start where you feel strong, or challenge a weak spot.</p></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(14px,1.4vw,20px)">
+
+        <div onClick="{{ setQuiz }}" style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:20px;padding:24px;cursor:pointer">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 17px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">C#</div><span style="font:600 12px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">18 q</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 4px">C# Basics</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text2,#a99fc0);margin:0 0 18px">Types, classes, interfaces, inheritance, LINQ.</p>
+          <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:7px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:87%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div><span style="font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">87%</span></div>
+        </div>
+
+        <div onClick="{{ setQuiz }}" style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:20px;padding:24px;cursor:pointer">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 13px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">ASP</div><span style="font:600 12px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">15 q</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 4px">ASP.NET Core</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text2,#a99fc0);margin:0 0 18px">Middleware, DI, routing, controllers, filters.</p>
+          <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:7px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:72%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div><span style="font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">72%</span></div>
+        </div>
+
+        <div onClick="{{ setQuiz }}" style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:20px;padding:24px;cursor:pointer">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 16px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">EF</div><span style="font:600 12px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">16 q</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 4px">EF Core</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text2,#a99fc0);margin:0 0 18px">DbContext, migrations, relations, LINQ to SQL.</p>
+          <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:7px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:94%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div><span style="font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">94%</span></div>
+        </div>
+
+        <div onClick="{{ setQuiz }}" style="background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:20px;padding:24px;cursor:pointer">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 15px 'Bricolage Grotesque';color:var(--brandfg,#17121f)">SQL</div><span style="font:600 12px 'JetBrains Mono';color:var(--text2,#a99fc0);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">20 q</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text,#f4f0fa);margin:0 0 4px">SQL</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text2,#a99fc0);margin:0 0 18px">JOINs, subqueries, indexes, normalization.</p>
+          <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:7px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:65%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div><span style="font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24)">65%</span></div>
+        </div>
+
+        <div style="background:var(--bg,#17121f);border:1px dashed var(--border2,#392c4d);border-radius:20px;padding:24px;opacity:.7">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--elevated,#2a2137);border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 11px 'Bricolage Grotesque';color:var(--text3,#7d7291)">SOLID</div><span style="font:600 11px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">Soon</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text2,#a99fc0);margin:0 0 4px">Design Patterns</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text3,#7d7291);margin:0 0 18px">SOLID, Repository, Factory, Strategy.</p>
+          <span style="font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)">Not started</span>
+        </div>
+
+        <div style="background:var(--bg,#17121f);border:1px dashed var(--border2,#392c4d);border-radius:20px;padding:24px;opacity:.7">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--elevated,#2a2137);border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 12px 'Bricolage Grotesque';color:var(--text3,#7d7291)">TEST</div><span style="font:600 11px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">Soon</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text2,#a99fc0);margin:0 0 4px">Unit Testing</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text3,#7d7291);margin:0 0 18px">xUnit, mocking, TDD, assertions.</p>
+          <span style="font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)">Not started</span>
+        </div>
+
+        <div style="background:var(--bg,#17121f);border:1px dashed var(--border2,#392c4d);border-radius:20px;padding:24px;opacity:.7">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--elevated,#2a2137);border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 14px 'Bricolage Grotesque';color:var(--text3,#7d7291)">GIT</div><span style="font:600 11px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">Soon</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text2,#a99fc0);margin:0 0 4px">Git</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text3,#7d7291);margin:0 0 18px">Branching, merge, rebase, cherry-pick.</p>
+          <span style="font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)">Not started</span>
+        </div>
+
+        <div style="background:var(--bg,#17121f);border:1px dashed var(--border2,#392c4d);border-radius:20px;padding:24px;opacity:.7">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--elevated,#2a2137);border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 12px 'Bricolage Grotesque';color:var(--text3,#7d7291)">ARCH</div><span style="font:600 11px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">Soon</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text2,#a99fc0);margin:0 0 4px">Clean Architecture</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text3,#7d7291);margin:0 0 18px">Layers, dependencies, CQRS, MediatR.</p>
+          <span style="font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)">Not started</span>
+        </div>
+
+        <div style="background:var(--bg,#17121f);border:1px dashed var(--border2,#392c4d);border-radius:20px;padding:24px;opacity:.7">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="width:46px;height:46px;background:var(--elevated,#2a2137);border-radius:13px;display:flex;align-items:center;justify-content:center;font:800 14px 'Bricolage Grotesque';color:var(--text3,#7d7291)">API</div><span style="font:600 11px 'JetBrains Mono';color:var(--text3,#7d7291);background:var(--elevated,#2a2137);padding:5px 10px;border-radius:999px">Soon</span></div>
+          <h3 style="font:700 19px 'Bricolage Grotesque';color:var(--text2,#a99fc0);margin:0 0 4px">REST API</h3>
+          <p style="font-size:14px;line-height:1.5;color:var(--text3,#7d7291);margin:0 0 18px">HTTP methods, status codes, versioning, auth.</p>
+          <span style="font:500 12px 'JetBrains Mono';color:var(--text3,#7d7291)">Not started</span>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:calc(100vh - 57px);display:flex;flex-direction:column">
+    <div style="border-bottom:1px solid var(--border,#2a2137);background:var(--surface,#221a2e)"><div style="max-width:900px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:14px clamp(20px,3vw,32px)">
+      <span style="font:600 13px 'JetBrains Mono';color:var(--text2,#a99fc0);white-space:nowrap">C# Basics · 3 / 10</span>
+      <div style="flex:1;height:7px;background:var(--track,#17121f);border-radius:999px;overflow:hidden"><div style="height:100%;width:30%;background:var(--brand,linear-gradient(135deg,#a78bfa,#fbbf24));border-radius:999px"></div></div>
+      <span style="font:600 12px 'JetBrains Mono';color:var(--ambertext,#fbbf24);background:var(--amberbg,rgba(251,191,36,.15));padding:6px 12px;border-radius:999px;white-space:nowrap">+40 XP</span>
+      <button onClick="{{ setCategories }}" aria-label="Exit" style="flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--border2,#392c4d);background:transparent;color:var(--text2,#a99fc0);font-size:16px;cursor:pointer">✕</button>
+    </div></div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:clamp(32px,5vw,64px) clamp(20px,3vw,32px)">
+      <div style="width:100%;max-width:660px">
+        <span style="display:inline-block;font:600 11px 'JetBrains Mono';text-transform:uppercase;letter-spacing:.08em;color:var(--ambertext,#fbbf24);background:var(--amberbg,rgba(251,191,36,.15));padding:5px 11px;border-radius:999px;margin-bottom:20px">Medium</span>
+        <h2 style="font:800 clamp(24px,2.6vw,34px)/1.25 'Bricolage Grotesque';letter-spacing:-.01em;color:var(--text,#f4f0fa);margin:0 0 28px">Which access modifier makes a member accessible only within the same assembly?</h2>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ quizOptions }}" as="opt" hint-placeholder-count="4">
+            <button onClick="{{ opt.onClick }}" style="{{ opt.style }}">
+              <span style="{{ opt.badgeStyle }}">{{ opt.n }}</span>
+              <code style="{{ opt.codeStyle }}">{{ opt.label }}</code>
+              <span style="{{ opt.markStyle }}">{{ opt.mark }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ quizChecked }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:16px 18px">
+            <p style="font:700 14px 'Bricolage Grotesque';color:#22c55e;margin:0 0 4px">Correct — internal</p>
+            <p style="font-size:14px;line-height:1.55;color:var(--text2,#a99fc0);margin:0"><code style="font-family:'JetBrains Mono',monospace;color:var(--accent,#a78bfa)">internal</code> limits access to the same assembly, unlike <code style="font-family:'JetBrains Mono',monospace;color:var(--accent,#a78bfa)">private</code> (same type) or <code style="font-family:'JetBrains Mono',monospace;color:var(--accent,#a78bfa)">public</code> (everywhere).</p>
+          </div>
+        </sc-if>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:22px;border-top:1px solid var(--border,#2a2137)">
+          <p style="font:400 13px 'JetBrains Mono';color:var(--text3,#7d7291);margin:0">Press <span style="background:var(--elevated,#2a2137);padding:2px 7px;border-radius:5px">1-4</span> to select</p>
+          <sc-if value="{{ quizNotChecked }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ onCheck }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:13px 26px;border-radius:999px;font:600 15px 'Geist';cursor:pointer;box-shadow:0 10px 24px rgba(124,58,237,.24)">Check answer</button>
+          </sc-if>
+          <sc-if value="{{ quizChecked }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ setResult }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:13px 26px;border-radius:999px;font:600 15px 'Geist';cursor:pointer;box-shadow:0 10px 24px rgba(124,58,237,.24)">See results →</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:calc(100vh - 57px);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:clamp(32px,5vw,64px) clamp(20px,3vw,32px)">
+    <div style="position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(circle,var(--heroglow2,rgba(167,139,250,.18)),transparent 65%);pointer-events:none"></div>
+    <div style="position:absolute;top:-120px;right:10%;width:420px;height:420px;background:radial-gradient(circle,var(--heroglow1,rgba(251,191,36,.14)),transparent 62%);pointer-events:none"></div>
+    <div style="position:relative;width:100%;max-width:560px;text-align:center">
+      <span style="display:inline-flex;align-items:center;gap:7px;font:600 13px 'JetBrains Mono';color:var(--ambertext,#fbbf24);background:var(--amberbg,rgba(251,191,36,.15));padding:7px 15px;border-radius:999px;margin-bottom:24px">🔥 Streak saved · 13 days</span>
+      <div style="width:clamp(150px,20vw,190px);height:clamp(150px,20vw,190px);margin:0 auto 26px;border-radius:999px;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:var(--shadow,0 24px 60px rgba(0,0,0,.45))">
+        <span style="font:800 clamp(46px,6vw,64px)/1 'Bricolage Grotesque';letter-spacing:-.03em;color:var(--text,#f4f0fa)">87%</span>
+        <span style="font:600 13px 'JetBrains Mono';color:var(--text3,#7d7291);margin-top:6px">13 / 15 correct</span>
+      </div>
+      <h1 style="font:800 clamp(30px,3.4vw,44px)/1.1 'Bricolage Grotesque';letter-spacing:-.02em;color:var(--text,#f4f0fa);margin:0 0 8px">Quiz complete! 🎉</h1>
+      <p style="font-size:17px;color:var(--text2,#a99fc0);margin:0 0 28px">Great run on <b style="color:var(--text,#f4f0fa)">C# Basics</b> — that's your best score this week.</p>
+      <div style="display:flex;gap:12px;margin-bottom:28px">
+        <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:18px"><div style="font:800 24px 'Bricolage Grotesque';color:var(--ambertext,#fbbf24)">+180</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">XP earned</div></div>
+        <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:18px"><div style="font:800 24px 'Bricolage Grotesque';color:var(--text,#f4f0fa)">4:12</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">time</div></div>
+        <div style="flex:1;background:var(--surface,#221a2e);border:1px solid var(--border,#2a2137);border-radius:16px;padding:18px"><div style="font:800 24px 'Bricolage Grotesque';color:#4ade80">+6</div><div style="font-size:13px;color:var(--text3,#7d7291);margin-top:2px">Skill IQ</div></div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button onClick="{{ setQuiz }}" style="background:var(--surface,#221a2e);color:var(--text,#f4f0fa);border:1px solid var(--border2,#392c4d);padding:15px 26px;border-radius:999px;font:600 16px 'Geist';cursor:pointer">Review answers</button>
+        <button onClick="{{ setDashboard }}" style="background:var(--btn,linear-gradient(135deg,#8b5cf6,#a78bfa));color:#fff;border:none;padding:15px 30px;border-radius:999px;font:600 16px 'Geist';cursor:pointer;box-shadow:0 12px 26px rgba(124,58,237,.26)">Back to dashboard</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme: 'dark', screen: 'landing', qSel: null, qChecked: false };
+
+  componentDidMount() {
+    try {
+      const t = localStorage.getItem('tq_theme');
+      const s = localStorage.getItem('tq_screen');
+      const next = {};
+      if (t === 'light' || t === 'dark') next.theme = t;
+      if (['landing','login','dashboard','categories','quiz','result'].indexOf(s) !== -1) next.screen = s;
+      if (Object.keys(next).length) this.setState(next);
+    } catch (e) {}
+  }
+
+  setScreen(s) {
+    try { localStorage.setItem('tq_screen', s); } catch (e) {}
+    this.setState({ screen: s });
+  }
+  setTheme(t) {
+    try { localStorage.setItem('tq_theme', t); } catch (e) {}
+    this.setState({ theme: t });
+  }
+  selectAnswer(n) { if (this.state.qChecked) return; this.setState({ qSel: n }); }
+  checkAnswer() { if (this.state.qSel == null) return; this.setState({ qChecked: true }); }
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const screen = this.state.screen;
+
+    const darkVars = {
+      '--bg': '#17121f', '--surface': '#221a2e', '--elevated': '#2a2137',
+      '--border': '#2a2137', '--border2': '#392c4d',
+      '--text': '#f4f0fa', '--text2': '#a99fc0', '--text3': '#7d7291',
+      '--accent': '#a78bfa', '--brandfg': '#17121f', '--brandfg2': '#fbbf24',
+      '--ambertext': '#fbbf24', '--amberbg': 'rgba(251,191,36,.15)',
+      '--chip': '#2a2137', '--track': '#17121f',
+      '--brand': 'linear-gradient(135deg,#a78bfa,#fbbf24)',
+      '--btn': 'linear-gradient(135deg,#8b5cf6,#a78bfa)',
+      '--cardgrad': 'linear-gradient(150deg,#2a2137,#221a2e)',
+      '--shadow': '0 24px 60px rgba(0,0,0,.45)',
+      '--focusring': 'rgba(167,139,250,.22)',
+      '--heroglow1': 'rgba(251,191,36,.12)', '--heroglow2': 'rgba(167,139,250,.18)'
+    };
+    const lightVars = {
+      '--bg': '#faf8ff', '--surface': '#ffffff', '--elevated': '#f5f1fd',
+      '--border': '#ece7f7', '--border2': '#ddd4ee',
+      '--text': '#241b39', '--text2': '#6b6280', '--text3': '#9a8fb5',
+      '--accent': '#7c3aed', '--brandfg': '#ffffff', '--brandfg2': '#d97706',
+      '--ambertext': '#d97706', '--amberbg': '#fef3c7',
+      '--chip': '#f5f1fd', '--track': '#f1ecfb',
+      '--brand': 'linear-gradient(135deg,#7c3aed,#f59e0b)',
+      '--btn': 'linear-gradient(135deg,#7c3aed,#9333ea)',
+      '--cardgrad': 'linear-gradient(150deg,#ffffff,#faf8ff)',
+      '--shadow': '0 24px 60px rgba(124,58,237,.14)',
+      '--focusring': 'rgba(124,58,237,.16)',
+      '--heroglow1': 'rgba(245,158,11,.16)', '--heroglow2': 'rgba(124,58,237,.13)'
+    };
+
+    const shellStyle = Object.assign({}, dark ? darkVars : lightVars, {
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      color: 'var(--text)',
+      fontFamily: "'Geist', system-ui, sans-serif",
+      transition: 'background .25s ease, color .25s ease'
+    });
+
+    const tabBase = {
+      border: 'none', padding: '8px 16px', borderRadius: '999px',
+      font: "500 13px 'Geist', sans-serif", cursor: 'pointer',
+      background: 'transparent', color: 'var(--text2)'
+    };
+    const tabActive = Object.assign({}, tabBase, {
+      background: 'var(--btn)', color: '#fff', fontWeight: 600
+    });
+
+    const correctIdx = 2;
+    const checked = this.state.qChecked;
+    const sel = this.state.qSel;
+    const rawOpts = [
+      { n: 1, label: 'private' }, { n: 2, label: 'internal' },
+      { n: 3, label: 'protected' }, { n: 4, label: 'public' }
+    ];
+    const quizOptions = rawOpts.map((o) => {
+      const isSel = sel === o.n;
+      const isCorrect = o.n === correctIdx;
+      let border = 'var(--border)', bg = 'var(--surface)', ring = 'none',
+          badgeBg = 'var(--elevated)', badgeColor = 'var(--text3)',
+          codeColor = 'var(--accent)', mark = '', markColor = '#22c55e', opacity = 1;
+      if (!checked) {
+        if (isSel) { border = 'var(--accent)'; ring = '0 0 0 3px var(--focusring)'; badgeBg = 'var(--btn)'; badgeColor = '#fff'; }
+      } else if (isCorrect) {
+        border = '#22c55e'; bg = 'rgba(34,197,94,.12)'; badgeBg = '#22c55e'; badgeColor = '#fff'; mark = '✓'; codeColor = 'var(--text)';
+      } else if (isSel) {
+        border = '#ef4444'; bg = 'rgba(239,68,68,.12)'; badgeBg = '#ef4444'; badgeColor = '#fff'; mark = '✗'; markColor = '#ef4444'; codeColor = 'var(--text)';
+      } else { opacity = 0.5; }
+      return {
+        n: o.n, label: o.label, mark,
+        style: { display: 'flex', alignItems: 'center', gap: '16px', width: '100%', textAlign: 'left', padding: '16px 20px', borderRadius: '16px', border: '1px solid ' + border, background: bg, boxShadow: ring, cursor: checked ? 'default' : 'pointer', opacity: opacity, transition: 'border-color .15s ease, box-shadow .15s ease, background .15s ease', fontFamily: "'Geist', sans-serif" },
+        badgeStyle: { flex: 'none', width: '30px', height: '30px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', font: "700 14px 'JetBrains Mono', monospace", background: badgeBg, color: badgeColor },
+        codeStyle: { font: "500 16px 'JetBrains Mono', monospace", color: codeColor, flex: 1 },
+        markStyle: { font: "700 18px 'Geist', sans-serif", color: markColor, width: '18px' },
+        onClick: () => this.selectAnswer(o.n)
+      };
+    });
+
+    return {
+      shellStyle,
+      quizOptions,
+      quizChecked: checked,
+      quizNotChecked: !checked,
+      quizCanCheck: sel !== null && !checked,
+      onCheck: () => this.checkAnswer(),
+      isCategories: screen === 'categories',
+      isQuiz: screen === 'quiz',
+      isResult: screen === 'result',
+      tabCategories: screen === 'categories' ? tabActive : tabBase,
+      tabQuiz: screen === 'quiz' ? tabActive : tabBase,
+      tabResult: screen === 'result' ? tabActive : tabBase,
+      setCategories: () => this.setScreen('categories'),
+      setQuiz: () => { this.setState({ qSel: null, qChecked: false }); this.setScreen('quiz'); },
+      setResult: () => this.setScreen('result'),
+      isLanding: screen === 'landing',
+      isLogin: screen === 'login',
+      isDashboard: screen === 'dashboard',
+      tabLanding: screen === 'landing' ? tabActive : tabBase,
+      tabLogin: screen === 'login' ? tabActive : tabBase,
+      tabDashboard: screen === 'dashboard' ? tabActive : tabBase,
+      setLanding: () => this.setScreen('landing'),
+      setLogin: () => this.setScreen('login'),
+      setDashboard: () => this.setScreen('dashboard'),
+      toggleTheme: () => this.setTheme(dark ? 'light' : 'dark'),
+      themeLabel: dark ? 'Light' : 'Dark',
+      themeIcon: dark ? '☀' : '☾'
+    };
+  }
+}
+</script>
+</body>
+</html>

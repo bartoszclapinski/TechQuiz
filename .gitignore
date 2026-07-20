@@ -76,10 +76,11 @@ TestResults/
 .claude/settings.local.json
 .claude/*.local.json
 
-# Walkthrough animation — track the scene sources and render scripts, not the
-# design tool's leftovers or the render artifacts (see .ai/animation/README.md).
+# Design-tool bundles — track the sources, not the export archives or the
+# render artifacts (see .ai/animation/README.md and .ai/design/README.md).
 .ai/animation/*.zip
 .ai/animation/**/uploads/
 .ai/animation/**/.thumbnail
 .ai/animation/master.mp4
 .ai/animation/out/
+.ai/design/*.zip
