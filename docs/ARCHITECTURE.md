@@ -58,8 +58,8 @@ Everything that touches the outside world: database, external APIs, file system,
 Key components:
 - **Persistence** — `AppDbContext` (EF Core with IdentityDbContext), entity configurations, migrations
 - **Identity** — `ApplicationUser` extending `IdentityUser`, JWT token generation
-- **AI Providers** (Phase 3) — `OpenAiProvider`, `AnthropicProvider`, all implementing `IAiProvider`
-- **Key Vault** (Phase 3) — `EncryptedAiKeyVault` using ASP.NET Core Data Protection
+- **AI Providers** (Phase 3, Phase 5) — `AnthropicAiProvider`, `OpenAiAiProvider`, all implementing `IAiProvider`, sharing prompts and reply parsing via `AiPrompts`
+- **Key store** (Phase 3) — `EncryptedAiKeyStore` using ASP.NET Core Data Protection
 - **Repositories** — implementations of repository interfaces from Domain
 
 ### API Layer (`TechQuiz.Api`)
@@ -106,19 +106,23 @@ The AI layer is the most complex part of the system and is designed for extensib
 ```csharp
 public interface IAiProvider
 {
-    Task<GeneratedQuestion> GenerateQuestionAsync(
-        QuestionGenerationRequest request,
-        string apiKey,
-        CancellationToken cancellationToken);
+    AiProviderKind Kind { get; }
 
-    Task<CodeEvaluation> EvaluateCodeAnswerAsync(
-        CodeEvaluationRequest request,
+    Task<IReadOnlyList<GeneratedQuestionDraft>> GenerateQuestionsAsync(
+        GenerateQuestionsRequest request,
         string apiKey,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
+
+    Task<string> GenerateCodeFeedbackAsync(
+        CodeFeedbackRequest request,
+        string apiKey,
+        CancellationToken cancellationToken = default);
 }
 ```
 
-Implementations: `OpenAiProvider`, `AnthropicProvider`. New providers can be added by implementing the interface and registering in DI.
+Implementations: `AnthropicAiProvider` (Messages API) and `OpenAiAiProvider` (Chat Completions with strict `json_schema`), both on a raw typed `HttpClient`. `IAiProviderResolver` picks one by `Kind`. A new provider implements the interface, reuses `AiPrompts` for the prompt text and the `{ "questions": [...] }` reply contract, and is registered as a **named** typed client — unnamed `AddHttpClient<IAiProvider, …>` registrations share one name, so the last base address would win for every provider (guarded by `AiProviderWiringTests`).
+
+When the upstream API rejects the user's key or quota, a provider throws `AiProviderRejectedException` (`InvalidKey` → 422, `QuotaOrRateLimit` → 429). It is never 401, because the SPA treats 401 as an expired session. The message is fixed text and never carries the key or the upstream body.
 
 ### Per-User API Keys
 

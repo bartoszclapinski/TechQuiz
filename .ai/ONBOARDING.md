@@ -51,7 +51,7 @@ The project is built as a **portfolio piece** demonstrating Clean Architecture, 
 - **Monaco Editor** — code editor in browser (for code challenges)
 
 ### AI Integration
-- **Bring-your-own-key AI providers** (ADR-006, ADR-019) — provider abstraction (`IAiProvider`) over Anthropic (the only implemented client); OpenAI, Gemini and OpenRouter exist in `AiProviderKind` but have no client yet (shown as "soon" in Settings); used for question generation and qualitative code feedback
+- **Bring-your-own-key AI providers** (ADR-006, ADR-019) — provider abstraction (`IAiProvider`) over Anthropic (live) and OpenAI (implemented in 5.1, "soon" in Settings until a funded-key run); Gemini and OpenRouter have no client yet; used for question generation and qualitative code feedback
 - **Judge0** (self-hosted, `codeexec` compose profile) — sandboxed execution that grades code challenges (ADR-018)
 
 ### DevOps
@@ -104,7 +104,8 @@ Clean Architecture with 4 layers + presentation:
 │  • EF Core DbContext, migrations        │
 │  • Repository implementations           │
 │  • Identity + JWT, data seeder          │
-│  • AI providers (Anthropic), Judge0     │
+│  • AI providers (Anthropic, OpenAI)     │
+│  • Judge0 code execution                │
 └─────────────────────────────────────────┘
 ```
 

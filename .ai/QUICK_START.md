@@ -8,7 +8,7 @@
 
 Self-knowledge testing platform for developers — multiple-choice quizzes and code challenges across technical categories, with progress tracking and spaced repetition. Multi-user (Identity + JWT); public registration is currently closed and the live demo uses a seeded demo account. Built as a **portfolio piece** — Clean Architecture, TDD, AI integration, real CI/CD.
 
-**Stack:** .NET 9 / ASP.NET Core 9 + EF Core 9 + PostgreSQL 16 + React 19/TypeScript (Vite) + Docker. AI: provider abstraction (`IAiProvider`, bring-your-own key, ADR-006/ADR-019). Only Anthropic (Claude) is implemented; OpenAI, Gemini and OpenRouter exist in `AiProviderKind` but have no client yet (shown as "soon" in Settings). Hosted on Render + Neon (ADR-022).
+**Stack:** .NET 9 / ASP.NET Core 9 + EF Core 9 + PostgreSQL 16 + React 19/TypeScript (Vite) + Docker. AI: provider abstraction (`IAiProvider`, bring-your-own key, ADR-006/ADR-019). Anthropic (Claude) is live; OpenAI is implemented (5.1) but stays "soon" in Settings until a funded-key run; Gemini and OpenRouter have no client yet. Hosted on Render + Neon (ADR-022).
 
 **Architecture:** Clean Architecture — Domain ← Application ← (API + Infrastructure) — Presentation: React SPA.
 

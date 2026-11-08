@@ -5,6 +5,37 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-11-08 — Iteracja 5.1: implementacja (taski 2–8)
+
+**Cel:** natywny dostawca OpenAI na seamie `IAiProvider`, z tym samym zachowaniem, testami i obsługą błędów co Anthropic.
+
+- **Task 2 (#389)** — wspólny helper `AiPrompts` (prompty, parsowanie, fence-stripping) wydzielony z `AnthropicAiProvider`;
+  `CapturingHandler` do osobnego pliku. Czysty refaktor — testy Anthropic bez zmian, zielone.
+- **Task 3 (#390)** — jeden kontrakt odpowiedzi `{ "questions": [...] }` (strict `json_schema` wymaga obiektu w korzeniu);
+  goła tablica dalej akceptowana jako tolerancja. TDD: 2 nowe testy czerwone przed zmianą.
+- **Task 4 (#391)** — `AiProviderRejectedException` (Application): `InvalidKey` → **422**, `QuotaOrRateLimit` → **429**
+  (wcześniej 500). Nigdy 401 — SPA traktuje 401 jako wygasłą sesję. Anthropic: 401/403, 429 i 400 „credit balance".
+  Komunikat to stały tekst, bez klucza i body z upstreamu (test na wyciek). Testy API z podmienionym providerem przez
+  `WithWebHostBuilder` + `ConfigureTestServices`.
+- **Task 5 (#392)** — `AiProviderWiringTests` na prawdziwym `AddInfrastructure` sprawdza host każdego dostawcy; klient
+  Anthropic nazwany. Test mutacyjny: druga nienazwana rejestracja z adresem OpenAI → test czerwony.
+- **Task 6 (#393)** — `OpenAiOptions` (`gpt-6-luna`, `reasoning_effort = low`, `max_completion_tokens`) + `OpenAiAiProvider`:
+  surowy `HttpClient`, Bearer per request, `store: false`, strict `json_schema`; 401/403 → `InvalidKey`, 429 (także
+  `insufficient_quota`) → `QuotaOrRateLimit`; refusal / `finish_reason: "length"` / brak treści → `AiResponseException`.
+  18 testów; przypadek OpenAI w teście DI czerwony do czasu rejestracji klienta `"OpenAi"`.
+- **Task 7 (#394, #395)** — `providerLabel()` (Generate, feedback, Pool), komunikaty 422/429, `<select>` dostawcy dla
+  feedbacku do kodu (wybór jako stan, dostawca wyliczany — bez `useEffect`). Flaga OpenAI dalej `false`.
+- **Task 8** — docs: `ARCHITECTURE.md` (prawdziwe nazwy klas, kształt `IAiProvider`, nazwane klienty, kontrakt 422/429),
+  `QUICK_START.md`, `ONBOARDING.md`, `sprint3/README.md`; DoD 5.1 odhaczone poza live smoke.
+
+**Weryfikacja:** CI zielone na każdym commicie (Domain 129, Application 200, Infrastructure 91, API 39); lokalnie bez
+Dockera tylko testy bez Testcontainers. `pnpm build` + `pnpm lint` czyste.
+
+**Następny krok:** task 9 — stack z brancha, live smoke Anthropic na nowym kontrakcie + fałszywy klucz OpenAI (401 → 422),
+przegląd logów pod kątem kluczy.
+
+---
+
 ## 2026-11-08 — Iteracja 5.1: plan (task 1)
 
 **Cel:** otworzyć Phase 5 i zaplanować natywnego dostawcę OpenAI na istniejącym seamie `IAiProvider`.
