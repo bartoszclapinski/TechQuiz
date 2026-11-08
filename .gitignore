@@ -85,3 +85,6 @@ TestResults/
 .ai/animation/master.mp4
 .ai/animation/out/
 .ai/design/*.zip
+
+# Private working notes (kept locally, never published)
+.ai/TechQuiz_Plan_Roboczy_PL.md

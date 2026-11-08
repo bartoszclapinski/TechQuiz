@@ -6,23 +6,22 @@
 
 ## Project: TechQuiz (30-second context)
 
-Personal knowledge testing platform — like Pluralsight Skill IQ. Used as:
-1. **Daily study tool** for technical interview prep (.NET, EPAM)
-2. **Portfolio piece** — Clean Architecture + AI integration
+Self-knowledge testing platform for developers — multiple-choice quizzes and code challenges across technical categories, with progress tracking and spaced repetition. Multi-user (Identity + JWT); public registration is currently closed and the live demo uses a seeded demo account. Built as a **portfolio piece** — Clean Architecture, TDD, AI integration, real CI/CD.
 
-**Stack:** ASP.NET Core 9 + EF Core + PostgreSQL + React/TS + OpenAI + Docker.
+**Stack:** .NET 9 / ASP.NET Core 9 + EF Core 9 + PostgreSQL 16 + React 19/TypeScript (Vite) + Docker. AI: provider abstraction (`IAiProvider`, bring-your-own key, ADR-006/ADR-019). Only Anthropic (Claude) is implemented; OpenAI, Gemini and OpenRouter exist in `AiProviderKind` but have no client yet (shown as "soon" in Settings). Hosted on Render + Neon (ADR-022).
 
 **Architecture:** Clean Architecture — Domain ← Application ← (API + Infrastructure) — Presentation: React SPA.
 
 ```
 src/
 ├── TechQuiz.Api/              # Web API
-├── TechQuiz.Application/      # CQRS, MediatR, validators
-├── TechQuiz.Domain/           # Entities, VOs, interfaces
-└── TechQuiz.Infrastructure/   # EF Core, AI providers
+├── TechQuiz.Application/      # CQRS (MediatR), validators, ports in Abstractions/
+├── TechQuiz.Domain/           # Entities, value objects, domain exceptions (no framework deps)
+└── TechQuiz.Infrastructure/   # EF Core + seeder, Identity/JWT, AI providers + key store, Judge0 code execution
 tests/
 ├── TechQuiz.Domain.Tests/
 ├── TechQuiz.Application.Tests/
+├── TechQuiz.Api.Tests/        # WebApplicationFactory endpoint smoke tests
 └── TechQuiz.Infrastructure.Tests/
 web/                           # React + TypeScript SPA (Vite, separate from .NET solution)
 ```
@@ -41,25 +40,29 @@ web/                           # React + TypeScript SPA (Vite, separate from .NE
 
 ---
 
-## Roadmap (where we are)
+## Roadmap (status)
 
-| Phase | Goal |
-|-------|------|
-| 1 — MVP | Multiple choice quiz + score (weeks 1-2) |
-| 2 — History | Dashboard, charts, spaced repetition (weeks 3-4) |
-| 3 — Code + AI | Monaco editor, AI generates/evaluates (weeks 5-7) |
-| 4 — Polish | Gamification, tests, Docker, CI (weeks 8-10) |
+All phases are **done** and the app is **live** at https://techquiz-web.onrender.com (Render + Neon; free tier sleeps, so the first request can take 30–50 s).
 
-**Check `git log` for actual current state.**
+| Phase | Delivered |
+|-------|-----------|
+| 0 — Foundation | Solution skeleton, auth scaffolding, Docker, CI |
+| 1 — MVP | Multiple-choice quiz flow + score, seeded questions |
+| 2 — History | Dashboard (bento grid), history, spaced repetition, achievements |
+| 3 — Code + AI | AI provider seam + BYO key (Anthropic live), AI question generation, public pool, Monaco code challenges + AI feedback |
+| 4 — Polish | Mobile, gamification, a11y, performance, production deploy, taxonomy, "Momentum" redesign |
+
+No planned iteration remains. Further work is off-plan, so confirm the goal with the owner before starting. Known open follow-ups (auth hardening, deferred since Phase 1): #66, #67, #68, #99 — see `gh issue list --state open`.
 
 ---
 
 ## Conventions (cheat sheet)
 
-- **Tests:** `Method_Scenario_ExpectedBehavior`, AAA, no infrastructure in unit tests
-- **Naming:** PascalCase classes, `_camelCase` private fields, `IPrefix` interfaces
+- **Tests:** unit tests `Method_Scenario_ExpectedBehavior` (AAA, NSubstitute mocks, no infrastructure); integration/API tests may use sentence-style names (`Generate_requires_authentication`); Testcontainers PostgreSQL for Infrastructure
+- **Naming:** PascalCase types/methods, `_camelCase` private fields, `IPrefix` interfaces; prefer primary constructors (see `.editorconfig`)
 - **Async:** every IO is async, never `.Result`
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`)
+- **Commits:** Conventional Commits, header ≤ 100 chars, enforced by commitlint — types `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`; 1 issue ↔ 1 commit (`Closes #N` in the body)
+- **Branches:** `feat/`, `fix/`, `docs/` … off `master`; PR + squash-merge, never push to `master`
 - **Files:** one class per file, file-scoped namespaces, nullable enabled
 
 ---
