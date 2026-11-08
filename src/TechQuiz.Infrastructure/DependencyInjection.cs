@@ -135,6 +135,24 @@ public static class DependencyInjection
             var anthropic = provider.GetRequiredService<IOptions<AnthropicOptions>>().Value;
             client.BaseAddress = new Uri(anthropic.BaseUrl.TrimEnd('/') + "/");
         });
+
+        services
+            .AddOptions<OpenAiOptions>()
+            .Bind(configuration.GetSection(OpenAiOptions.SectionName))
+            .Validate(
+                o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                "Ai:OpenAi:BaseUrl must be an absolute URL.")
+            .Validate(
+                o => !string.IsNullOrWhiteSpace(o.Model) && o.MaxCompletionTokens > 0,
+                "Ai:OpenAi:Model must be set and Ai:OpenAi:MaxCompletionTokens must be positive.")
+            .ValidateOnStart();
+
+        services.AddHttpClient<IAiProvider, OpenAiAiProvider>("OpenAi", (provider, client) =>
+        {
+            var openAi = provider.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+            client.BaseAddress = new Uri(openAi.BaseUrl.TrimEnd('/') + "/");
+        });
+
         services.AddScoped<IAiProviderResolver, AiProviderResolver>();
 
         // Bring-your-own-key storage (ADR-006): user keys are encrypted at rest with

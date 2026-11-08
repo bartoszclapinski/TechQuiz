@@ -36,6 +36,7 @@ public sealed class AiProviderWiringTests
 
     [Theory]
     [InlineData(AiProviderKind.Anthropic, "api.anthropic.com")]
+    [InlineData(AiProviderKind.OpenAi, "api.openai.com")]
     public async Task ResolvedProvider_SendsRequestsToItsOwnHost(AiProviderKind kind, string expectedHost)
     {
         _handler.RespondWith("{}");
