@@ -55,13 +55,19 @@ function ChallengeEditor({
   const feedback = useCodeFeedback(challenge.id)
   const badge = DIFFICULTY_BADGE[challenge.difficulty]
 
-  // Feedback needs the user's own key, so it's only offered for a provider that has a live client
-  // AND a stored key. We default to the first such provider (Anthropic today); with none, the
-  // button is disabled and we point the user at Settings.
+  // Feedback needs the user's own key, so it's only offered for providers that have a live client
+  // AND a stored key. With several, the user picks one; with none, the button is disabled and we
+  // point the user at Settings.
   const { data: configured } = useConfiguredProviders()
-  const feedbackProvider = AI_PROVIDERS.find(
+  const usableProviders = AI_PROVIDERS.filter(
     (provider) => provider.available && (configured?.includes(provider.id) ?? false),
   )
+  // Only the user's explicit choice is state; the provider actually used is derived from it on
+  // every render. If the chosen key is removed (or nothing was chosen yet), this falls back to the
+  // first usable provider without a useEffect to keep two pieces of state in sync.
+  const [chosenProviderId, setChosenProviderId] = useState<string | null>(null)
+  const feedbackProvider =
+    usableProviders.find((provider) => provider.id === chosenProviderId) ?? usableProviders[0]
 
   function handleRun() {
     setLastAction('run')
@@ -129,7 +135,7 @@ function ChallengeEditor({
             className="w-full resize-y rounded-[8px] border border-default bg-surface px-2.5 py-1.5 font-mono text-[13px] text-primary placeholder:text-muted focus:border-accent focus:outline-none"
           />
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={handleRun}
@@ -146,6 +152,21 @@ function ChallengeEditor({
           >
             {grade.isPending ? 'Submitting…' : 'Submit'}
           </button>
+          {usableProviders.length > 1 && feedbackProvider ? (
+            <select
+              aria-label="AI provider for feedback"
+              value={feedbackProvider.id}
+              onChange={(event) => setChosenProviderId(event.target.value)}
+              disabled={busy}
+              className="rounded-[8px] border border-default bg-surface px-2.5 py-2 text-[14px] text-primary focus:border-accent focus:outline-none disabled:opacity-50"
+            >
+              {usableProviders.map((provider) => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.label}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <button
             type="button"
             onClick={handleFeedback}
