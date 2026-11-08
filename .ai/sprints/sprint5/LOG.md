@@ -5,6 +5,25 @@ Najnowsze wpisy na górze.
 
 ---
 
+## 2026-11-08 — Iteracja 5.1: smoke + domknięcie (task 9)
+
+**Cel:** sprawdzić 5.1 na prawdziwym API bez udziału ownera (brak czasu na klikanie) i domknąć iterację.
+
+- **Pełny zestaw lokalnie z Testcontainers:** 459/459 (Domain 129, Application 200, Infrastructure 91, API 39).
+- **Smoke na stacku z brancha:** fałszywy klucz OpenAI → prawdziwe API OpenAI → 401 → u nas **422** („AI provider
+  rejected the key") dla generowania i dla feedbacku do kodu. W logach API zero `sk-proj-`, `sk-ant-` i końcówki klucza.
+- **Do zrobienia przez ownera (#397):** run na doładowanym kluczu OpenAI, ponowne sprawdzenie Anthropic na kontrakcie
+  `{ "questions": [...] }`, potem flip `available: true`.
+- **Uwaga środowiskowa:** stary lokalny wolumen `techquiz_postgres-data` nie przechodzi migracji taksonomii (FK
+  `fk_categories_tracks_track_id`) — dane sprzed 4.8. Smoke poszedł na osobnym projekcie Compose (`-p techquizsmoke`)
+  z czystym wolumenem; wolumen ownera nietknięty. Reset: `docker compose down -v`, gdy lokalne dane nie są potrzebne.
+- **Kosmetyka:** `detail` w ProblemDetails używa nazwy z enuma („OpenAi rejected…"); UI pokazuje własny komunikat,
+  więc nie poprawiane.
+
+**Następny krok:** merge #388, potem fix trwałego key ringu Data Protection (klucze AI nie przetrwają restartu na Render).
+
+---
+
 ## 2026-11-08 — Iteracja 5.1: implementacja (taski 2–8)
 
 **Cel:** natywny dostawca OpenAI na seamie `IAiProvider`, z tym samym zachowaniem, testami i obsługą błędów co Anthropic.

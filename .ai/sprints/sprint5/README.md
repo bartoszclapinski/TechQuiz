@@ -7,7 +7,7 @@ Finish the ADR-019 provider set on the existing `IAiProvider` seam: native OpenA
 
 ## Planned iterations
 
-- **5.1 — OpenAI provider**: Native `OpenAiAiProvider` on a raw typed `HttpClient`, sharing prompts and parsing with Anthropic. Both providers get typed invalid-key and quota errors. OpenAI is un-gated in Settings only after a funded-key run (follow-up PR). See `5.1-openai-provider.md`.
+- **5.1 — OpenAI provider**: Native `OpenAiAiProvider` on a raw typed `HttpClient`, sharing prompts and parsing with Anthropic. Both providers get typed invalid-key and quota errors. OpenAI is un-gated in Settings only after a funded-key run (follow-up #397). See `5.1-openai-provider.md`.
 - **5.2 — Gemini provider**: Native Google Gemini client on the same seam, reusing the shared prompts and error mapping from 5.1. Gemini is un-gated in Settings.
 - **5.3 — OpenRouter provider**: OpenAI-compatible client next to the native providers, not replacing them (ADR-019). OpenRouter honours strict `json_schema` only on some models, so 5.3 may need `provider.require_parameters` or a prompt-only fallback. OpenRouter is un-gated in Settings.
 - **5.4 — Auth hardening**: refresh-token reuse detection with family revocation (#66), optimistic concurrency on rotation (#67), a cleanup job for expired/revoked tokens (#68), no refresh token in the JSON body for the browser flow (#99).
