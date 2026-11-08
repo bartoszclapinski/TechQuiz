@@ -51,7 +51,7 @@ The project is built as a **portfolio piece** demonstrating Clean Architecture, 
 - **Monaco Editor** — code editor in browser (for code challenges)
 
 ### AI Integration
-- **Bring-your-own-key AI providers** (ADR-006, ADR-019) — provider abstraction (`IAiProvider`) over Anthropic (the only implemented client); OpenAI, Gemini and OpenRouter exist in `AiProviderKind` but have no client yet (shown as "soon" in Settings); used for question generation and qualitative code feedback
+- **Bring-your-own-key AI providers** (ADR-006, ADR-019) — provider abstraction (`IAiProvider`) over Anthropic (live) and OpenAI (implemented in 5.1, "soon" in Settings until a funded-key run); Gemini and OpenRouter have no client yet; used for question generation and qualitative code feedback
 - **Judge0** (self-hosted, `codeexec` compose profile) — sandboxed execution that grades code challenges (ADR-018)
 
 ### DevOps
@@ -104,7 +104,8 @@ Clean Architecture with 4 layers + presentation:
 │  • EF Core DbContext, migrations        │
 │  • Repository implementations           │
 │  • Identity + JWT, data seeder          │
-│  • AI providers (Anthropic), Judge0     │
+│  • AI providers (Anthropic, OpenAI)     │
+│  • Judge0 code execution                │
 └─────────────────────────────────────────┘
 ```
 
@@ -132,7 +133,7 @@ web/                                # React + TypeScript SPA (Vite, pnpm) — se
 
 ## Roadmap
 
-The roadmap is defined in `docs/DECISION_LOG.md` ADR-013: Phase 0 Foundation → Phase 1 MVP → Phase 2 Dashboard + spaced repetition → Phase 3 AI + code questions → Phase 4 Polish + deployment. All phases are `done`; per-iteration detail lives in `.ai/sprints/sprintN/` (iteration files + `LOG.md`). The original pre-implementation plan (Markdown import, timed mode, PDF export, difficulty adaptation) was not carried forward.
+The roadmap is defined in `docs/DECISION_LOG.md` ADR-013: Phase 0 Foundation → Phase 1 MVP → Phase 2 Dashboard + spaced repetition → Phase 3 AI + code questions → Phase 4 Polish + deployment, plus Phase 5 Post-launch (remaining AI providers + auth hardening) added by ADR-027. Phases 0–4 are `done`; per-iteration detail lives in `.ai/sprints/sprintN/` (iteration files + `LOG.md`). The original pre-implementation plan (Markdown import, timed mode, PDF export, difficulty adaptation) was not carried forward.
 
 ---
 
@@ -140,7 +141,7 @@ The roadmap is defined in `docs/DECISION_LOG.md` ADR-013: Phase 0 Foundation →
 
 All four roadmap phases are delivered and the app is live at https://techquiz-web.onrender.com (Render + Neon, ADR-022). Render free instances sleep after ~15 minutes, so the first request after idle can take 30–50 seconds.
 
-No planned iteration remains; further work is off-plan, so confirm the goal with the owner first. Known open follow-ups (auth hardening, deferred since Phase 1): #66, #67, #68, #99 — see `gh issue list --state open`. See `CLAUDE.md` and `.ai/sprints/sprint4/LOG.md` for the latest state.
+Phase 5 is in progress (ADR-027): 5.1 OpenAI, 5.2 Gemini, 5.3 OpenRouter, 5.4 auth hardening (#66, #67, #68, #99). See `.ai/sprints/sprint5/` (iteration files + `LOG.md`) for the latest state.
 
 ---
 
@@ -249,7 +250,7 @@ pnpm dev
 ## How AI Should Help
 
 ### When asked to add a feature:
-1. All roadmap phases are done — confirm the goal with the owner, then find or create the iteration file in `.ai/sprints/` (see `CLAUDE.md` → *Iteration workflow*).
+1. Work from the current iteration in `.ai/sprints/sprint5/`; for anything outside it, confirm the goal with the owner, then find or create the iteration file (see `CLAUDE.md` → *Iteration workflow*).
 2. Scope minimally: prefer extending existing patterns to creating new ones
 3. If it's beyond the agreed scope: ask whether to defer or expand it
 

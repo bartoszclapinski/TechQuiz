@@ -7,10 +7,9 @@ using TechQuiz.Infrastructure.Ai;
 
 namespace TechQuiz.Infrastructure.Tests.Ai;
 
-// Exercises the AI provider registration shape from Infrastructure DI through a real
-// container. AddInfrastructure as a whole is DB/Identity/Judge0-bound, so this mirrors
-// just the two AI lines — enough to prove IEnumerable<IAiProvider> injection and resolver
-// construction without spinning up Postgres or hitting a network.
+// Exercises resolver construction over an injected IEnumerable<IAiProvider> with a stub, so
+// no network is involved. The real AddInfrastructure AI wiring (named typed clients, each
+// provider's host) is covered by AiProviderWiringTests.
 public class AiProviderRegistrationTests
 {
     private static ServiceProvider BuildProvider()

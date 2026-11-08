@@ -1,3 +1,4 @@
+import { providerLabel } from '../settings/api'
 import { usePooledQuestions } from './use-pooled-questions'
 import type { PooledQuestion } from './api'
 
@@ -74,7 +75,7 @@ function PoolCard({ question }: { question: PooledQuestion }) {
         <p className="mb-2 text-[13px] leading-snug text-muted">{question.explanation}</p>
       ) : null}
       <div className="flex items-center gap-2 text-[12px] text-muted">
-        <span className="rounded-full bg-elevated px-1.5 py-px font-mono">{question.provider}</span>
+        <span className="rounded-full bg-elevated px-1.5 py-px font-mono">{providerLabel(question.provider)}</span>
         <span>·</span>
         <span>{question.topic}</span>
       </div>

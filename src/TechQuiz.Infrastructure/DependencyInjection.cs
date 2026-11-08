@@ -115,9 +115,9 @@ public static class DependencyInjection
         // In-memory seed of coding challenges (ADR-018); singleton since the seed is immutable.
         services.AddSingleton<ICodeChallengeCatalog, InMemoryCodeChallengeCatalog>();
 
-        // AI question generation (ADR-006). The resolver picks a provider by Kind from
-        // the registered set. Anthropic is the only live provider in iteration 3.2; the
-        // other kinds in AiProviderKind resolve to UnknownAiProviderException until built.
+        // AI providers (ADR-006, ADR-019). The resolver picks a provider by Kind from the
+        // registered set; kinds without a registered provider resolve to
+        // UnknownAiProviderException.
         services
             .AddOptions<AnthropicOptions>()
             .Bind(configuration.GetSection(AnthropicOptions.SectionName))
@@ -127,12 +127,32 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         // Typed HttpClient → transient. The resolver is scoped (not singleton) so it never
-        // captures the typed client, keeping HttpClient handler rotation intact.
-        services.AddHttpClient<IAiProvider, AnthropicAiProvider>((provider, client) =>
+        // captures the typed client, keeping HttpClient handler rotation intact. Each provider's
+        // client is named: unnamed AddHttpClient<IAiProvider, …> calls share one name, so the
+        // last BaseAddress would win for every provider (guarded by AiProviderWiringTests).
+        services.AddHttpClient<IAiProvider, AnthropicAiProvider>("Anthropic", (provider, client) =>
         {
             var anthropic = provider.GetRequiredService<IOptions<AnthropicOptions>>().Value;
             client.BaseAddress = new Uri(anthropic.BaseUrl.TrimEnd('/') + "/");
         });
+
+        services
+            .AddOptions<OpenAiOptions>()
+            .Bind(configuration.GetSection(OpenAiOptions.SectionName))
+            .Validate(
+                o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                "Ai:OpenAi:BaseUrl must be an absolute URL.")
+            .Validate(
+                o => !string.IsNullOrWhiteSpace(o.Model) && o.MaxCompletionTokens > 0,
+                "Ai:OpenAi:Model must be set and Ai:OpenAi:MaxCompletionTokens must be positive.")
+            .ValidateOnStart();
+
+        services.AddHttpClient<IAiProvider, OpenAiAiProvider>("OpenAi", (provider, client) =>
+        {
+            var openAi = provider.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+            client.BaseAddress = new Uri(openAi.BaseUrl.TrimEnd('/') + "/");
+        });
+
         services.AddScoped<IAiProviderResolver, AiProviderResolver>();
 
         // Bring-your-own-key storage (ADR-006): user keys are encrypted at rest with

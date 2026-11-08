@@ -17,7 +17,7 @@ Enable AI-generated questions via user-supplied API keys, support multiple provi
 
 ## Delivered
 
-- **3.1** delivered the `IAiProvider` port + resolver with a stub provider (#169). **3.2** delivered encrypted BYO-key storage + the **native Anthropic provider** (#178). ADR-019 set the target provider set as native OpenAI, Anthropic, Gemini plus OpenRouter; only Anthropic was built. OpenAI, Gemini and OpenRouter exist only as `AiProviderKind` values, and the resolver throws `UnknownAiProviderException` for them.
+- **3.1** delivered the `IAiProvider` port + resolver with a stub provider (#169). **3.2** delivered encrypted BYO-key storage + the **native Anthropic provider** (#178). ADR-019 set the target provider set as native OpenAI, Anthropic, Gemini plus OpenRouter; only Anthropic was built in Phase 3. The rest moved to Phase 5 (ADR-027): OpenAI in 5.1, Gemini in 5.2, OpenRouter in 5.3.
 - **3.3** Settings UI (#182) — usage stats deferred (no usage endpoint). **3.4** Generate screen (#186). **3.5** Public pool — persist, publish (Draft → Published, ADR-020), browse (#196); voting/flagging/moderation and playing pooled questions were **not built**. **3.6** Code challenge UI (#203, with compile-gate #198) — graded by Judge0 execution against hidden tests (ADR-018). **3.7** AI code feedback (#210). Rate limiting (ADR-006 consequence) was deferred in 3.2 and not built.
 - Phase 3 shipped before Phase 2 (2026-06-25 → 06-29).
 
