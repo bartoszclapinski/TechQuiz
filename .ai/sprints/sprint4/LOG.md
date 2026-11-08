@@ -146,6 +146,27 @@ z prototypu); wszystkie stany zachowane (review-banner, achievements, empty-stat
 
 ---
 
+## 2026-07-05 — Iteracja 4.9: Czytelność na desktopie (skala typografii)
+
+**Cel:** appka była budowana mobile-first z bardzo zbitą skalą — ~250 twardych rozmiarów w px
+(`text-[10px]` ×38, `text-[11px]` ×41, `text-[13px]` ×66 + `text-xs`/`text-sm`). Na desktopie tekst był
+za drobny (zgłoszone przez ownera na żywym dashboardzie). Brak centralnej dźwigni, więc cała skala idzie
+w górę o jeden spójny stopień, z zachowaniem hierarchii.
+
+- **#303** (issues #301, #302) — bump w całym `web/src`, od największych rozmiarów w dół, żeby nic nie
+  podbiło się dwa razy: 9→11, 10→12, 11→13, 12/`text-xs`→13, 13→14, 14/`text-sm`→15, 15→16 px;
+  `text-base` i prawdziwe nagłówki bez zmian. Czysty styling — zero zmian w logice/API/strukturze layoutu.
+  Skala „moderate" zaakceptowana przez ownera.
+
+**Weryfikacja:** `pnpm build` + `pnpm lint` czyste (CI Frontend zielony), w `web/src` nie został żaden
+`text-xs`/`text-sm`. Osobnego zapisu przeglądu ekranów ani potwierdzenia na żywo dla samej 4.9 brak —
+ekrany i tak zostały przebudowane i sprawdzone w obu motywach trzy dni później w 4.10 (Momentum),
+z potwierdzeniem ownera na żywym URL-u.
+
+*Wpis dopisany retroaktywnie na podstawie PR #303.*
+
+---
+
 ## 2026-07-05 — Iteracja 4.8: Taksonomia kategorii (Tracks) + czyszczenie treści
 
 **Cel:** zamienić płaską listę 9 kategorii na dwupoziomową taksonomię **Track → Category (quiz) →
@@ -182,6 +203,43 @@ Suma pytań bez zmian: **269** (i 1076 opcji). Invariant single-correct zachowan
 na Neonie i FK to wywali na starcie. Dlatego przed deployem **reset tabel treści na Neonie** (kategorie/quizy/
 pytania/opcje) — konta userów nietknięte — żeby nowa taksonomia zaseedowała się od zera. Status iteracji
 `in-progress` do potwierdzenia klik-through na żywym URL-u.
+
+---
+
+## 2026-07-03 — Iteracja 4.6: Deploy staging (Render + Neon)
+
+**Cel:** zabrać TechQuiz z „działa lokalnie" na żywy, klikalny URL. Plan iteracji był pisany pod Azure App
+Service (`deploy-staging.yml`), ale w trakcie host zmienił się na **Render + Neon** — **ADR-022** (poprawia
+ADR-017): zarządzany Postgres na Azure nie jest darmowy, a darmowy tier App Service nie uruchamia kontenerów,
+których potrzebuje web (nginx z SPA fallback).
+
+- **Faza A (#284, 2026-07-02, issues #274–#283)** — wszystko w repo pod deploy: plan iteracji + ADR-022;
+  luki produkcyjne niezależne od hosta — CORS z konfiguracji (`Cors:AllowedOrigins`), refresh cookie
+  `SameSite=None; Secure` poza Development (inaczej login działa, a odświeżanie tokenu cross-site cicho pada),
+  seed także w Staging (idempotentny); wiring kontenerów — API słucha na `$PORT`, nginx na `${PORT}`
+  (envsubst), `VITE_API_BASE_URL` wypiekany z build-arga; blueprint `render.yaml` (dwa Docker web services,
+  sekrety `sync: false`, health check `/health`, autoDeploy) zamiast wycofanego `deploy-staging.yml`;
+  runbook `docs/DEPLOYMENT.md`.
+- **Faza B** — provisioning po stronie ownera: baza na Neonie, Blueprint zaaplikowany na Renderze, sekrety
+  (connection string, klucz JWT) w env Rendera.
+- **Poprawki pierwszego deployu (2026-07-03):**
+  - **#286** — API padało na starcie na świeżym Neonie (`relation "categories" does not exist`), bo nic nie
+    aplikowało migracji EF → `MigrateAsync()` przed seedem (idempotentne).
+  - **#288** — seed demo usera odrzucony przez politykę haseł Staging (min. 12 znaków) → hasło demo
+    `DemoPass123!` zamiast osłabiania polityki.
+  - **#290** — Render dodał sufiks `-j4kr` do hosta API → `VITE_API_BASE_URL` w `render.yaml` wskazany na
+    `techquiz-api-j4kr.onrender.com`. CORS bez zmian (origin weba dostał host bez sufiksu).
+
+**Weryfikacja na żywo:** `https://techquiz-api-j4kr.onrender.com/health` → 200 Healthy,
+`https://techquiz-web.onrender.com/` → 200 (#290). Potwierdzenie ownera na żywym URL-u przyszło przy
+kolejnych iteracjach: login demo + odświeżanie sesji w 4.8, Dashboard/Categories/Quiz/Result w 4.10 —
+osobnego zapisu smoke'u dla samej 4.6 brak.
+
+**Uwaga:** link „Live demo" i nota o usypianiu darmowej instancji w README doszły dopiero później, w **#361**
+(README refresh w 4.7) — #284 dodał tylko wskazanie na `render.yaml`/`docs/DEPLOYMENT.md`. Plik iteracji
+zachowuje plan pod Azure jako zapis historyczny, z notą o zmianie hosta.
+
+*Wpis dopisany retroaktywnie na podstawie PR-ów #284/#286/#288/#290.*
 
 ---
 
