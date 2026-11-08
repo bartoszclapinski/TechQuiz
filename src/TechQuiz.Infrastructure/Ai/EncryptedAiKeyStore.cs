@@ -1,5 +1,7 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TechQuiz.Application.Abstractions;
 using TechQuiz.Infrastructure.Persistence;
 using TechQuiz.Infrastructure.Persistence.Ai;
@@ -12,7 +14,8 @@ namespace TechQuiz.Infrastructure.Ai;
 /// <see cref="GetAsync"/>; it is never persisted, logged, or returned by the listing
 /// methods.
 /// </summary>
-internal sealed class EncryptedAiKeyStore(AppDbContext db, IDataProtectionProvider protection)
+internal sealed class EncryptedAiKeyStore(
+    AppDbContext db, IDataProtectionProvider protection, ILogger<EncryptedAiKeyStore> logger)
     : IAiKeyStore
 {
     // Versioned purpose string: bumping it (…v2) would intentionally invalidate every
@@ -46,7 +49,26 @@ internal sealed class EncryptedAiKeyStore(AppDbContext db, IDataProtectionProvid
             .AsNoTracking()
             .FirstOrDefaultAsync(k => k.UserId == userId && k.Provider == kind, cancellationToken);
 
-        return row is null ? null : _protector.Unprotect(row.EncryptedApiKey);
+        if (row is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return _protector.Unprotect(row.EncryptedApiKey);
+        }
+        catch (CryptographicException)
+        {
+            // The key was encrypted under a key ring this host no longer has (e.g. lost before the
+            // ring was persisted, ADR-028). It can never be read again, so forget it: the user sees
+            // "no key configured" and re-enters it, instead of every AI call failing with a 500.
+            logger.LogWarning(
+                "Stored {Provider} key for user {UserId} could not be decrypted and was removed.",
+                kind, userId);
+            await RemoveAsync(userId, kind, cancellationToken);
+            return null;
+        }
     }
 
     public Task RemoveAsync(
