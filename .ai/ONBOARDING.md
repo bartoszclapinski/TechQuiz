@@ -1,28 +1,21 @@
 # ONBOARDING — TechQuiz
 
-> Last updated: 2026-05-05
+> Last updated: 2026-11-08
 > Purpose: Full project context for AI assistants and new contributors.
 
 ---
 
 ## Project Overview
 
-**TechQuiz** is a personal knowledge testing platform for software engineering topics — inspired by Pluralsight Skill IQ. It uses AI to generate questions from study materials, evaluates code answers, and tracks progress over time with charts and spaced repetition.
+**TechQuiz** is a self-knowledge testing platform for developers. Users take multiple-choice quizzes and code challenges across technical categories (C#, ASP.NET, EF Core, SQL, etc.). It generates questions with bring-your-own-key AI providers from a topic and difficulty, grades code challenges by sandboxed execution (Judge0) with optional AI feedback, and tracks progress over time with a dashboard and spaced repetition. It is multi-user (Identity + JWT); public registration is currently closed and the live demo uses a seeded demo account.
 
-### Two purposes (in priority order):
-
-1. **Personal study tool** — used daily to prepare for technical interviews, especially the EPAM .NET interview in June 2026
-2. **Portfolio project** — demonstrates Clean Architecture, AI integration, full-stack skills, testing discipline
-
-### Why this matters for the design:
-
-The project should be **shippable fast** (MVP in 2 weeks for daily use during the EPAM sprint), then **polished gradually** for portfolio quality. We optimize for "useful tool first, beautiful code second" — but never sloppy code.
+The project is built as a **portfolio piece** demonstrating Clean Architecture, TDD on Domain and Application, AI integration behind a provider abstraction, full-stack skills, and a real CI/CD pipeline with a live deployment. It was shipped in small iterations — a working tool first, polished gradually — but never with sloppy code.
 
 ---
 
 ## Author
 
-**Bartosz Cłapiński** — Computer Science engineer (PJATK 2024), .NET developer with 10 years of management background, transitioning to software engineering full-time.
+**Bartosz Cłapiński** — .NET developer.
 
 - GitHub: [github.com/bartoszclapinski](https://github.com/bartoszclapinski)
 - LinkedIn: [linkedin.com/in/bartosz-clapinski](https://linkedin.com/in/bartosz-clapinski)
@@ -41,34 +34,37 @@ The project should be **shippable fast** (MVP in 2 weeks for daily use during th
 
 ### Backend
 - **ASP.NET Core 9** — Web API
-- **Entity Framework Core 9** + **PostgreSQL**
+- **Entity Framework Core 9** + **PostgreSQL 16**
 - **MediatR** — CQRS handlers
 - **FluentValidation** — input validation
 - **Serilog** — structured logging
-- **xUnit** + **NSubstitute** + **FluentAssertions** (pinned to 7.x) — testing
+- **ASP.NET Identity** + **JWT bearer** + HttpOnly refresh-token cookie — auth
+- **xUnit** + **NSubstitute** + **FluentAssertions** (pinned to 7.x) + **Testcontainers** (PostgreSQL) — testing
 
 ### Frontend
 - **React 19** + **TypeScript**
 - **Vite 8** — build tool
 - **Tailwind CSS 3** — utility-first styling
 - **TanStack Query** — server state
-- **Recharts** — progress charts
-- **Monaco Editor** — code editor in browser (for code questions)
-- **Tailwind CSS** — styling
+- **React Router v6** + **react-hook-form** + **zod** — routing and forms
+- **Charts** — none; dashboard visuals are hand-rolled CSS/SVG (Recharts dropped in 4.5)
+- **Monaco Editor** — code editor in browser (for code challenges)
 
 ### AI Integration
-- **OpenAI API** — question generation, code answer evaluation
+- **Bring-your-own-key AI providers** (ADR-006, ADR-019) — provider abstraction (`IAiProvider`) over Anthropic (the only implemented client); OpenAI, Gemini and OpenRouter exist in `AiProviderKind` but have no client yet (shown as "soon" in Settings); used for question generation and qualitative code feedback
+- **Judge0** (self-hosted, `codeexec` compose profile) — sandboxed execution that grades code challenges (ADR-018)
 
 ### DevOps
-- **Docker** + **docker-compose**
+- **Docker** + **docker-compose** — local stack (API, web, PostgreSQL, Seq)
 - **GitHub Actions** — CI (build, test, lint)
-- **PostgreSQL** in container
+- **Render** (Docker web services, `render.yaml`) + **Neon** managed PostgreSQL — live host (ADR-022, `docs/DEPLOYMENT.md`)
+- **semantic-release** (`release.yml`) and **api-smoke.yml** (deployed-API smoke check)
 
 ### Why this stack:
-- C# / ASP.NET Core: author's primary language, target tech for job hunt
-- React / TypeScript: most demanded frontend combo in .NET job offers (fills a gap in author's portfolio — already has Blazor and Angular projects)
+- C# / ASP.NET Core: the author's primary language
+- React / TypeScript: the most common frontend pairing for .NET backends
 - PostgreSQL: free, robust, Docker-friendly
-- Clean Architecture: demonstrates architectural maturity to recruiters
+- Clean Architecture: keeps Domain and Application testable without infrastructure
 - xUnit: most modern .NET testing framework
 
 ---
@@ -84,30 +80,31 @@ Clean Architecture with 4 layers + presentation:
                   │ HTTP (REST)
 ┌─────────────────────────────────────────┐
 │  TechQuiz.Api (ASP.NET Core)            │  Presentation (API)
-│  • Controllers, Filters, Middleware     │
+│  • Controllers, exception handler       │
 └─────────────────────────────────────────┘
                   │
 ┌─────────────────────────────────────────┐
 │  TechQuiz.Application                   │  Use cases
 │  • CQRS Commands/Queries (MediatR)      │
 │  • Validators (FluentValidation)        │
-│  • DTOs, mappers                        │
+│  • DTOs, ports in Abstractions/         │
+│    (repositories, IAiProvider, ...)     │
 └─────────────────────────────────────────┘
                   │
 ┌─────────────────────────────────────────┐
 │  TechQuiz.Domain                        │  Business rules
 │  • Entities, Value Objects, Enums       │
-│  • Domain interfaces (IRepository, ...) │
-│  • Domain events                        │
+│  • Domain rules + domain exceptions     │
+│  • No framework dependencies            │
 └─────────────────────────────────────────┘
                   ▲
-                  │ implements
+                  │ implements Application ports
 ┌─────────────────────────────────────────┐
 │  TechQuiz.Infrastructure                │  External concerns
 │  • EF Core DbContext, migrations        │
 │  • Repository implementations           │
-│  • OpenAI client                        │
-│  • External services                    │
+│  • Identity + JWT, data seeder          │
+│  • AI providers (Anthropic), Judge0     │
 └─────────────────────────────────────────┘
 ```
 
@@ -118,13 +115,14 @@ Dependencies point **inward**. Domain depends on nothing. Application depends on
 ```
 src/
 ├── TechQuiz.Api/              # ASP.NET Core Web API
-├── TechQuiz.Application/      # Business logic, CQRS, MediatR
-├── TechQuiz.Domain/           # Entities, VOs, interfaces
-└── TechQuiz.Infrastructure/   # EF Core, AI providers, persistence
+├── TechQuiz.Application/      # Use cases, CQRS (MediatR), validators, ports in Abstractions/
+├── TechQuiz.Domain/           # Entities, VOs, domain rules
+└── TechQuiz.Infrastructure/   # EF Core + seeder, Identity/JWT, AI providers + key store, Judge0 client
 
 tests/
 ├── TechQuiz.Domain.Tests/         # Pure unit tests (TDD-driven)
 ├── TechQuiz.Application.Tests/    # Handler tests with mocked deps (NSubstitute)
+├── TechQuiz.Api.Tests/            # API smoke tests (WebApplicationFactory)
 └── TechQuiz.Infrastructure.Tests/ # Integration tests (Testcontainers)
 
 web/                                # React + TypeScript SPA (Vite, pnpm) — separate from .NET solution
@@ -132,65 +130,17 @@ web/                                # React + TypeScript SPA (Vite, pnpm) — se
 
 ---
 
-## Roadmap (4 phases)
+## Roadmap
 
-### Phase 1 — MVP (~3 building sessions, weeks 1-2 of EPAM sprint)
-**Goal:** Working quiz with multiple choice questions and score.
-
-- Solution structure, Clean Architecture skeleton
-- Domain: Quiz, Question, Answer, Category entities
-- Application: Quiz CRUD, scoring logic
-- API: GET categories, GET quiz by category, POST submit answers
-- Infrastructure: PostgreSQL via Docker, EF Core migrations, seed data
-- Frontend: category selection → quiz screen → result screen
-- Markdown parser: imports questions from EPAM course quiz files
-
-**Deliverable:** Author can run the app, take a quiz, see score.
-
-### Phase 2 — History & Charts (weeks 3-4)
-**Goal:** Track progress over time, visualize, daily review.
-
-- Domain: QuizAttempt, UserProgress entities
-- API: history, stats per category
-- Frontend: Dashboard with line chart (scores over time) + radar chart (skill map)
-- Spaced repetition algorithm (SM-2 simplified) — wrong-answered questions return more often
-- "Daily Review" mode
-
-**Deliverable:** Charts work, author sees progress trends, gets reminded of weak areas.
-
-### Phase 3 — Code Questions + AI (weeks 5-7)
-**Goal:** Code questions with Monaco Editor + AI generates and evaluates.
-
-- Domain: CodeQuestion entity (snippet, expected output, explanation)
-- Frontend: Monaco Editor integration with C# syntax highlighting
-- Question types: "What does this code return?" / "Find the bug" / "Complete the code"
-- Infrastructure: OpenAI service
-- AI Generator: produces questions on demand based on topic + difficulty
-- AI Evaluator: assesses code answers (not just exact match) with feedback
-
-**Deliverable:** Author can solve code questions and get AI feedback.
-
-### Phase 4 — Polish & Gamification (weeks 8-10)
-**Goal:** Production-quality app for portfolio.
-
-- Gamification: XP, levels, badges, streaks
-- Difficulty adaptation
-- Timed mode (interview simulation)
-- PDF export of "skill report"
-- Tests: 70%+ coverage on Application layer
-- Docker compose: full stack containerized
-- GitHub Actions: CI pipeline (build + test + lint)
-- README with screenshots, architecture diagram
-
-**Deliverable:** Public, polished repo ready to show recruiters.
+The roadmap is defined in `docs/DECISION_LOG.md` ADR-013: Phase 0 Foundation → Phase 1 MVP → Phase 2 Dashboard + spaced repetition → Phase 3 AI + code questions → Phase 4 Polish + deployment. All phases are `done`; per-iteration detail lives in `.ai/sprints/sprintN/` (iteration files + `LOG.md`). The original pre-implementation plan (Markdown import, timed mode, PDF export, difficulty adaptation) was not carried forward.
 
 ---
 
 ## Current Status
 
-**As of 2026-05-05:** Pre-implementation. README and `.gitignore` in place. First building session: Wednesday 2026-05-06.
+All four roadmap phases are delivered and the app is live at https://techquiz-web.onrender.com (Render + Neon, ADR-022). Render free instances sleep after ~15 minutes, so the first request after idle can take 30–50 seconds.
 
-Check the latest commits and `git log` for current state.
+No planned iteration remains; further work is off-plan, so confirm the goal with the owner first. Known open follow-ups (auth hardening, deferred since Phase 1): #66, #67, #68, #99 — see `gh issue list --state open`. See `CLAUDE.md` and `.ai/sprints/sprint4/LOG.md` for the latest state.
 
 ---
 
@@ -213,17 +163,18 @@ Check the latest commits and `git log` for current state.
 - **Constants:** `PascalCase` (not SCREAMING_SNAKE)
 
 ### Tests
-- **Naming pattern:** `Method_Scenario_ExpectedBehavior`
+- **Naming pattern:** `Method_Scenario_ExpectedBehavior` for unit tests
   - `Add_TwoPositiveNumbers_ReturnsSum`
   - `Withdraw_AmountExceedsBalance_ThrowsException`
+- Integration/API tests may use sentence-style names (`Generate_requires_authentication`)
 - **AAA pattern** with comments for clarity in early tests, can be omitted once obvious
 - **One Act per test**
 - **No infrastructure** in unit tests (no DB, no network) — use mocks/fakes
 - **Integration tests** use TestContainers (real PostgreSQL in Docker)
 
 ### Commits
-- **Format:** `<type>: <description>` (Conventional Commits style)
-- **Types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`
+- **Format:** `<type>(<optional scope>): <description>`, header ≤ 100 chars, enforced by commitlint (husky + CI)
+- **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
 - **Examples:**
   - `feat: add quiz scoring logic`
   - `test: cover edge cases in IsPrime`
@@ -233,8 +184,9 @@ Check the latest commits and `git log` for current state.
 
 ### Branches
 - **`master`** — always green (CI passes, app runs), protected, never pushed to directly
-- **`feature/short-description`** — new features (squash-merged)
+- **`feat/short-description`** — new features (squash-merged)
 - **`fix/short-description`** — bug fixes
+- Other prefixes mirror the commit type: `docs/`, `chore/`, `ci/`, …
 - **Discipline:** never commit directly to `master`, not even trivial changes. Every change goes through a feature branch + PR + squash merge. One iteration = one PR.
 
 ### Pull Requests
@@ -269,8 +221,13 @@ docker compose up -d
 # Web    → http://localhost:5173
 # Seq UI → http://localhost:8081
 
+# With the Judge0 code runner (needed for code challenges):
+docker compose --profile codeexec up -d
+
 # Or run the API on the host with Postgres + Seq in containers:
 dotnet user-secrets set "Jwt:SigningKey" "<base64-256-bit>" --project src/TechQuiz.Api
+# compose publishes Postgres on host port 5433, while appsettings.json defaults to 5432:
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;Database=techquiz;Username=techquiz;Password=techquiz_dev" --project src/TechQuiz.Api
 docker compose up -d postgres seq
 dotnet run --project src/TechQuiz.Api
 
@@ -280,21 +237,21 @@ pnpm install
 pnpm dev
 ```
 
-> EF Core migrations land in iteration 1.3. Until then there is no `dotnet ef database update` step — the API only exposes `/health` and JWT-protected stubs.
+> In Development (and Staging) the API applies pending EF Core migrations and runs the idempotent seeder on startup, so no manual `dotnet ef database update` step is needed. To reset local data, `docker compose down -v`.
 
 ### Environment variables
-- See `appsettings.Development.json.example` (gitignored real version)
-- `OPENAI_API_KEY` — required for Phase 3+
-- `ConnectionStrings__Postgres` — overrides default Postgres connection
+- `src/TechQuiz.Api/appsettings.json` / `appsettings.Development.json` (both committed, no secrets); for a host run the JWT signing key comes from `dotnet user-secrets` (`Jwt:SigningKey`), while the compose stack sets a dev-only key itself
+- `ConnectionStrings__DefaultConnection` — overrides the default Postgres connection (`appsettings.json`)
+- AI keys are per-user (bring-your-own-key, ADR-006): entered in the app's Settings page and stored encrypted — no server-side AI key env var is needed
 
 ---
 
 ## How AI Should Help
 
 ### When asked to add a feature:
-1. Look at the active phase in this file — does the feature fit current scope?
-2. If yes: scope minimally, prefer extending existing patterns to creating new ones
-3. If it's beyond scope: ask whether to defer or expand the phase
+1. All roadmap phases are done — confirm the goal with the owner, then find or create the iteration file in `.ai/sprints/` (see `CLAUDE.md` → *Iteration workflow*).
+2. Scope minimally: prefer extending existing patterns to creating new ones
+3. If it's beyond the agreed scope: ask whether to defer or expand it
 
 ### Code review philosophy:
 - Prefer **deletion over addition** — fewer lines = less to maintain
@@ -316,14 +273,6 @@ pnpm dev
 - Do verify build + tests pass before reporting "done"
 - Do match the existing style of the file you're editing
 - Do flag if you spot something off-topic (security issue, dead code, broken test) — but ask before fixing
-
----
-
-## External Context
-
-- This project was conceived as a study tool for the EPAM .NET interview (June 2026)
-- The author maintains separate private notes/planning documents (not in this repo)
-- The course materials feeding into the question bank are from EPAM Fundamentals .NET CEE & TR #2
 
 ---
 

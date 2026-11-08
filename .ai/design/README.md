@@ -1,13 +1,18 @@
 # Design references
 
 Source material the UI was built against. Reference, not implementation — React components use the
-project's own CSS-variable tokens in `web/src/styles/`, never values copied from these files.
+project's own CSS-variable tokens defined in `web/src/index.css`, never values copied from these files.
 
 ## `momentum-handoff/`
 
 The high-fidelity handoff for the **"Momentum"** design system (violet brand + amber gamification accent,
 dual theme, Bricolage Grotesque display font) that the app was redesigned to in iteration 4.10. The
 decision and its guardrails are recorded in **ADR-024**.
+
+The handoff's values are no longer verbatim: ADR-026 later raised three tokens for WCAG AA contrast —
+dark `--text3` `#7d7291` → `#948aac`, light `--text3` `#9a8fb5` → `#736a88`, light `--ambertext`
+`#d97706` → `#a85400` (`--text-muted` / `--amber-text` in the app). Use the values in
+`web/src/index.css`, not the handoff's token tables.
 
 | File | What it is |
 |---|---|
@@ -31,7 +36,8 @@ page — so keep it alongside the HTML.
 
 ### Note on the numbers
 
-The prototype shows invented figures (XP totals, "Level 7", "9 categories"). They are visual filler.
+The prototype and its spec show invented figures (XP totals, "Level 7", "9 topics" / "9 categories").
+They are visual filler.
 Per ADR-024 the implementation deliberately shows **real data only**; the taxonomy has grown to 4 tracks
 over 18 categories since, and gamification values are derived from actual attempts (ADR-025).
 

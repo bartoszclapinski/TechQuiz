@@ -32,13 +32,13 @@ Google Fonts). Playwright resolves from the repo's own `node_modules`.
 ```bash
 cd .ai/animation
 node render.js master.mp4 30   # ~6 min: 1320 frames at 1280x720
-bash derive.sh                 # writes out/ — GIF, MP4, poster
+bash derive.sh                 # writes out/ — GIF, MP4, poster (+ an unpublished WebP for size comparison)
 ```
 
 Then copy the outputs to `docs/media/` and `web/public/media/`.
 
 Render the master **once** at high quality and derive every cut from it — re-rendering per variant wastes
-minutes for no gain. Flat UI compresses extremely well: the 44 s master lands around 1.4 MB at crf 18.
+minutes for no gain. Flat UI compresses extremely well: the 44 s master lands around 1.5 MB at crf 18.
 
 ## How the capture works
 
@@ -60,14 +60,42 @@ PNG to ffmpeg. Output is therefore deterministic and reproducible.
   reading computed styles in the page, not by eyeballing frames.
 - **`support.js` does not define `Stage`/`Sprite`/`useTime`** — those come from `animations.jsx`.
 
-## Known inaccuracy
+## Keep the numbers honest
 
-The per-track and per-category question counts shown in the animation (".NET — 118 questions",
-"C#/.NET — 22 q", …) are invented placeholders and do not match the seeded bank (.NET actually holds 179;
-Databases and Front-End 30 each). "4 tracks · 18 topics" is correct. Left as-is deliberately: the counts
-change with any content expansion, so they should be corrected and re-rendered in one pass.
+The scene's catalogue figures (track/category question counts, quiz length, and the result fraction) are
+real and must stay that way — this is a portfolio piece, so a wrong count is worse than no count.
+User-specific values (per-category best scores, the "Highest score" card, time, "+5%", the login hero's
+streak/Skill IQ/accuracy, the sample question) are illustrative, mirroring the static
+`web/src/features/auth/auth-hero.tsx`. Anything that changes the seeded bank means editing
+`techquiz-scene.jsx` and re-rendering:
+
+| Shown in the scene | Source of truth |
+|---|---|
+| Track cards — `topics` and `q` | `DataSeeder.cs` + `Seed/Data/*Questions.cs` |
+| `.NET` category cards — `q` per category | the per-category lists in `Seed/Data/*Questions.cs` |
+| Quiz header `C#/.NET · 3 / 30` | a quiz is **every** question in its category — `StartQuizCommandHandler` does no `.Take()` |
+| Result `26 / 30 correct` at `87%` | must divide out to the percentage the scene animates to |
+
+As of the last render: 4 tracks over 18 categories, **269** questions — .NET 179 (30/30/30/30/29/30),
+Databases 30, Front-End 30, Engineering Practices 30.
+
+Count the *list entries*, not the factory methods — a file can define a question that no category list
+references.
+
+```bash
+# from the repo root — counts list entries only, not the factory signatures
+cd src/TechQuiz.Infrastructure/Persistence/Seed/Data
+grep -cE '^\s+Q[0-9]+_\w+\(categoryId\),?$' *.cs
+```
+
+That prints one count per file (currently 30 everywhere except `UnitTestingQuestions.cs` at 29, total 269).
+Each `.NET` file holds one category; the multi-category files (`SqlQuestions.cs`, `FrontEndQuestions.cs`,
+`EngineeringPracticesQuestions.cs`) need their per-list split read by hand.
 
 ## Not tracked
 
 The design tool's export archive (`.zip`), `uploads/` and `.thumbnail` are excluded — verified unused by
 the render (the scene references no images), and the archive merely duplicates the extracted folder.
+
+`master.mp4` and `out/` are gitignored too — they are regenerable render artifacts. The only committed
+copies of the outputs are the ones copied into `docs/media/` and `web/public/media/`.

@@ -102,12 +102,16 @@ TechQuiz/
 │
 ├── .ai/                            ← operational docs for AI assistants
 │   ├── README.md                   ← what this folder is for
+│   ├── ONBOARDING.md               ← longer project background
+│   ├── QUICK_START.md              ← one-page orientation
+│   ├── design/                     ← design references (Momentum handoff, ADR-024)
+│   ├── animation/                  ← walkthrough scene source + render scripts
 │   └── sprints/
-│       ├── sprint0/                ← Phase 0 iteration files
-│       ├── sprint1/                ← Phase 1 (MVP) iteration files — detailed
-│       ├── sprint2/README.md       ← Phase 2 outline
-│       ├── sprint3/README.md       ← Phase 3 outline
-│       └── sprint4/README.md       ← Phase 4 outline
+│       ├── sprint0/                ← Phase 0 iteration file + LOG.md
+│       ├── sprint1/                ← Phase 1 (MVP) iteration files + LOG.md
+│       ├── sprint2/                ← Phase 2 iteration files + LOG.md (README.md = original outline)
+│       ├── sprint3/                ← Phase 3 iteration files + LOG.md (README.md = original outline)
+│       └── sprint4/                ← Phase 4 iteration files + LOG.md (README.md = original outline)
 │
 └── .github/
     ├── workflows/
@@ -169,8 +173,8 @@ owner before starting. Work still ships the same way, and anything sizeable gets
 2. Tasks are ordered. Work through them sequentially unless dependencies allow parallelism
 3. After each meaningful chunk: commit with conventional commit message, push, open PR
 4. PR triggers CI. When green, squash-merge
-5. When all DoD checkboxes are met, update iteration status to `done` in the file's frontmatter
-6. Record what happened in `.ai/sprints/sprintN/LOG.md` (Polish, newest entry first)
+5. When all DoD checkboxes are met, update iteration status to `done` (the `Status:` line under the title, or the YAML `status:` field in files that use frontmatter)
+6. Record what happened in `.ai/sprints/sprintN/LOG.md` (Polish, newest entry first — the convention for new entries; the sprint0, sprint1 and sprint3 logs predate it and run oldest-first)
 
 ### Issue tracking
 
@@ -218,7 +222,7 @@ These rules are non-negotiable. Violating any of them should fail review.
 
 1. **Never commit secrets.** No API keys, JWT signing keys, DB passwords, or connection strings in source. Use `dotnet user-secrets` for local dev and GitHub Secrets for CI.
 2. **Never bypass branch protection.** No force push to `master`, no direct commits to `master`, no merging without green CI.
-3. **Never reference Infrastructure from Application or Domain.** Clean Architecture dependency rule (see ADR-001).
+3. **Never reference Infrastructure from Application or Domain.** Clean Architecture dependency rule (see `docs/ARCHITECTURE.md` → *Clean Architecture Layers*).
 4. **Never expose `IsCorrect` on options through the API when serving an active quiz.** Doing so reveals answers to the client. The `QuestionDto` returned during a quiz must omit this field.
 5. **Never silently change an ADR.** If a previously-recorded decision needs to change, append a new ADR explaining why and mark the old one as superseded. Editing in place loses history.
 6. **Never add a library without justification.** Before introducing a new dependency, check whether existing stack solves the problem. If a new dep is needed, mention it in the PR description.
@@ -302,7 +306,7 @@ docs/mockups/
 └── dashboard-empty-state.html
 ```
 
-These are reference, not implementation. When building React components, match the visual output but use the project's design tokens (CSS variables from `web/src/styles/`) rather than hardcoded values from the mockup's inline styles.
+These are reference, not implementation. When building React components, match the visual output but use the project's design tokens (CSS variables in `web/src/index.css`) rather than hardcoded values from the mockup's inline styles.
 
 ---
 
@@ -323,10 +327,10 @@ The project owner is a .NET developer working solo on this portfolio piece. The 
 
 Things that have bitten before or are easy to get wrong:
 
-- **EF Core migrations and `IDesignTimeDbContextFactory`** — the Infrastructure project needs a design-time factory so `dotnet ef` commands work without booting the full API. Without it, migrations fail with cryptic errors. See `Infrastructure/Persistence/DesignTimeDbContextFactory.cs` (will exist after iteration 1.3).
+- **EF Core migrations and `IDesignTimeDbContextFactory`** — the Infrastructure project needs a design-time factory so `dotnet ef` commands work without booting the full API. Without it, migrations fail with cryptic errors. See `src/TechQuiz.Infrastructure/Persistence/DesignTimeDbContextFactory.cs`.
 - **PostgreSQL casing** — entity names are PascalCase in code but snake_case in DB. The DbContext applies a global naming convention. Don't manually quote table names.
 - **JWT in localStorage is a vulnerability.** This project uses memory-only JWT + HttpOnly refresh cookie. Don't "simplify" by moving JWT to localStorage.
-- **Code blocks stay dark in light mode.** This is intentional (see ADR-016). Syntax highlighting reads better on dark, and dev tools train the eye to expect dark code regions. Don't "fix" this.
+- **Code blocks stay dark in light mode.** This is intentional (see `docs/ARCHITECTURE.md` → *Code block*; ADR-024 calls this "ADR-016", but ADR-016 is the bento grid). Syntax highlighting reads better on dark, and dev tools train the eye to expect dark code regions. Don't "fix" this.
 - **Quiz screen hides the topbar.** The `<AppShell>` component is route-aware and renders only the `<Outlet />` on `/quiz/:id` routes. Don't add the shell to the quiz route in routing config.
 - **The seeder is idempotent per resource, with one deliberate exception.** Tracks, categories, questions and the demo user each have their own existence check, so re-running is safe. The demo account's *quiz history* is the exception: it is wiped and regenerated on every boot with dates relative to now, so the live demo never shows a stale dashboard. Only the demo user is touched. To reset content locally, `docker compose down -v`.
 - **Public registration is closed** behind `Auth:RegistrationEnabled` (`false` in base appsettings so the live API returns 403; `true` in `appsettings.Development.json` so local work and integration tests still register). Reversible via the flag once a privacy policy exists.

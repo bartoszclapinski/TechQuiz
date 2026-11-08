@@ -274,10 +274,12 @@ function LoginScreen() {
 
 // ── Categories: tracks grid (categories-page.tsx TrackTile) ───────────────────
 const TRACKS = [
-  { code: '.NET', name: '.NET', desc: 'The C# language and runtime, ASP.NET Core, EF Core, ADO.NET, unit testing, and design patterns.', topics: 6, q: 118 },
-  { code: 'DB', name: 'Databases', desc: 'Relational databases and SQL — DBMS concepts, schema design, normalization, querying, and DDL.', topics: 5, q: 74 },
-  { code: 'FE', name: 'Front-End', desc: 'The JavaScript language, its async model, TypeScript’s type system, and core HTML and CSS.', topics: 4, q: 61 },
-  { code: 'ENG', name: 'Engineering Practices', desc: 'Git and version control, CI/CD, and clean-code practices.', topics: 3, q: 39 },
+  // Counts mirror the seeded bank (269 total). Keep them in sync with
+  // src/TechQuiz.Infrastructure/Persistence/Seed/Data/*Questions.cs.
+  { code: '.NET', name: '.NET', desc: 'The C# language and runtime, ASP.NET Core, EF Core, ADO.NET, unit testing, and design patterns.', topics: 6, q: 179 },
+  { code: 'DB', name: 'Databases', desc: 'Relational databases and SQL — DBMS concepts, schema design, normalization, querying, and DDL.', topics: 5, q: 30 },
+  { code: 'FE', name: 'Front-End', desc: 'The JavaScript language, its async model, TypeScript’s type system, and core HTML and CSS.', topics: 4, q: 30 },
+  { code: 'ENG', name: 'Engineering Practices', desc: 'Git and version control, CI/CD, and clean-code practices.', topics: 3, q: 30 },
 ];
 function TracksScreen() {
   const { localTime } = useSprite();
@@ -332,12 +334,13 @@ function TracksScreen() {
 
 // ── Categories drill-down: .NET track's category cards ────────────────────────
 const DOTNET_CATS = [
-  { code: 'C#', name: 'C#/.NET', desc: 'Reflection, serialization, threads, async/await, and the Task Parallel Library.', q: 22, score: 87 },
-  { code: 'ASP', name: 'ASP.NET Core', desc: 'MVC, the middleware pipeline, DI, routing, minimal APIs, and auth.', q: 20, score: 78 },
-  { code: 'EF', name: 'EF Core', desc: 'DbContext, migrations, model configuration, loading strategies, and change tracking.', q: 21, score: 94 },
-  { code: 'ADO', name: 'ADO.NET', desc: 'The provider model, parameterized queries, transactions, and connection pooling.', q: 18, score: 71 },
-  { code: 'test-tube', name: 'Unit Testing', desc: 'xUnit, NUnit, MSTest, the AAA pattern, test doubles, and Moq.', q: 17, score: 0 },
-  { code: 'GoF', name: 'Design Patterns', desc: 'GoF creational, structural and behavioral patterns, SOLID, and Clean Architecture.', q: 20, score: 66 },
+  // Per-category counts; these sum to the 179 shown on the .NET track card above.
+  { code: 'C#', name: 'C#/.NET', desc: 'Reflection, serialization, threads, async/await, and the Task Parallel Library.', q: 30, score: 87 },
+  { code: 'ASP', name: 'ASP.NET Core', desc: 'MVC, the middleware pipeline, DI, routing, minimal APIs, and auth.', q: 30, score: 78 },
+  { code: 'EF', name: 'EF Core', desc: 'DbContext, migrations, model configuration, loading strategies, and change tracking.', q: 30, score: 94 },
+  { code: 'ADO', name: 'ADO.NET', desc: 'The provider model, parameterized queries, transactions, and connection pooling.', q: 30, score: 71 },
+  { code: 'test-tube', name: 'Unit Testing', desc: 'xUnit, NUnit, MSTest, the AAA pattern, test doubles, and Moq.', q: 29, score: 0 },
+  { code: 'GoF', name: 'Design Patterns', desc: 'GoF creational, structural and behavioral patterns, SOLID, and Clean Architecture.', q: 30, score: 66 },
 ];
 function CategoryCardsScreen() {
   const { localTime } = useSprite();
@@ -399,13 +402,14 @@ const OPTIONS = ['private', 'internal', 'protected', 'public'];
 function QuizScreen() {
   const { localTime } = useSprite();
   const selIdx = localTime > 3.2 ? 1 : -1;
-  const progress = kf(localTime, [0.3, 1], [20, 30], Easing.easeOutCubic);
+  // Question 3 of 30 — the bar tracks the real quiz length, so it sits near 10%.
+  const progress = kf(localTime, [0.3, 1], [6.7, 10], Easing.easeOutCubic);
   const nextHot = localTime > 4.1;
   return (
     <ScreenFade>
       <div style={{ width: '100%', height: '100%', background: C.base, display: 'flex', flexDirection: 'column' }}>
         <div style={{ borderBottom: `1px solid ${C.border}`, background: C.surface, padding: '13px 26px', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, color: C.text2, whiteSpace: 'nowrap' }}>C#/.NET · 3 / 10</span>
+          <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, color: C.text2, whiteSpace: 'nowrap' }}>C#/.NET · 3 / 30</span>
           <div style={{ height: 7, borderRadius: 999, background: C.track, flex: 1, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${progress}%`, borderRadius: 999, background: BRAND, transition: 'none' }} />
           </div>
@@ -476,13 +480,13 @@ function ResultScreen() {
             boxShadow: SHADOW, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             transform: `scale(${discS})` }}>
             <span style={{ fontFamily: DISP, fontSize: 52, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>{score}%</span>
-            <span style={{ fontFamily: MONO, fontSize: 13, color: C.muted, marginTop: 6 }}>13 / 15 correct</span>
+            <span style={{ fontFamily: MONO, fontSize: 13, color: C.muted, marginTop: 6 }}>26 / 30 correct</span>
           </div>
           <h1 style={{ fontFamily: DISP, fontSize: 34, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, margin: '20px 0 6px' }}>Quiz complete! 🎉</h1>
           <p style={{ fontSize: 16, color: C.text2, margin: '0 0 20px', opacity: appear(localTime, 1.4, 0.5) }}>
             Great run on <b style={{ color: C.text }}>C#/.NET</b> — up 5% from last time.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, width: '100%', maxWidth: 480 }}>
-            {[['13/15', 'Correct', C.amber, DISP], ['4:12', 'Time', C.text, MONO], ['+5%', 'vs last', C.success, DISP]].map(([v, l, col, ff], i) => (
+            {[['26/30', 'Correct', C.amber, DISP], ['4:12', 'Time', C.text, MONO], ['+5%', 'vs last', C.success, DISP]].map(([v, l, col, ff], i) => (
               <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16,
                 opacity: appear(localTime, 1.0 + i * 0.14, 0.5),
                 transform: `translateY(${kf(localTime, [1.0 + i * 0.14, 1.5 + i * 0.14], [10, 0], Easing.easeOutCubic)}px)` }}>
