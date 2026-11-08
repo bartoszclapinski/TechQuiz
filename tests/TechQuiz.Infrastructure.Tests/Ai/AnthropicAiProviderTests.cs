@@ -32,6 +32,54 @@ public sealed class AnthropicAiProviderTests
         ]
         """;
 
+    private const string TwoQuestionsObjectJson = """
+        {"questions":[
+          {"stem":"Q1","options":["a","b","c","d"],"correctOptionIndex":1,"explanation":"e1"},
+          {"stem":"Q2","options":["w","x","y","z"],"correctOptionIndex":3,"explanation":null}
+        ]}
+        """;
+
+    [Fact]
+    public async Task GenerateQuestions_ParsesQuestionsObject_IntoDrafts_AtRequestedDifficulty()
+    {
+        _handler.RespondWith(MessageWith(TwoQuestionsObjectJson));
+
+        var drafts = await CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Medium, 2), "sk-ant-1");
+
+        drafts.Should().HaveCount(2);
+        drafts[0].Stem.Should().Be("Q1");
+        drafts[0].CorrectOptionIndex.Should().Be(1);
+        drafts[1].Options.Should().Equal("w", "x", "y", "z");
+        drafts[1].Explanation.Should().BeNull();
+        drafts.Should().OnlyContain(d => d.Difficulty == Difficulty.Medium);
+    }
+
+    [Fact]
+    public async Task GenerateQuestions_PromptAsksForQuestionsObject()
+    {
+        _handler.RespondWith(MessageWith(TwoQuestionsObjectJson));
+
+        await CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 2), "sk-ant-1");
+
+        using var body = System.Text.Json.JsonDocument.Parse(_handler.LastRequestBody!);
+        var prompt = body.RootElement.GetProperty("messages")[0].GetProperty("content").GetString();
+        prompt.Should().Contain("\"questions\"");
+    }
+
+    [Fact]
+    public async Task GenerateQuestions_EmptyQuestionsObject_ThrowsAiResponse()
+    {
+        _handler.RespondWith(MessageWith("""{"questions":[]}"""));
+
+        var act = () => CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), "sk-ant-1");
+
+        await act.Should().ThrowAsync<AiResponseException>();
+    }
+
+    // Tolerance: a model may still answer with the older bare-array shape.
     [Fact]
     public async Task GenerateQuestions_ParsesJsonArray_IntoDrafts_AtRequestedDifficulty()
     {

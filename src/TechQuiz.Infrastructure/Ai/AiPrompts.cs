@@ -19,12 +19,16 @@ internal static class AiPrompts
         Generate {{request.Count}} multiple-choice quiz question(s) about "{{request.Topic}}"
         at {{request.Difficulty}} difficulty for a developer self-assessment.
 
-        Respond with ONLY a JSON array (no prose, no markdown fences). Each element:
+        Respond with ONLY a JSON object (no prose, no markdown fences) of this shape:
         {
-          "stem": "the question text",
-          "options": ["four", "distinct", "answer", "choices"],
-          "correctOptionIndex": 0,
-          "explanation": "one sentence explaining the correct answer"
+          "questions": [
+            {
+              "stem": "the question text",
+              "options": ["four", "distinct", "answer", "choices"],
+              "correctOptionIndex": 0,
+              "explanation": "one sentence explaining the correct answer"
+            }
+          ]
         }
 
         Exactly four options per question. correctOptionIndex is the 0-based index of the
@@ -66,8 +70,10 @@ internal static class AiPrompts
     }
 
     /// <summary>
-    /// Parses a model reply into drafts at the requested difficulty. <paramref name="providerName"/>
-    /// only labels the <see cref="AiResponseException"/> message.
+    /// Parses a model reply into drafts at the requested difficulty. The contract is a
+    /// <c>{ "questions": [...] }</c> object (strict JSON-schema modes need an object root); a bare
+    /// array is still accepted because models do not always follow the prompt.
+    /// <paramref name="providerName"/> only labels the <see cref="AiResponseException"/> message.
     /// </summary>
     public static IReadOnlyList<GeneratedQuestionDraft> ParseDrafts(
         string text, Difficulty difficulty, string providerName)
@@ -77,7 +83,9 @@ internal static class AiPrompts
         DraftDto[]? drafts;
         try
         {
-            drafts = JsonSerializer.Deserialize<DraftDto[]>(json, JsonOptions);
+            drafts = json.StartsWith('[')
+                ? JsonSerializer.Deserialize<DraftDto[]>(json, JsonOptions)
+                : JsonSerializer.Deserialize<DraftsEnvelope>(json, JsonOptions)?.Questions;
         }
         catch (JsonException ex)
         {
@@ -111,6 +119,8 @@ internal static class AiPrompts
         var closingFence = withoutOpen.LastIndexOf("```", StringComparison.Ordinal);
         return (closingFence >= 0 ? withoutOpen[..closingFence] : withoutOpen).Trim();
     }
+
+    private sealed record DraftsEnvelope(DraftDto[]? Questions);
 
     private sealed record DraftDto(
         string Stem,

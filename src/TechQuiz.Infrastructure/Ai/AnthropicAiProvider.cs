@@ -11,8 +11,8 @@ namespace TechQuiz.Infrastructure.Ai;
 /// Generates quiz drafts via the Anthropic Messages API using the current user's own
 /// API key (bring-your-own-key, ADR-006). The key is supplied per call and attached as
 /// the <c>x-api-key</c> header on that request only — never stored on the client — so
-/// the provider is a stateless singleton. The model is prompted for a strict JSON array,
-/// which is parsed into <see cref="GeneratedQuestionDraft"/>s at the requested difficulty.
+/// the provider is a stateless singleton. The model is prompted for a JSON object (see
+/// <see cref="AiPrompts"/>), which is parsed into <see cref="GeneratedQuestionDraft"/>s.
 /// </summary>
 internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOptions> options)
     : IAiProvider
