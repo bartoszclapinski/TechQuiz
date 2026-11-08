@@ -1,6 +1,6 @@
 # `.ai/` — Operational documents for AI assistants
 
-This folder contains working documents intended for AI coding assistants (Claude Code, Copilot, Cursor) and for the project owner. Unlike `docs/`, which is portfolio-facing and describes the project at a high level, `.ai/` is **operational** — it records how every iteration was planned and delivered (goal, Definition of Done, tasks, and a per-sprint `LOG.md`). The planned roadmap is complete; for new work, agree the goal with the owner and write a new iteration file first (see `CLAUDE.md`).
+This folder contains working documents intended for AI coding assistants (Claude Code, Copilot, Cursor) and for the project owner. Unlike `docs/`, which is portfolio-facing and describes the project at a high level, `.ai/` is **operational** — it records how every iteration was planned and delivered (goal, Definition of Done, tasks, and a per-sprint `LOG.md`). Phases 0–4 are complete; Phase 5 (post-launch, ADR-027) is in progress in `sprints/sprint5/`. For work outside it, agree the goal with the owner and write a new iteration file first (see `CLAUDE.md`).
 
 ## Why is this folder public?
 
@@ -22,7 +22,8 @@ If you're an AI assistant reading this: start with `CLAUDE.md` at the repository
     ├── sprint1/            ← Phase 1: MVP — 1.1–1.8 + LOG.md
     ├── sprint2/            ← Phase 2: Dashboard + spaced repetition — README (outline) + 2.1–2.9 + LOG.md
     ├── sprint3/            ← Phase 3: AI integration + code challenges — README (outline) + 3.1–3.7 + LOG.md
-    └── sprint4/            ← Phase 4: Polish & deployment — README (outline) + 4.1, 4.2, 4.4–4.11 + LOG.md
+    ├── sprint4/            ← Phase 4: Polish & deployment — README (outline) + 4.1, 4.2, 4.4–4.11 + LOG.md
+    └── sprint5/            ← Phase 5: Post-launch (ADR-027) — README (outline) + 5.1 + LOG.md
 ```
 
 Iteration files are named `X.Y-short-name.md` (e.g. `sprint1/1.3-persistence.md`). There is no `4.3` file: the badges part of its achievements scope shipped early in `2.9`, and the rest (gallery page, unlock toasts) was not built.

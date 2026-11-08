@@ -19,17 +19,18 @@ The project is built as a portfolio piece demonstrating:
 - AI integration via provider abstraction (Phase 3)
 - Real CI/CD pipeline with a live deployment on Render + Neon
 
-Current status: **all four phases are delivered and the app is live** at
-[techquiz-web.onrender.com](https://techquiz-web.onrender.com). No planned iteration remains — further work
-is off-plan (ad-hoc polish, content expansion, or a new initiative), so don't assume a "next iteration"
-exists; ask the owner what to pick up.
+Current status: **Phases 0–4 are delivered and the app is live** at
+[techquiz-web.onrender.com](https://techquiz-web.onrender.com). **Phase 5 — Post-launch** (ADR-027) is in
+progress: the remaining ADR-019 AI providers (5.1 OpenAI, 5.2 Gemini, 5.3 OpenRouter) and auth hardening
+(5.4). See `.ai/sprints/sprint5/` for the current iteration.
 
-The roadmap's four phases (see `docs/DECISION_LOG.md` ADR-013) — all `done`:
+The roadmap (see `docs/DECISION_LOG.md` ADR-013, amended by ADR-027) — Phases 0–4 `done`, Phase 5 in progress:
 - Phase 0 — Foundation (setup, auth scaffolding, Docker, CI)
 - Phase 1 — MVP (full quiz flow with hardcoded seed questions)
 - Phase 2 — Dashboard with bento grid + spaced repetition
 - Phase 3 — AI integration + code questions
 - Phase 4 — Polish + deployment (incl. the "Momentum" redesign, gamification, a11y and performance passes)
+- Phase 5 — Post-launch (remaining AI providers, auth hardening)
 
 ---
 
@@ -93,7 +94,7 @@ TechQuiz/
 │
 ├── docs/                           ← portfolio-facing documentation
 │   ├── ARCHITECTURE.md             ← system architecture + component patterns
-│   ├── DECISION_LOG.md             ← ADRs (26 entries — read these to understand "why")
+│   ├── DECISION_LOG.md             ← ADRs (27 entries — read these to understand "why")
 │   ├── DEPLOYMENT.md               ← Render + Neon runbook
 │   ├── media/                      ← rendered walkthrough GIF used by the README
 │   ├── CI_CD.md                    ← CI/CD pipeline description
@@ -111,7 +112,8 @@ TechQuiz/
 │       ├── sprint1/                ← Phase 1 (MVP) iteration files + LOG.md
 │       ├── sprint2/                ← Phase 2 iteration files + LOG.md (README.md = original outline)
 │       ├── sprint3/                ← Phase 3 iteration files + LOG.md (README.md = original outline)
-│       └── sprint4/                ← Phase 4 iteration files + LOG.md (README.md = original outline)
+│       ├── sprint4/                ← Phase 4 iteration files + LOG.md (README.md = original outline)
+│       └── sprint5/                ← Phase 5 (post-launch) outline, iteration files + LOG.md
 │
 └── .github/
     ├── workflows/
@@ -129,7 +131,7 @@ TechQuiz/
 
 Every non-trivial decision is documented. Before introducing a new pattern, library, or convention, check whether it's already decided:
 
-- **`docs/DECISION_LOG.md`** — 26 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
+- **`docs/DECISION_LOG.md`** — 27 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
 - **`docs/ARCHITECTURE.md`** — system structure, component patterns (code blocks, status pills, metric cards, etc.), and visual design system
 - **`docs/CI_CD.md`** — pipeline behavior, deploy strategy, branch protection rationale
 - **`.ai/sprints/sprintN/X.Y-*.md`** — each iteration's goal, definition of done, and ordered task list, plus `LOG.md` per sprint
@@ -166,8 +168,8 @@ PR title must follow the same format — it becomes the squash commit message an
 
 ### Iteration workflow
 
-Every planned iteration is `done`, so there is no "current" one to pick up — confirm the goal with the
-owner before starting. Work still ships the same way, and anything sizeable gets its own iteration file:
+Phase 5 is the active phase — pick up the current iteration in `.ai/sprints/sprint5/`, and confirm any
+work outside it with the owner first. Anything sizeable gets its own iteration file:
 
 1. Open (or write) the iteration file in `.ai/sprints/sprintN/X.Y-*.md` and read its goal + DoD
 2. Tasks are ordered. Work through them sequentially unless dependencies allow parallelism
@@ -191,7 +193,7 @@ Flow:
 3. The PR body collects every `Closes #N` line so a single squash merge auto-closes the whole batch. Repeating the closures in the PR body is intentional — it's the most reliable trigger for GitHub's auto-close.
 
 Labels (three orthogonal dimensions, applied as appropriate):
-- `phase:N` — `phase:0` through `phase:4`. Always set.
+- `phase:N` — `phase:0` through `phase:5`. Always set.
 - `iteration:X.Y` — `iteration:1.1` through `iteration:1.8` (more added per phase). Set when the issue belongs to a planned iteration; omitted for off-plan repo work (docs sync, tooling, ad-hoc chores).
 - `type:feat | fix | docs | chore | test | refactor` — mirrors the commit type. Always set.
 
@@ -226,7 +228,7 @@ These rules are non-negotiable. Violating any of them should fail review.
 4. **Never expose `IsCorrect` on options through the API when serving an active quiz.** Doing so reveals answers to the client. The `QuestionDto` returned during a quiz must omit this field.
 5. **Never silently change an ADR.** If a previously-recorded decision needs to change, append a new ADR explaining why and mark the old one as superseded. Editing in place loses history.
 6. **Never add a library without justification.** Before introducing a new dependency, check whether existing stack solves the problem. If a new dep is needed, mention it in the PR description.
-7. **Never skip the iteration file.** Before starting work, read the relevant iteration's goal and DoD. Don't work from memory or guesses about "what's next" — and since the roadmap is complete, confirm the goal with the owner rather than inventing the next iteration.
+7. **Never skip the iteration file.** Before starting work, read the relevant iteration's goal and DoD. Don't work from memory or guesses about "what's next" — and for anything outside the current phase, confirm the goal with the owner rather than inventing the next iteration.
 
 ---
 

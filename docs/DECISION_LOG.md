@@ -269,7 +269,7 @@ Phase 2 introduces a **bento grid layout** for the progress dashboard. Theme tog
 
 ## ADR-013: Scope Strategy — MVP First, Iterate
 
-**Status:** Accepted
+**Status:** Accepted — **Amended by ADR-027** (Phase 5 "Post-launch" added after Phases 0–4 were delivered)
 **Date:** 2026-05-11
 
 ### Context
@@ -754,3 +754,30 @@ All other Momentum tokens are unchanged. The brand button gradient (white text) 
 ### Consequences
 - **Global, token-level.** One-file change; every muted caption and amber value across the app (both themes) becomes legible without touching component code.
 - **Minimal visual drift.** The muted greys shift one step (slightly lighter in dark, slightly darker in light); the light amber goes marginally more burnt-orange. The design reads the same; only borderline text gets legible.
+
+---
+
+## ADR-027: Phase 5 — Post-launch Work as a Planned Phase
+
+**Status:** Accepted
+**Date:** 2026-11-08
+
+Amends **ADR-013**, which defines Phases 0–4. Recorded rather than edited silently (hard rule #5).
+
+### Context
+All four ADR-013 phases are delivered and the app is live (ADR-022). Two pieces of committed work remain open: the provider set decided in ADR-019 (native OpenAI, Gemini and OpenRouter — only Anthropic is implemented, the others show as "soon" in Settings) and four auth-hardening follow-ups deferred since Phase 1 (#66, #67, #68, #99). Treating them as ad-hoc off-plan work would drop the iteration files, Definition of Done and `phase`/`iteration` labels that every earlier change was tracked with.
+
+### Decision
+Add **Phase 5 — Post-launch** to the roadmap, tracked like the earlier phases in `.ai/sprints/sprint5/`:
+
+- **5.1** — Native OpenAI provider
+- **5.2** — Native Gemini provider
+- **5.3** — OpenRouter provider
+- **5.4** — Auth hardening (#66, #67, #68, #99)
+
+Phases 0–4 are unchanged. A provider is claimed as working only after a run against its real API (ADR-019); until then it stays "soon" in Settings.
+
+### Consequences
+- New labels `phase:5` and `iteration:5.x`; the open auth issues keep `phase:1` and gain `iteration:5.4` when that iteration starts.
+- "No planned iteration remains" no longer holds; CLAUDE.md and the `.ai/` orientation docs point at sprint5 instead.
+- Each Phase 5 iteration ships on its own, so the phase can stop after any iteration without leaving half-built work.

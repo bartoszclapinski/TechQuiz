@@ -42,7 +42,7 @@ web/                           # React + TypeScript SPA (Vite, separate from .NE
 
 ## Roadmap (status)
 
-All phases are **done** and the app is **live** at https://techquiz-web.onrender.com (Render + Neon; free tier sleeps, so the first request can take 30–50 s).
+Phases 0–4 are **done** and the app is **live** at https://techquiz-web.onrender.com (Render + Neon; free tier sleeps, so the first request can take 30–50 s).
 
 | Phase | Delivered |
 |-------|-----------|
@@ -51,8 +51,9 @@ All phases are **done** and the app is **live** at https://techquiz-web.onrender
 | 2 — History | Dashboard (bento grid), history, spaced repetition, achievements |
 | 3 — Code + AI | AI provider seam + BYO key (Anthropic live), AI question generation, public pool, Monaco code challenges + AI feedback |
 | 4 — Polish | Mobile, gamification, a11y, performance, production deploy, taxonomy, "Momentum" redesign |
+| 5 — Post-launch | *In progress* (ADR-027): 5.1 OpenAI, 5.2 Gemini, 5.3 OpenRouter providers; 5.4 auth hardening (#66, #67, #68, #99) |
 
-No planned iteration remains. Further work is off-plan, so confirm the goal with the owner before starting. Known open follow-ups (auth hardening, deferred since Phase 1): #66, #67, #68, #99 — see `gh issue list --state open`.
+Current work lives in `.ai/sprints/sprint5/`; confirm anything outside it with the owner before starting.
 
 ---
 
