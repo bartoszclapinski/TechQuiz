@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -157,11 +159,48 @@ public static class DependencyInjection
 
         // Bring-your-own-key storage (ADR-006): user keys are encrypted at rest with
         // ASP.NET Data Protection. Scoped because the store depends on AppDbContext.
-        // NOTE: the default key ring is host-local; staging/prod must persist it
-        // (Azure Blob + Key Vault) or rotated keys become undecryptable on restart.
-        services.AddDataProtection();
+        AddKeyRing(services, configuration);
         services.AddScoped<IAiKeyStore, EncryptedAiKeyStore>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Stores the Data Protection key ring in the database (ADR-028): the default file-system ring
+    /// is wiped with the container on Render, which makes every stored AI key undecryptable. When
+    /// a certificate is configured the ring is encrypted with it, so the database alone cannot
+    /// decrypt users' keys. A fixed application name keeps payloads readable across hosts and
+    /// container paths.
+    /// </summary>
+    private static void AddKeyRing(IServiceCollection services, IConfiguration configuration)
+    {
+        var options = configuration.GetSection(KeyRingOptions.SectionName).Get<KeyRingOptions>()
+            ?? new KeyRingOptions();
+
+        var dataProtection = services.AddDataProtection()
+            .SetApplicationName("TechQuiz")
+            .PersistKeysToDbContext<AppDbContext>();
+
+        if (string.IsNullOrWhiteSpace(options.CertificateBase64))
+        {
+            if (options.RequireCertificate)
+            {
+                throw new InvalidOperationException(
+                    "DataProtection:CertificateBase64 is required in this environment: without it the key " +
+                    "ring that encrypts users' AI keys would be stored unencrypted in the database.");
+            }
+
+            return;
+        }
+
+        var certificate = X509CertificateLoader.LoadPkcs12(
+            Convert.FromBase64String(options.CertificateBase64),
+            options.CertificatePassword,
+            X509KeyStorageFlags.EphemeralKeySet);
+        // Decryption must be given the certificate too: by default it is looked up in the OS
+        // certificate store, which is empty in the container.
+        dataProtection
+            .ProtectKeysWithCertificate(certificate)
+            .UnprotectKeysWithAnyCertificate(certificate);
     }
 }

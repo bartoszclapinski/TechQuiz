@@ -35,6 +35,12 @@ services:
       # JWT signing key — set in the dashboard, never committed.
       - key: Jwt__SigningKey
         sync: false
+      # Certificate that encrypts the Data Protection key ring stored in Neon (ADR-028) —
+      # base64 PKCS#12 + its password, set in the dashboard, never committed.
+      - key: DataProtection__CertificateBase64
+        sync: false
+      - key: DataProtection__CertificatePassword
+        sync: false
       # CORS: allow the deployed SPA origin (configuration-driven, per the API's Cors:AllowedOrigins).
       - key: Cors__AllowedOrigins__0
         value: https://techquiz-web.onrender.com

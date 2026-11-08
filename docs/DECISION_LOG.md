@@ -781,3 +781,27 @@ Phases 0–4 are unchanged. A provider is claimed as working only after a run ag
 - New labels `phase:5` and `iteration:5.x`; the open auth issues keep `phase:1` and gain `iteration:5.4` when that iteration starts.
 - "No planned iteration remains" no longer holds; CLAUDE.md and the `.ai/` orientation docs point at sprint5 instead.
 - Each Phase 5 iteration ships on its own, so the phase can stop after any iteration without leaving half-built work.
+
+---
+
+## ADR-028: Data Protection Key Ring Stored in the Database, Encrypted with a Certificate
+
+**Status:** Accepted
+**Date:** 2026-11-08
+
+Implements the "persist the key ring" consequence that ADR-006's encrypted key storage left open (the code only had a note to do it before production).
+
+### Context
+Users' AI keys are encrypted with ASP.NET Data Protection (ADR-006). The key ring that decrypts them used the default file-system location. On Render the container file system is wiped on every deploy, restart and free-tier sleep (~15 minutes idle), so after each one every stored key became undecryptable and AI calls failed with a 500 until the user re-entered the key. Render's free tier has no persistent disk; Neon Postgres is the only durable store.
+
+### Decision
+- Store the key ring in the application database (`data_protection_keys`, via the official `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore` package) with a fixed application name.
+- Encrypt the stored ring with an X.509 certificate supplied as secrets (`DataProtection__CertificateBase64`, `DataProtection__CertificatePassword`). Storing the ring unencrypted next to the ciphertexts would let a copy of the database alone decrypt every key, which reduces ADR-006's encryption at rest to obfuscation.
+- `DataProtection:RequireCertificate` is `true` by default and `false` in Development, so a deployed API refuses to start without the certificate instead of silently storing a plain ring.
+- A stored key that can no longer be decrypted is deleted and read as "no key configured" (409, re-enter in Settings) instead of failing with a 500.
+
+### Consequences
+- Stored AI keys survive deploys, restarts and sleeps.
+- One more pair of secrets to manage on Render (`docs/DEPLOYMENT.md`). Losing the certificate makes stored keys unreadable; users re-enter them and nothing else breaks.
+- Keys saved before this change were encrypted under a ring that no longer exists; they are removed on first use and must be entered again.
+- Alternatives considered: a Render persistent disk (paid tier only), Azure Blob + Key Vault (a second cloud just for one file), an unencrypted ring in the database (rejected above).
