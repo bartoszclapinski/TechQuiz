@@ -94,7 +94,7 @@ TechQuiz/
 │
 ├── docs/                           ← portfolio-facing documentation
 │   ├── ARCHITECTURE.md             ← system architecture + component patterns
-│   ├── DECISION_LOG.md             ← ADRs (27 entries — read these to understand "why")
+│   ├── DECISION_LOG.md             ← ADRs (28 entries — read these to understand "why")
 │   ├── DEPLOYMENT.md               ← Render + Neon runbook
 │   ├── media/                      ← rendered walkthrough GIF used by the README
 │   ├── CI_CD.md                    ← CI/CD pipeline description
@@ -131,7 +131,7 @@ TechQuiz/
 
 Every non-trivial decision is documented. Before introducing a new pattern, library, or convention, check whether it's already decided:
 
-- **`docs/DECISION_LOG.md`** — 27 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
+- **`docs/DECISION_LOG.md`** — 28 Architecture Decision Records covering tech choices, scope strategy, UI/UX patterns, and CI/CD. This is the canonical source for "why is it like this?"
 - **`docs/ARCHITECTURE.md`** — system structure, component patterns (code blocks, status pills, metric cards, etc.), and visual design system
 - **`docs/CI_CD.md`** — pipeline behavior, deploy strategy, branch protection rationale
 - **`.ai/sprints/sprintN/X.Y-*.md`** — each iteration's goal, definition of done, and ordered task list, plus `LOG.md` per sprint
