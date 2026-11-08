@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { isAxiosError } from 'axios'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { AI_PROVIDERS } from '../settings/api'
+import { AI_PROVIDERS, providerLabel } from '../settings/api'
 import { useConfiguredProviders } from '../settings/use-configured-providers'
 import { usePublishQuestion } from '../pool/use-publish-question'
 import { useGenerateQuestions } from './use-generate-questions'
@@ -207,7 +207,7 @@ function DraftPreview({ result }: { result: GenerateResult }) {
     <section className="mt-7">
       <h2 className="mb-3 text-[15px] font-semibold text-primary">
         {result.questions.length} draft{result.questions.length === 1 ? '' : 's'} from{' '}
-        {result.provider}
+        {providerLabel(result.provider)}
       </h2>
 
       <div className="flex flex-col gap-2.5">
@@ -273,6 +273,14 @@ function reportGenerateError(error: unknown) {
   }
   if (isAxiosError(error) && error.response?.status === 400) {
     toast.error('That request was rejected. Check your inputs and try again.')
+    return
+  }
+  if (isAxiosError(error) && error.response?.status === 422) {
+    toast.error('Your AI provider rejected the key. Check or replace it in Settings.')
+    return
+  }
+  if (isAxiosError(error) && error.response?.status === 429) {
+    toast.error('Your AI provider is rate-limiting this key or it’s out of credit. Try again later.')
     return
   }
   toast.error('Generation failed. Please try again.')

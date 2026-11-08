@@ -19,6 +19,12 @@ export const AI_PROVIDERS: readonly AiProvider[] = [
   { id: 'OpenRouter', label: 'OpenRouter', available: false },
 ]
 
+// Display name for a provider id as the API returns it ("OpenAi" → "OpenAI (GPT)"). Falls back to
+// the raw id so an unknown provider still renders something sensible.
+export function providerLabel(id: string): string {
+  return AI_PROVIDERS.find((provider) => provider.id === id)?.label ?? id
+}
+
 // Returns the provider kinds the current user has a key configured for — names only, never the
 // key material (the API never serializes it back, per ADR-006).
 export async function fetchConfiguredProviders(): Promise<string[]> {

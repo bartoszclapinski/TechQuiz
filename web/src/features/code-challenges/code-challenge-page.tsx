@@ -6,7 +6,7 @@ import { useCodeChallenges } from './use-code-challenges'
 import { useRunCode } from './use-run-code'
 import { useGradeChallenge } from './use-grade-challenge'
 import { useCodeFeedback } from './use-code-feedback'
-import { AI_PROVIDERS } from '../settings/api'
+import { AI_PROVIDERS, providerLabel } from '../settings/api'
 import { useConfiguredProviders } from '../settings/use-configured-providers'
 import type { CodeChallengeGradeResult, CodeExecutionResult, CodeFeedbackResult } from './api'
 
@@ -199,6 +199,12 @@ function feedbackErrorMessage(error: unknown): string {
   if (isAxiosError(error) && error.response?.status === 409) {
     return 'No key configured for that provider. Add one in Settings.'
   }
+  if (isAxiosError(error) && error.response?.status === 422) {
+    return 'Your AI provider rejected the key. Check or replace it in Settings.'
+  }
+  if (isAxiosError(error) && error.response?.status === 429) {
+    return 'Your AI provider is rate-limiting this key or it’s out of credit. Try again later.'
+  }
   return 'Couldn’t get feedback. Please try again.'
 }
 
@@ -211,7 +217,7 @@ function Feedback({ result }: { result: CodeFeedbackResult }) {
       <div className="mb-2 flex items-center gap-2 text-[13px]">
         <span className="font-semibold text-primary">AI feedback</span>
         <span className="rounded-full bg-elevated px-1.5 py-px font-mono text-[12px] text-secondary">
-          {result.provider}
+          {providerLabel(result.provider)}
         </span>
       </div>
       <p className="whitespace-pre-line text-[14px] leading-relaxed text-secondary">
