@@ -27,15 +27,15 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
         string apiKey,
         CancellationToken cancellationToken = default)
     {
-        var text = await RequestTextAsync(BuildPrompt(request), apiKey, cancellationToken);
-        return ParseDrafts(text, request.Difficulty);
+        var text = await RequestTextAsync(AiPrompts.BuildQuestionsPrompt(request), apiKey, cancellationToken);
+        return AiPrompts.ParseDrafts(text, request.Difficulty, "Anthropic");
     }
 
     public Task<string> GenerateCodeFeedbackAsync(
         CodeFeedbackRequest request,
         string apiKey,
         CancellationToken cancellationToken = default) =>
-        RequestTextAsync(BuildFeedbackPrompt(request), apiKey, cancellationToken);
+        RequestTextAsync(AiPrompts.BuildFeedbackPrompt(request), apiKey, cancellationToken);
 
     /// <summary>
     /// POSTs a single user message to the Messages API with the caller's key and returns the
@@ -76,105 +76,6 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
 
         return text;
     }
-
-    private static string BuildPrompt(GenerateQuestionsRequest request) =>
-        $$"""
-        Generate {{request.Count}} multiple-choice quiz question(s) about "{{request.Topic}}"
-        at {{request.Difficulty}} difficulty for a developer self-assessment.
-
-        Respond with ONLY a JSON array (no prose, no markdown fences). Each element:
-        {
-          "stem": "the question text",
-          "options": ["four", "distinct", "answer", "choices"],
-          "correctOptionIndex": 0,
-          "explanation": "one sentence explaining the correct answer"
-        }
-
-        Exactly four options per question. correctOptionIndex is the 0-based index of the
-        correct option.
-        """;
-
-    private static string BuildFeedbackPrompt(CodeFeedbackRequest request)
-    {
-        // The hidden cases are given so the model can reason about edge cases the submission
-        // misses, but it must NOT quote the exact expected outputs back — that would leak the
-        // harness (spirit of hard rule #4). Guidance is qualitative: "you don't handle empty
-        // input", not "test 2 expects 30".
-        var cases = string.Join(
-            "\n",
-            request.TestCases.Select((c, i) =>
-                $"  Case {i + 1}: stdin={Quote(c.Stdin)} expectedStdout={Quote(c.ExpectedStdout)}"));
-
-        return $$"""
-        You are a senior C# reviewer giving feedback to a developer on a coding exercise.
-
-        Challenge: {{request.ChallengeTitle}}
-        Task: {{request.Prompt}}
-
-        The developer's submission:
-        ```csharp
-        {{request.SourceCode}}
-        ```
-
-        Hidden test cases (for your reasoning only):
-        {{cases}}
-
-        Write concise, constructive feedback in markdown prose: what the code does well, what is
-        risky or incorrect, and which edge cases it may miss. Be specific about the code, but do
-        NOT quote or restate the exact expected outputs above — describe the behaviour the code
-        should have ("handle empty input", "trim trailing whitespace") rather than the literal
-        expected values. Do not include a numeric score; the automated tests already decide pass
-        or fail. Keep it under ~200 words.
-        """;
-    }
-
-    private static string Quote(string value) => JsonSerializer.Serialize(value);
-
-    private static IReadOnlyList<GeneratedQuestionDraft> ParseDrafts(string text, Difficulty difficulty)
-    {
-        var json = StripJsonFences(text);
-
-        DraftDto[]? drafts;
-        try
-        {
-            drafts = JsonSerializer.Deserialize<DraftDto[]>(json, JsonOptions);
-        }
-        catch (JsonException ex)
-        {
-            throw new AiResponseException($"Anthropic response was not valid question JSON: {ex.Message}");
-        }
-
-        if (drafts is null || drafts.Length == 0)
-        {
-            throw new AiResponseException("Anthropic response contained no questions.");
-        }
-
-        return drafts
-            .Select(d => new GeneratedQuestionDraft(
-                d.Stem, d.Options, d.CorrectOptionIndex, difficulty, d.Explanation))
-            .ToArray();
-    }
-
-    // Models sometimes wrap JSON in ```json … ``` despite instructions; tolerate it.
-    private static string StripJsonFences(string text)
-    {
-        var trimmed = text.Trim();
-        if (!trimmed.StartsWith("```", StringComparison.Ordinal))
-        {
-            return trimmed;
-        }
-
-        var firstNewline = trimmed.IndexOf('\n');
-        var withoutOpen = firstNewline >= 0 ? trimmed[(firstNewline + 1)..] : trimmed;
-        var closingFence = withoutOpen.LastIndexOf("```", StringComparison.Ordinal);
-        return (closingFence >= 0 ? withoutOpen[..closingFence] : withoutOpen).Trim();
-    }
-
-    private sealed record DraftDto(
-        string Stem,
-        IReadOnlyList<string> Options,
-        int CorrectOptionIndex,
-        string? Explanation);
 
     private sealed record AnthropicMessageResponse(
         [property: JsonPropertyName("content")] IReadOnlyList<AnthropicContentBlock>? Content);
