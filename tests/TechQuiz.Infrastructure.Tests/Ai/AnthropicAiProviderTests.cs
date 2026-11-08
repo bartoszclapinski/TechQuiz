@@ -3,6 +3,7 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using TechQuiz.Application.Abstractions;
+using TechQuiz.Application.Features.Ai;
 using TechQuiz.Domain;
 using TechQuiz.Infrastructure.Ai;
 
@@ -145,16 +146,75 @@ public sealed class AnthropicAiProviderTests
         await act.Should().ThrowAsync<AiResponseException>();
     }
 
-    [Fact]
-    public async Task GenerateQuestions_NonSuccessStatus_ThrowsHttpRequest()
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task GenerateQuestions_RejectedKey_ThrowsProviderRejected_InvalidKey(HttpStatusCode status)
     {
-        _handler.RespondWith("""{"error":"unauthorized"}""", HttpStatusCode.Unauthorized);
+        _handler.RespondWith(AnthropicError("authentication_error", "invalid x-api-key"), status);
 
         var act = () => CreateSut().GenerateQuestionsAsync(
             new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), "bad-key");
 
+        var thrown = await act.Should().ThrowAsync<AiProviderRejectedException>();
+        thrown.Which.Kind.Should().Be(AiProviderKind.Anthropic);
+        thrown.Which.Reason.Should().Be(AiRejectionReason.InvalidKey);
+    }
+
+    [Fact]
+    public async Task GenerateQuestions_TooManyRequests_ThrowsProviderRejected_QuotaOrRateLimit()
+    {
+        _handler.RespondWith(AnthropicError("rate_limit_error", "slow down"), HttpStatusCode.TooManyRequests);
+
+        var act = () => CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), "sk-ant-1");
+
+        (await act.Should().ThrowAsync<AiProviderRejectedException>())
+            .Which.Reason.Should().Be(AiRejectionReason.QuotaOrRateLimit);
+    }
+
+    [Fact]
+    public async Task GenerateQuestions_LowCreditBalance_ThrowsProviderRejected_QuotaOrRateLimit()
+    {
+        _handler.RespondWith(
+            AnthropicError("invalid_request_error", "Your credit balance is too low to access the Anthropic API."),
+            HttpStatusCode.BadRequest);
+
+        var act = () => CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), "sk-ant-1");
+
+        (await act.Should().ThrowAsync<AiProviderRejectedException>())
+            .Which.Reason.Should().Be(AiRejectionReason.QuotaOrRateLimit);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task GenerateQuestions_OtherFailure_ThrowsHttpRequest(HttpStatusCode status)
+    {
+        _handler.RespondWith(AnthropicError("api_error", "something broke"), status);
+
+        var act = () => CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), "sk-ant-1");
+
         await act.Should().ThrowAsync<HttpRequestException>();
     }
+
+    [Fact]
+    public async Task Rejection_MessageNeverContainsTheKeyOrUpstreamBody()
+    {
+        const string key = "sk-ant-leaky-0123456789abcdef";
+        _handler.RespondWith(AnthropicError("authentication_error", $"invalid key {key}"), HttpStatusCode.Unauthorized);
+
+        var act = () => CreateSut().GenerateQuestionsAsync(
+            new GenerateQuestionsRequest("LINQ", Difficulty.Easy, 1), key);
+
+        var thrown = await act.Should().ThrowAsync<AiProviderRejectedException>();
+        thrown.Which.Message.Should().NotContain(key).And.NotContain("89abcdef").And.NotContain("invalid key");
+    }
+
+    private static string AnthropicError(string type, string message) =>
+        $$$"""{"type":"error","error":{"type":"{{{type}}}","message":{{{System.Text.Json.JsonSerializer.Serialize(message)}}}}}""";
 
     private static readonly CodeFeedbackRequest AnyFeedbackRequest = new(
         ChallengeTitle: "Sum two numbers",
@@ -209,12 +269,13 @@ public sealed class AnthropicAiProviderTests
     }
 
     [Fact]
-    public async Task GenerateCodeFeedback_NonSuccessStatus_ThrowsHttpRequest()
+    public async Task GenerateCodeFeedback_RejectedKey_ThrowsProviderRejected_InvalidKey()
     {
-        _handler.RespondWith("""{"error":"unauthorized"}""", HttpStatusCode.Unauthorized);
+        _handler.RespondWith(AnthropicError("authentication_error", "invalid x-api-key"), HttpStatusCode.Unauthorized);
 
         var act = () => CreateSut().GenerateCodeFeedbackAsync(AnyFeedbackRequest, "bad-key");
 
-        await act.Should().ThrowAsync<HttpRequestException>();
+        (await act.Should().ThrowAsync<AiProviderRejectedException>())
+            .Which.Reason.Should().Be(AiRejectionReason.InvalidKey);
     }
 }

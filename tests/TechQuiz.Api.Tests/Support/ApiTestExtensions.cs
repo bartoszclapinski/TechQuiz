@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
 using TechQuiz.Api.Contracts.Auth;
 using TechQuiz.Application.Common.Dtos;
 
@@ -17,7 +18,7 @@ internal static class ApiTestExtensions
     /// Returns a client whose Authorization header carries a fresh demo-user JWT — the same
     /// login path the SPA uses, so the secured endpoints see a real bearer token.
     /// </summary>
-    public static async Task<HttpClient> CreateDemoClientAsync(this TechQuizApiFactory factory)
+    public static async Task<HttpClient> CreateDemoClientAsync(this WebApplicationFactory<Program> factory)
     {
         var client = factory.CreateClient();
 

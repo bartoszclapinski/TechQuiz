@@ -64,6 +64,9 @@ public sealed class GlobalExceptionHandler(
         ArgumentException => (StatusCodes.Status400BadRequest, "Invalid request"),
         KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
         MissingAiKeyException => (StatusCodes.Status409Conflict, "AI key not configured"),
+        AiProviderRejectedException { Reason: AiRejectionReason.InvalidKey } =>
+            (StatusCodes.Status422UnprocessableEntity, "AI provider rejected the key"),
+        AiProviderRejectedException => (StatusCodes.Status429TooManyRequests, "AI provider quota or rate limit"),
         ForbiddenAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
         UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
         DomainException => (StatusCodes.Status409Conflict, "Conflict"),

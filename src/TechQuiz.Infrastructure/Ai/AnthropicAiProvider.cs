@@ -1,8 +1,10 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using TechQuiz.Application.Abstractions;
+using TechQuiz.Application.Features.Ai;
 using TechQuiz.Domain;
 
 namespace TechQuiz.Infrastructure.Ai;
@@ -62,6 +64,7 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
         message.Headers.Add("anthropic-version", opts.ApiVersion);
 
         using var response = await http.SendAsync(message, cancellationToken);
+        await ThrowIfRejectedAsync(response, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content
@@ -75,6 +78,32 @@ internal sealed class AnthropicAiProvider(HttpClient http, IOptions<AnthropicOpt
         }
 
         return text;
+    }
+
+    /// <summary>
+    /// Turns the key/quota failures a user can act on into <see cref="AiProviderRejectedException"/>.
+    /// Anthropic reports an exhausted credit balance as a 400 <c>invalid_request_error</c>, so that
+    /// case is recognised by its message. The upstream body is only inspected, never passed on.
+    /// Any other failure falls through to <c>EnsureSuccessStatusCode</c>.
+    /// </summary>
+    private static async Task ThrowIfRejectedAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        var outOfCredit = response.StatusCode == HttpStatusCode.BadRequest
+            && (await response.Content.ReadAsStringAsync(cancellationToken))
+                .Contains("credit balance", StringComparison.OrdinalIgnoreCase);
+
+        AiRejectionReason? reason = response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => AiRejectionReason.InvalidKey,
+            HttpStatusCode.TooManyRequests => AiRejectionReason.QuotaOrRateLimit,
+            _ when outOfCredit => AiRejectionReason.QuotaOrRateLimit,
+            _ => null,
+        };
+
+        if (reason is { } rejected)
+        {
+            throw new AiProviderRejectedException(AiProviderKind.Anthropic, rejected);
+        }
     }
 
     private sealed record AnthropicMessageResponse(
