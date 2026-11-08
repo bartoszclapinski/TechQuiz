@@ -4,10 +4,9 @@ using TechQuiz.Domain;
 namespace TechQuiz.Infrastructure.Ai;
 
 /// <summary>
-/// Placeholder <see cref="IAiProvider"/> that returns deterministic drafts without
-/// any network call. It exists so the provider seam is wired end-to-end during
-/// iteration 3.1; iteration 3.2 replaces it with a real Anthropic-backed client
-/// (hence <see cref="Kind"/> = <see cref="AiProviderKind.Anthropic"/>).
+/// Deterministic <see cref="IAiProvider"/> with no network call. Introduced in iteration 3.1
+/// to wire the provider seam before a real client existed; it is not registered in DI and
+/// now serves only as a test double (<see cref="Kind"/> = <see cref="AiProviderKind.Anthropic"/>).
 /// </summary>
 public sealed class StubAiProvider : IAiProvider
 {
