@@ -16,4 +16,17 @@ public sealed class HealthEndpointTests(TechQuizApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Health_can_be_read_cross_origin_by_any_site()
+    {
+        var client = factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
+        request.Headers.Add("Origin", "https://bartoszclapinski.github.io");
+
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.GetValues("Access-Control-Allow-Origin").Should().ContainSingle().Which.Should().Be("*");
+    }
 }

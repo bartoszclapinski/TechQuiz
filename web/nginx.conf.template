@@ -28,6 +28,16 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # Wake-up probe for the portfolio site: a CORS-readable 200 that only the running container
+    # answers. While the free Render instance sleeps, Render serves browsers its own 503 loading
+    # page, which has no CORS header, so the site can tell "still waking up" from "ready".
+    location = /healthz {
+        default_type text/plain;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "no-store" always;
+        return 200 "ok";
+    }
+
     # Disable cache for the entry HTML so users always get the latest bundle hashes.
     location = /index.html {
         add_header Cache-Control "no-cache, no-store, must-revalidate";

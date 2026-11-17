@@ -122,7 +122,11 @@ app.UseCors(webCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health");
+// The portfolio site polls /health from the browser to know when the free Render instance is awake.
+// While it sleeps, Render answers browsers with its own 503 "loading" page; reading the real status
+// needs a CORS response. /health carries no data and no credentials, so it allows any origin; the
+// credentialed "web" policy above still covers every other endpoint.
+app.MapHealthChecks("/health").RequireCors(policy => policy.AllowAnyOrigin().WithMethods("GET"));
 app.MapControllers();
 
 // Seeding runs for Development and Staging. The seeder is idempotent per-resource (a no-op on a
