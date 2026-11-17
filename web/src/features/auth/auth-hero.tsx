@@ -1,11 +1,19 @@
-// Decorative showcase panel on the right half of the auth split-screen (Momentum handoff). Static
-// sample data — it sells the product visually for the portfolio demo and is hidden below lg. The
+// Decorative showcase panel on the right half of the auth split-screen (Momentum handoff). The
+// streak/score tiles are illustrative sample data; the "What's inside" numbers are real seed counts.
+// Hidden below lg. The
 // gradient glows and avatar swatches use literal hues because the design tokens carry no alpha
 // channel; acceptable for a static showcase panel.
 const STATS = [
   { value: '🔥 12', label: 'day streak' },
   { value: '182', label: 'Skill IQ' },
   { value: '84%', label: 'accuracy' },
+]
+
+// Facts about the product itself (seed data), shown instead of user testimonials or user counts.
+const INSIDE = [
+  { value: '269', label: 'questions' },
+  { value: '18', label: 'topics' },
+  { value: '4', label: 'learning tracks' },
 ]
 
 export function AuthHero() {
@@ -65,43 +73,24 @@ export function AuthHero() {
           ))}
         </div>
 
-        {/* Testimonial. */}
+        {/* What is inside — real numbers from the seeded question bank, no invented users. */}
         <div className="mb-6 rounded-[18px] border border-default bg-surface px-6 py-5">
-          <p className="mb-3.5 text-[16px] italic leading-[1.6]">
-            “I went from guessing to genuinely understanding EF Core in three weeks. The daily streak
-            is weirdly addictive.”
+          <p className="mb-3 font-mono text-[12px] uppercase tracking-[0.08em] text-accent-text">
+            What's inside
           </p>
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-pill bg-brand font-display text-[13px] font-bold text-brandfg">
-              MK
-            </div>
-            <div>
-              <p className="text-[14px] font-semibold">Marta K.</p>
-              <p className="font-mono text-[12px] text-muted">Backend developer</p>
-            </div>
+          <div className="flex gap-6">
+            {INSIDE.map((item) => (
+              <div key={item.label}>
+                <div className="font-display text-[22px] font-extrabold">{item.value}</div>
+                <div className="mt-0.5 text-[13px] text-muted">{item.label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Social proof. */}
-        <div className="flex items-center gap-3">
-          <div className="flex">
-            {[
-              'linear-gradient(135deg,#a78bfa,#7c3aed)',
-              'linear-gradient(135deg,#fbbf24,#f59e0b)',
-              'linear-gradient(135deg,#6366f1,#a78bfa)',
-              'linear-gradient(135deg,#f472b6,#fbbf24)',
-            ].map((bg, index) => (
-              <span
-                key={index}
-                className="h-[30px] w-[30px] rounded-pill border-2 border-elevated"
-                style={{ background: bg, marginLeft: index === 0 ? 0 : -10 }}
-              />
-            ))}
-          </div>
-          <span className="text-[14px] text-secondary">
-            Join <b className="text-primary">1,200+</b> developers leveling up
-          </span>
-        </div>
+        <p className="text-[14px] text-secondary">
+          No sign-up needed: try it with the <b className="text-primary">one-click demo account</b>.
+        </p>
       </div>
     </div>
   )
