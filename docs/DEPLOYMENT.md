@@ -36,12 +36,23 @@ and redeploys both services on every push to `master`.
 2. **New → Blueprint** → pick the `TechQuiz` repo. Render reads `render.yaml` and proposes two services:
    `techquiz-api` and `techquiz-web`. Apply.
 3. The first build of `techquiz-api` will start but **fail health checks until secrets are set** — that's
-   expected. Open **techquiz-api → Environment** and set the two `sync: false` secrets:
+   expected. Open **techquiz-api → Environment** and set the `sync: false` secrets:
    - `ConnectionStrings__DefaultConnection` → the Neon string from step 1.2
    - `Jwt__SigningKey` → a strong random value, e.g. generate one with:
      ```
      openssl rand -base64 48
      ```
+   - `DataProtection__CertificateBase64` and `DataProtection__CertificatePassword` → the certificate
+     that encrypts the Data Protection key ring in Neon (ADR-028). Outside Development the API refuses
+     to start without it. Generate a self-signed one locally:
+     ```
+     openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=TechQuiz key ring" \
+       -keyout keyring.key -out keyring.crt
+     openssl pkcs12 -export -inkey keyring.key -in keyring.crt -out keyring.pfx -passout pass:<password>
+     base64 -w0 keyring.pfx        # → DataProtection__CertificateBase64
+     ```
+     Keep the `.pfx` and password somewhere safe and delete the loose files. Losing the certificate
+     makes every stored AI key unreadable (users re-enter them; nothing else breaks).
 4. (Already in `render.yaml`, no action needed, but verify:) `techquiz-api` has
    `ASPNETCORE_ENVIRONMENT=Staging` and `Cors__AllowedOrigins__0=https://techquiz-web.onrender.com`;
    `techquiz-web` has `VITE_API_BASE_URL=https://techquiz-api.onrender.com`.
@@ -92,6 +103,8 @@ demo-able immediately. Demo login: `demo@techquiz.local` / `DemoPass123!`.
 |---|---|---|
 | Render · techquiz-api | `ConnectionStrings__DefaultConnection` | Neon connection string |
 | Render · techquiz-api | `Jwt__SigningKey` | `openssl rand -base64 48` |
+| Render · techquiz-api | `DataProtection__CertificateBase64` | base64 PKCS#12 key-ring certificate (see setup step 2.3) |
+| Render · techquiz-api | `DataProtection__CertificatePassword` | password of that certificate |
 
 Everything else (environment name, CORS origin, API URL) is non-secret and lives in `render.yaml`.
 
